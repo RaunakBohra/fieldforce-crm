@@ -2,6 +2,12 @@ import { PrismaClient } from '@prisma/client';
 import { getPrisma } from '../utils/db';
 import { AuthService } from '../services/authService';
 import { Bindings } from '../index';
+import { IEmailService } from '../core/ports/IEmailService';
+import { ICacheService } from '../core/ports/ICacheService';
+import { IStorageService } from '../core/ports/IStorageService';
+import { SESEmailService } from '../infrastructure/email/SESEmailService';
+import { CloudflareKVCacheService } from '../infrastructure/cache/CloudflareKVCacheService';
+import { R2StorageService } from '../infrastructure/storage/R2StorageService';
 
 /**
  * Dependency Injection Factory
@@ -12,11 +18,11 @@ import { Bindings } from '../index';
 export interface Dependencies {
   prisma: PrismaClient;
   authService: AuthService;
-  // Future services will be added here:
-  // storage: IStorageService;
-  // email: IEmailService;
-  // cache: ICacheService;
-  // queue: IQueueService;
+  email: IEmailService;
+  cache: ICacheService;
+  storage: IStorageService;
+  // Queue service is PAID feature (not available on free tier)
+  // For async jobs on free tier, use Durable Objects or process immediately
 }
 
 /**
@@ -28,6 +34,27 @@ export function createDependencies(env: Bindings): Dependencies {
   // Infrastructure layer - Database
   const prisma = getPrisma(env.DATABASE_URL);
 
+  // Infrastructure layer - Email (AWS SES via SMTP)
+  const email = new SESEmailService(
+    env.AWS_SES_SMTP_HOST || 'email-smtp.ap-south-1.amazonaws.com',
+    parseInt(env.AWS_SES_SMTP_PORT || '587', 10),
+    env.AWS_SES_SMTP_USER || '',
+    env.AWS_SES_SMTP_PASSWORD || '',
+    env.EMAIL_FROM || 'noreply@fieldforce.com'
+  );
+
+  // Infrastructure layer - Cache (Cloudflare KV - free tier available)
+  const cache = new CloudflareKVCacheService(
+    env.KV, // KV namespace binding
+    'app'   // Namespace prefix
+  );
+
+  // Infrastructure layer - Storage (Cloudflare R2 - free tier: 10GB storage)
+  const storage = new R2StorageService(
+    env.BUCKET,  // R2 bucket binding
+    env.CDN_URL  // Optional CDN URL for public files
+  );
+
   // Service layer - Business logic
   const authService = new AuthService(
     prisma,
@@ -35,19 +62,12 @@ export function createDependencies(env: Bindings): Dependencies {
     env.JWT_EXPIRES_IN
   );
 
-  // Future: Infrastructure adapters
-  // const storage = new R2StorageService(env.BUCKET, env.CDN_URL);
-  // const email = new SESEmailService(env.AWS_SES_KEY, env.AWS_SES_SECRET, 'ap-south-1');
-  // const cache = new CloudflareKVCacheService(env.KV, 'app');
-  // const queue = new CloudflareQueueService(env.QUEUE);
-
   return {
     prisma,
     authService,
-    // storage,
-    // email,
-    // cache,
-    // queue,
+    email,
+    cache,
+    storage,
   };
 }
 

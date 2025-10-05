@@ -13,11 +13,28 @@ account_id = "610762493d34333f1a6d72a037b345cf"
 ENVIRONMENT = "production"
 JWT_EXPIRES_IN = "15m"
 API_VERSION = "v1"
+EMAIL_FROM = "noreply@fieldforce.com"
+AWS_SES_SMTP_HOST = "email-smtp.ap-south-1.amazonaws.com"
+AWS_SES_SMTP_PORT = "587"
 
 # ⚠️ SECRETS - Set via: echo "value" | wrangler secret put SECRET_NAME
 # DATABASE_URL - Neon PostgreSQL connection string
 # JWT_SECRET - Strong random secret for JWT signing
-# SMTP_HOST, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD, etc.
+# AWS_SES_SMTP_USER - AWS SES SMTP username
+# AWS_SES_SMTP_PASSWORD - AWS SES SMTP password
+
+# Cloudflare KV Namespace (Cache - FREE tier available)
+[[kv_namespaces]]
+binding = "KV"
+id = "YOUR_KV_NAMESPACE_ID"  # Create via: wrangler kv:namespace create "KV"
+
+# Cloudflare R2 Bucket (Storage - FREE: 10GB/month)
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "fieldforce-crm-storage"  # Create via: wrangler r2 bucket create fieldforce-crm-storage
+
+# Note: Cloudflare Queues require PAID Workers plan
+# For free tier, use Durable Objects or process jobs immediately
 
 # Node.js compatibility for Prisma
 node_compat = true
@@ -25,6 +42,6 @@ node_compat = true
 # Development environment
 [env.dev]
 name = "fieldforce-crm-api-dev"
-vars = { ENVIRONMENT = "development" }
-
-# Note: R2, KV, Queues will be configured in Day 1-3 as needed
+vars = { ENVIRONMENT = "development", EMAIL_FROM = "dev@fieldforce.com" }
+kv_namespaces = [{ binding = "KV", id = "YOUR_DEV_KV_NAMESPACE_ID" }]
+r2_buckets = [{ binding = "BUCKET", bucket_name = "fieldforce-crm-storage-dev" }]

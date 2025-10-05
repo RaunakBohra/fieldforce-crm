@@ -16,6 +16,20 @@ export type Bindings = {
   JWT_SECRET: string;
   JWT_EXPIRES_IN: string;
   ENVIRONMENT: string;
+
+  // Email service (AWS SES via SMTP)
+  AWS_SES_SMTP_HOST?: string;
+  AWS_SES_SMTP_PORT?: string;
+  AWS_SES_SMTP_USER?: string;
+  AWS_SES_SMTP_PASSWORD?: string;
+  EMAIL_FROM?: string;
+
+  // Cache service (Cloudflare KV - free tier available)
+  KV: KVNamespace;
+
+  // Storage service (Cloudflare R2 - free tier: 10GB)
+  BUCKET: R2Bucket;
+  CDN_URL?: string;
 };
 
 const app = new Hono<{ Bindings: Bindings; Variables: { deps: Dependencies } }>();
