@@ -28,19 +28,23 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-teal-50">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg">
+      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg" role="main">
         <div>
-          <h2 className="text-3xl font-bold text-center text-teal-800">
+          <h1 className="text-3xl font-bold text-center text-teal-800">
             Field Force CRM
-          </h2>
+          </h1>
           <p className="mt-2 text-center text-slate-600">
             Sign in to your account
           </p>
         </div>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit} aria-label="Login form">
           {error && (
-            <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-lg">
+            <div
+              className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-lg"
+              role="alert"
+              aria-live="polite"
+            >
               {error}
             </div>
           )}
@@ -81,6 +85,7 @@ export default function Login() {
             type="submit"
             disabled={loading}
             className="w-full btn-primary"
+            aria-label={loading ? 'Signing in, please wait' : 'Sign in to your account'}
           >
             {loading ? 'Signing in...' : 'Sign in'}
           </button>
