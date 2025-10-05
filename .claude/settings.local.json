@@ -26,7 +26,15 @@
       "Bash(npm install)",
       "Bash(npx prisma generate:*)",
       "Bash(npx prisma migrate dev:*)",
-      "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_EK1XpFYRye6M@ep-ancient-art-a1aag2jx-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require\" npx prisma migrate dev --name init_auth_models)"
+      "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_EK1XpFYRye6M@ep-ancient-art-a1aag2jx-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require\" npx prisma migrate dev --name init_auth_models)",
+      "Bash(git push:*)",
+      "Bash(npm run dev:*)",
+      "Bash(curl:*)",
+      "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_EK1XpFYRye6M@ep-ancient-art-a1aag2jx-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require\" npx prisma migrate dev --name add_user_phone)",
+      "Bash(npm create:*)",
+      "Bash(npm install:*)",
+      "Bash(cat:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []

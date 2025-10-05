@@ -5,7 +5,7 @@ Frontend expert ensuring modern React patterns, Tailwind CSS best practices, and
 
 ## Expertise
 - React 18 (functional components, hooks, concurrent features)
-- Tailwind CSS (utility-first, teal/amber color scheme)
+- Tailwind CSS (utility-first, Navy Blue/Blue color scheme)
 - TypeScript (strict mode, prop types)
 - Component architecture (composition, reusability)
 - State management (Context API, useState, useReducer)
@@ -23,14 +23,14 @@ Read: `/docs/02-guidelines/FEATURE_GUIDELINES.md` (Sections 1, 3, 7: PWA, i18n, 
 
 ### ❌ NEVER:
 1. Use emojis (✅, ❌, 🚀) → Use Heroicons/Lucide SVG icons
-2. Use colors other than teal/amber for primary/secondary actions
+2. Use colors other than Navy Blue/Blue for primary/accent actions
 3. Use class components (use functional components only)
 4. Exceed 150-300 lines per component
 5. Use `any` type in TypeScript
 6. Skip accessibility attributes (ARIA labels, keyboard nav)
 
 ### ✅ ALWAYS:
-1. Use teal (#0d9488) for primary, amber (#d97706) for secondary
+1. Use Navy Blue (slate-700 #334155 or blue-600 #2563eb) for primary actions
 2. Use Heroicons or Lucide React for icons
 3. Type all component props
 4. Add loading and error states
@@ -113,26 +113,23 @@ class ContactCard extends React.Component<any> {  // ❌ Class component, any ty
 }
 ```
 
-### 2. Color Scheme (Teal/Amber Only) 🎨
+### 2. Color Scheme (Navy Blue/Blue Only) 🎨
 
 #### Tailwind CSS Classes (ONLY THESE):
 
 ```tsx
-// ✅ PRIMARY (Teal)
-className="bg-teal-600 hover:bg-teal-700"  // Buttons
-className="text-teal-600"                   // Text
-className="border-teal-600"                 // Borders
-className="ring-teal-600"                   // Focus rings
+// ✅ PRIMARY (Navy Blue)
+className="bg-slate-700 hover:bg-slate-800"  // Dark buttons
+className="bg-blue-600 hover:bg-blue-700"    // Accent buttons
+className="text-slate-700"                    // Text
+className="border-slate-700"                  // Borders
+className="ring-blue-600"                     // Focus rings
 
-// ✅ SECONDARY (Amber)
-className="bg-amber-600 hover:bg-amber-700"  // Buttons
-className="text-amber-600"                   // Text
-className="border-amber-600"                 // Borders
-
-// ✅ NEUTRAL (Gray)
-className="bg-gray-100"                      // Backgrounds
-className="text-gray-900"                    // Primary text
-className="text-gray-600"                    // Secondary text
+// ✅ NEUTRAL (Gray/Slate)
+className="bg-slate-100"                      // Backgrounds
+className="bg-slate-50"                       // Light backgrounds
+className="text-slate-900"                    // Primary text
+className="text-slate-600"                    // Secondary text
 
 // ✅ SEMANTIC COLORS (Status only)
 className="text-green-600"   // Success states
@@ -140,7 +137,8 @@ className="text-red-600"     // Error states
 className="text-yellow-600"  // Warning states
 
 // ❌ FORBIDDEN
-className="bg-blue-600"      // ❌ No blue!
+className="bg-teal-600"      // ❌ No teal!
+className="bg-amber-600"     // ❌ No amber!
 className="bg-purple-600"    // ❌ No purple!
 className="bg-pink-600"      // ❌ No pink!
 className="bg-indigo-600"    // ❌ No indigo!
@@ -149,15 +147,15 @@ className="bg-indigo-600"    // ❌ No indigo!
 #### Button Components:
 
 ```tsx
-// ✅ GOOD: Teal/Amber buttons (defined in globals.css)
+// ✅ GOOD: Navy Blue/Blue buttons (defined in globals.css)
 <button className="btn-primary">Save</button>
-{/* bg-teal-600 hover:bg-teal-700 */}
+{/* bg-slate-700 hover:bg-slate-800 */}
 
 <button className="btn-secondary">Cancel</button>
-{/* bg-amber-600 hover:bg-amber-700 */}
+{/* bg-blue-600 hover:bg-blue-700 */}
 
 // ❌ BAD: Wrong colors
-<button className="bg-blue-600">Save</button>
+<button className="bg-teal-600">Save</button>
 ```
 
 ### 3. Icons (NO EMOJIS!) 🚫

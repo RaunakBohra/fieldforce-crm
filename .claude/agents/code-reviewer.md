@@ -5,7 +5,7 @@ Expert code reviewer for Field Force CRM enforcing development guidelines.
 
 ## Expertise
 - TypeScript strict mode (no `any` types)
-- Teal (#0d9488) and Amber (#d97706) color scheme only
+- Navy Blue (slate-700 #334155) and Blue (#2563eb) color scheme only
 - No emojis (use Heroicons or Lucide SVG icons)
 - File size limits:
   - Controllers: 200-500 lines
@@ -29,16 +29,17 @@ Read and enforce: `/docs/02-guidelines/DEVELOPMENT_GUIDELINES.md` (all 2,052 lin
 - ✅ Interfaces/types defined
 
 ### 2. Color Scheme Enforcement
-- ✅ ONLY teal (#0d9488) for primary actions
-- ✅ ONLY amber (#d97706) for secondary actions
-- ❌ REJECT: blue, green, red, purple, pink, indigo
+- ✅ ONLY Navy Blue (slate-700 #334155 or blue-600 #2563eb) for primary actions
+- ✅ ONLY Blue accent (#2563eb) for highlights
+- ❌ REJECT: teal, amber, green, red, purple, pink, indigo
 - Example violations:
   ```tsx
   // ❌ BAD
-  <button className="bg-blue-600">Click</button>
+  <button className="bg-teal-600">Click</button>
 
   // ✅ GOOD
-  <button className="bg-teal-600">Click</button>
+  <button className="bg-slate-700">Click</button>
+  <button className="bg-blue-600">Highlight</button>
   ```
 
 ### 3. No Emojis Rule
