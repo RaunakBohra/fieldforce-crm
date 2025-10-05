@@ -7,10 +7,11 @@ import { IEmailService } from '../core/ports/IEmailService';
 import { ICacheService } from '../core/ports/ICacheService';
 import { IStorageService } from '../core/ports/IStorageService';
 import { IQueueService } from '../core/ports/IQueueService';
-import { SESEmailService } from '../infrastructure/email/SESEmailService';
+// SESEmailService disabled - nodemailer not compatible with Cloudflare Workers
+// import { SESEmailService } from '../infrastructure/email/SESEmailService';
 import { CloudflareKVCacheService } from '../infrastructure/cache/CloudflareKVCacheService';
 import { R2StorageService } from '../infrastructure/storage/R2StorageService';
-import { SQSQueueService } from '../infrastructure/queues/SQSQueueService';
+// SQS import moved to dynamic import to avoid global scope issues
 
 /**
  * Dependency Injection Factory
@@ -37,14 +38,21 @@ export function createDependencies(env: Bindings): Dependencies {
   // Infrastructure layer - Database
   const prisma = getPrisma(env.DATABASE_URL);
 
-  // Infrastructure layer - Email (AWS SES via SMTP)
-  const email = new SESEmailService(
-    env.AWS_SES_SMTP_HOST || 'email-smtp.ap-south-1.amazonaws.com',
-    parseInt(env.AWS_SES_SMTP_PORT || '587', 10),
-    env.AWS_SES_SMTP_USER || '',
-    env.AWS_SES_SMTP_PASSWORD || '',
-    env.EMAIL_FROM || 'noreply@fieldforce.com'
-  );
+  // Infrastructure layer - Email (disabled - nodemailer not compatible with CF Workers)
+  // TODO: Replace with Cloudflare Email Routing or Resend.com API
+  const email: IEmailService = {
+    async sendEmail() {
+      console.warn('Email service not configured');
+      return { success: false, error: 'Email service not available' };
+    },
+    async sendTemplatedEmail() {
+      console.warn('Email service not configured');
+      return { success: false, error: 'Email service not available' };
+    },
+    async verifyConnection() {
+      return false;
+    },
+  };
 
   // Infrastructure layer - Cache (Cloudflare KV - free tier available)
   const cache = new CloudflareKVCacheService(
@@ -68,15 +76,10 @@ export function createDependencies(env: Bindings): Dependencies {
   const contactService = new ContactService(prisma);
 
   // Optional: AWS SQS Queue Service (free tier: 1M requests/month)
+  // Note: SQS disabled for now due to Cloudflare Workers global scope restrictions
+  // AWS SDK initialization causes "Disallowed operation in global scope" error
+  // TODO: Implement lazy loading or use Cloudflare Queues instead
   let queue: IQueueService | undefined;
-  if (env.AWS_SQS_REGION && env.AWS_SQS_QUEUE_URLS) {
-    try {
-      const queueUrls = JSON.parse(env.AWS_SQS_QUEUE_URLS);
-      queue = new SQSQueueService(env.AWS_SQS_REGION, queueUrls);
-    } catch (error: unknown) {
-      console.warn('Failed to initialize SQS queue service:', error);
-    }
-  }
 
   return {
     prisma,
