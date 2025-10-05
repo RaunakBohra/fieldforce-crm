@@ -4,6 +4,7 @@ import { createDependencies, Dependencies } from './config/dependencies';
 import { securityHeaders } from './middleware/securityHeaders';
 import { logger } from './utils/logger';
 import authRoutes from './routes/auth';
+import contactRoutes from './routes/contacts';
 import { authMiddleware } from './middleware/auth';
 
 /**
@@ -102,6 +103,9 @@ app.get('/db-test', async (c) => {
 
 // Authentication routes (public)
 app.route('/api/auth', authRoutes);
+
+// Contact management routes (protected)
+app.route('/api/contacts', contactRoutes);
 
 // Protected route example
 app.get('/api/protected', authMiddleware, (c) => {

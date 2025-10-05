@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { getPrisma } from '../utils/db';
 import { AuthService } from '../services/authService';
+import { ContactService } from '../services/contactService';
 import { Bindings } from '../index';
 import { IEmailService } from '../core/ports/IEmailService';
 import { ICacheService } from '../core/ports/ICacheService';
@@ -18,6 +19,7 @@ import { R2StorageService } from '../infrastructure/storage/R2StorageService';
 export interface Dependencies {
   prisma: PrismaClient;
   authService: AuthService;
+  contactService: ContactService;
   email: IEmailService;
   cache: ICacheService;
   storage: IStorageService;
@@ -62,9 +64,12 @@ export function createDependencies(env: Bindings): Dependencies {
     env.JWT_EXPIRES_IN
   );
 
+  const contactService = new ContactService(prisma);
+
   return {
     prisma,
     authService,
+    contactService,
     email,
     cache,
     storage,
