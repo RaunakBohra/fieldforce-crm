@@ -1,0 +1,63 @@
+// Prisma Schema for Field Force CRM
+// Database: Neon PostgreSQL (serverless)
+// Documentation: https://www.prisma.io/docs
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// DAY 1: Authentication Models
+// ============================================================================
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String   // bcrypt hashed
+  name      String
+  role      UserRole @default(FIELD_REP)
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([companyId])
+}
+
+model Company {
+  id          String   @id @default(cuid())
+  name        String
+  email       String   @unique
+  phone       String?
+  address     String?
+
+  users       User[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([email])
+}
+
+enum UserRole {
+  SUPER_ADMIN   // Platform admin
+  ADMIN         // Company admin
+  MANAGER       // Regional manager
+  FIELD_REP     // Medical representative
+}
+
+// ============================================================================
+// DAY 2-5: Additional models will be added via migrations
+// - Contacts (doctors, retailers)
+// - Visits (GPS tracking)
+// - Orders (product orders)
+// - Payments (payment tracking)
+// ============================================================================

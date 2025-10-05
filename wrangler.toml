@@ -1,0 +1,30 @@
+# Cloudflare Workers Configuration
+# Documentation: https://developers.cloudflare.com/workers/wrangler/configuration/
+
+name = "fieldforce-crm-api"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+
+# Cloudflare Account
+account_id = "610762493d34333f1a6d72a037b345cf"
+
+# Environment Variables (public only)
+[vars]
+ENVIRONMENT = "production"
+JWT_EXPIRES_IN = "15m"
+API_VERSION = "v1"
+
+# ⚠️ SECRETS - Set via: echo "value" | wrangler secret put SECRET_NAME
+# DATABASE_URL - Neon PostgreSQL connection string
+# JWT_SECRET - Strong random secret for JWT signing
+# SMTP_HOST, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD, etc.
+
+# Node.js compatibility for Prisma
+node_compat = true
+
+# Development environment
+[env.dev]
+name = "fieldforce-crm-api-dev"
+vars = { ENVIRONMENT = "development" }
+
+# Note: R2, KV, Queues will be configured in Day 1-3 as needed

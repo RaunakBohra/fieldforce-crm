@@ -18,7 +18,15 @@
       "Bash(git init:*)",
       "Bash(git add:*)",
       "Bash(git commit -m \"$(cat <<''EOF''\ndocs: Add comprehensive documentation and Claude Code subagents\n\nAdded complete project documentation (23,000+ lines):\n- Architecture guides (portable Cloudflare/AWS architecture)\n- Development guidelines (TypeScript, React, security standards)\n- Operational guidelines (deployment, monitoring, compliance)\n- Feature guidelines (PWA, offline, i18n, accessibility)\n- Day 1-5 implementation plans (8-hour daily schedules)\n- Week 2-12 roadmap\n- Deployment guide (Cloudflare Workers + Pages)\n\nAdded 9 production-ready Claude Code subagents (4,456 lines):\n- code-reviewer: Enforces development guidelines\n- security-auditor: OWASP Top 10 compliance\n- test-engineer: Test coverage validation (70/60%)\n- architecture-agent: Hexagonal architecture patterns\n- documentation-agent: Maintains documentation\n- performance-optimizer: API/frontend performance\n- database-expert: Schema design and optimization\n- frontend-specialist: React/Tailwind best practices\n- devops-agent: Deployment and operations\n\nDocumentation structure:\n- docs/00-getting-started/ (onboarding, prompts)\n- docs/01-architecture/ (system design, portability)\n- docs/02-guidelines/ (development, operations, features)\n- docs/03-implementation-plans/ (day-by-day plans)\n- docs/04-deployment/ (Cloudflare deployment)\n- docs/05-references/ (planned)\n\nKey features:\n- Portable architecture (switch Cloudflare ↔ AWS in 5-7 days)\n- Cost optimized (70% cheaper: $30 vs $132/month)\n- Performance optimized (75% faster: 15-50ms vs 100-200ms)\n- Zero vendor lock-in\n- Complete automation via AI agents\n\nReady to start Day 1 implementation.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(gh:*)",
+      "Bash(npm --version)",
+      "Bash(wrangler:*)",
+      "Bash(CLOUDFLARE_API_TOKEN=50e738ecd29499ddb5da770fc370b35a79749 wrangler whoami)",
+      "Bash(npm install)",
+      "Bash(npx prisma generate:*)",
+      "Bash(npx prisma migrate dev:*)",
+      "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_EK1XpFYRye6M@ep-ancient-art-a1aag2jx-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require\" npx prisma migrate dev --name init_auth_models)"
     ],
     "deny": [],
     "ask": []

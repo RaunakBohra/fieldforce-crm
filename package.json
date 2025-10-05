@@ -1,0 +1,45 @@
+{
+  "name": "fieldforce-crm",
+  "version": "1.0.0",
+  "description": "Field Force CRM - Portable serverless medical representative management system",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "build": "tsc",
+    "type-check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "keywords": [
+    "crm",
+    "field-force",
+    "cloudflare-workers",
+    "serverless"
+  ],
+  "author": "Raunak Bohra <rnkbohra@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "hono": "^4.0.0",
+    "@prisma/client": "^5.0.0",
+    "@prisma/adapter-neon": "^5.0.0",
+    "@neondatabase/serverless": "^0.9.0",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "zod": "^3.22.0",
+    "nodemailer": "^6.9.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.0.0",
+    "@types/node": "^20.0.0",
+    "@types/bcryptjs": "^2.4.0",
+    "@types/jsonwebtoken": "^9.0.0",
+    "@types/nodemailer": "^6.4.0",
+    "typescript": "^5.3.0",
+    "wrangler": "^4.0.0",
+    "prisma": "^5.0.0",
+    "vitest": "^1.0.0",
+    "@vitest/coverage-v8": "^1.0.0"
+  }
+}

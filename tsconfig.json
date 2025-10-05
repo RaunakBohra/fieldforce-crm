@@ -1,0 +1,39 @@
+{
+  "compilerOptions": {
+    /* Language and Environment */
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "jsx": "react-jsx",
+    "module": "ESNext",
+
+    /* Module Resolution */
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "allowImportingTsExtensions": true,
+    "types": ["@cloudflare/workers-types", "node"],
+
+    /* Type Checking - STRICT MODE (Required by guidelines) */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+
+    /* Emit */
+    "noEmit": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+
+    /* Paths */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["node_modules", "dist", "build"]
+}
