@@ -21,6 +21,7 @@
   "author": "Raunak Bohra <rnkbohra@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "@aws-sdk/client-sqs": "^3.901.0",
     "@hono/zod-validator": "^0.7.3",
     "@neondatabase/serverless": "^0.9.0",
     "@prisma/adapter-neon": "^5.0.0",

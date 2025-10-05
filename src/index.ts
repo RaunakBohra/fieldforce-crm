@@ -31,6 +31,10 @@ export type Bindings = {
   // Storage service (Cloudflare R2 - free tier: 10GB)
   BUCKET: R2Bucket;
   CDN_URL?: string;
+
+  // Queue service (AWS SQS - free tier: 1M requests/month)
+  AWS_SQS_REGION?: string;
+  AWS_SQS_QUEUE_URLS?: string; // JSON string: {"email-queue": "https://sqs..."}
 };
 
 const app = new Hono<{ Bindings: Bindings; Variables: { deps: Dependencies } }>();

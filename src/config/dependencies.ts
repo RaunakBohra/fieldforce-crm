@@ -6,9 +6,11 @@ import { Bindings } from '../index';
 import { IEmailService } from '../core/ports/IEmailService';
 import { ICacheService } from '../core/ports/ICacheService';
 import { IStorageService } from '../core/ports/IStorageService';
+import { IQueueService } from '../core/ports/IQueueService';
 import { SESEmailService } from '../infrastructure/email/SESEmailService';
 import { CloudflareKVCacheService } from '../infrastructure/cache/CloudflareKVCacheService';
 import { R2StorageService } from '../infrastructure/storage/R2StorageService';
+import { SQSQueueService } from '../infrastructure/queues/SQSQueueService';
 
 /**
  * Dependency Injection Factory
@@ -23,8 +25,7 @@ export interface Dependencies {
   email: IEmailService;
   cache: ICacheService;
   storage: IStorageService;
-  // Queue service is PAID feature (not available on free tier)
-  // For async jobs on free tier, use Durable Objects or process immediately
+  queue?: IQueueService; // Optional: AWS SQS (free tier: 1M requests/month)
 }
 
 /**
@@ -66,6 +67,17 @@ export function createDependencies(env: Bindings): Dependencies {
 
   const contactService = new ContactService(prisma);
 
+  // Optional: AWS SQS Queue Service (free tier: 1M requests/month)
+  let queue: IQueueService | undefined;
+  if (env.AWS_SQS_REGION && env.AWS_SQS_QUEUE_URLS) {
+    try {
+      const queueUrls = JSON.parse(env.AWS_SQS_QUEUE_URLS);
+      queue = new SQSQueueService(env.AWS_SQS_REGION, queueUrls);
+    } catch (error: unknown) {
+      console.warn('Failed to initialize SQS queue service:', error);
+    }
+  }
+
   return {
     prisma,
     authService,
@@ -73,6 +85,7 @@ export function createDependencies(env: Bindings): Dependencies {
     email,
     cache,
     storage,
+    queue,
   };
 }
 

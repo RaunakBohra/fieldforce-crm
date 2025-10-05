@@ -50,16 +50,61 @@ wrangler r2 bucket create fieldforce-crm-storage-dev
 
 ---
 
-### 3. Cloudflare Queues (NOT Available on Free Tier)
+### 3. AWS SQS (Queue Service - FREE TIER AVAILABLE)
 
-**Pricing**: Requires Workers Paid plan ($5/month)
+**Free Tier**: 1 million requests/month (Standard Queue)
 
-**Alternative for Free Tier**:
-- Process jobs immediately (no queue)
-- Use Cloudflare Durable Objects (limited free tier available)
-- Use webhook-based processing
+**Setup:**
 
-**Implementation**: The queue service is NOT included in the DI factory to avoid errors on free tier.
+1. **Create SQS Queue**:
+```bash
+# Using AWS CLI
+aws sqs create-queue --queue-name email-queue --region ap-south-1
+aws sqs create-queue --queue-name notification-queue --region ap-south-1
+
+# Get queue URLs
+aws sqs list-queues --region ap-south-1
+```
+
+2. **Set Environment Variables**:
+```bash
+# Set SQS region
+echo "ap-south-1" | wrangler secret put AWS_SQS_REGION
+
+# Set queue URLs as JSON (multiple queues)
+echo '{"email-queue":"https://sqs.ap-south-1.amazonaws.com/123456789/email-queue","notification-queue":"https://sqs.ap-south-1.amazonaws.com/123456789/notification-queue"}' | wrangler secret put AWS_SQS_QUEUE_URLS
+```
+
+3. **IAM Permissions**:
+Ensure your AWS credentials have these SQS permissions:
+- `sqs:SendMessage`
+- `sqs:SendMessageBatch`
+- `sqs:ReceiveMessage`
+- `sqs:DeleteMessage`
+- `sqs:GetQueueAttributes`
+
+**Usage Example**:
+```typescript
+// Send message to queue
+if (deps.queue) {
+  await deps.queue.sendMessage('email-queue', {
+    to: 'user@example.com',
+    subject: 'Welcome',
+    body: 'Welcome to Field Force CRM'
+  });
+}
+
+// Process messages (in a worker/cron job)
+const messages = await deps.queue.receiveMessages('email-queue', 10);
+for (const msg of messages) {
+  await sendEmail(msg.body);
+  await deps.queue.deleteMessage('email-queue', msg.receiptHandle);
+}
+```
+
+**Alternative: Cloudflare Queues** (Requires Workers Paid plan $5/month)
+- If you upgrade to paid plan, you can use CloudflareQueueService instead
+- The implementation is already available in `src/infrastructure/queues/CloudflareQueueService.ts`
 
 ---
 
@@ -172,6 +217,33 @@ console.log('File exists:', exists);
 await deps.storage.deleteFile('test/hello.txt');
 ```
 
+### Test Queue Service (SQS)
+
+```typescript
+// Send message
+if (deps.queue) {
+  const messageId = await deps.queue.sendMessage('email-queue', {
+    to: 'test@example.com',
+    subject: 'Test',
+    body: 'Testing SQS'
+  });
+  console.log('Message sent:', messageId);
+
+  // Receive messages
+  const messages = await deps.queue.receiveMessages('email-queue', 1);
+  console.log('Received messages:', messages);
+
+  // Delete message
+  if (messages.length > 0) {
+    await deps.queue.deleteMessage('email-queue', messages[0].receiptHandle);
+  }
+
+  // Get queue stats
+  const stats = await deps.queue.getQueueStats('email-queue');
+  console.log('Queue stats:', stats);
+}
+```
+
 ---
 
 ## Cost Estimates
@@ -183,6 +255,7 @@ await deps.storage.deleteFile('test/hello.txt');
 - **Cloudflare R2**: 10GB storage, 1M Class A ops (FREE)
 - **Neon PostgreSQL**: 0.5 GB storage, 191 hours compute (FREE)
 - **AWS SES**: 62,000 emails/month (FREE with AWS compute)
+- **AWS SQS**: 1 million requests/month (FREE)
 
 **Total Cost**: $0/month (within free tier limits)
 
@@ -203,10 +276,12 @@ await deps.storage.deleteFile('test/hello.txt');
 - [ ] Create KV namespace and update wrangler.toml
 - [ ] Create R2 bucket and update wrangler.toml
 - [ ] Set up AWS SES and verify email/domain
+- [ ] Create AWS SQS queues (optional, for async jobs)
 - [ ] Set all secrets via `wrangler secret put`
 - [ ] Test email sending functionality
 - [ ] Test cache operations
 - [ ] Test file uploads to R2
+- [ ] Test queue operations (if SQS configured)
 - [ ] Move AWS SES out of sandbox (production access)
 - [ ] Configure R2 custom domain (optional, for CDN URLs)
 - [ ] Monitor usage to stay within free tier limits
@@ -215,7 +290,8 @@ await deps.storage.deleteFile('test/hello.txt');
 
 ## Notes
 
-- **Queue Service**: Not included in free tier setup. Will be added when you upgrade to Workers Paid plan.
+- **Queue Service**: AWS SQS is used for free tier (1M requests/month). Cloudflare Queues available if you upgrade to Workers Paid plan ($5/month).
 - **Email Templates**: Currently use simple string replacement. For production, consider using a proper template engine or AWS SES templates.
 - **Signed URLs**: R2 doesn't natively support signed URLs like S3. For production, implement signed tokens via Cloudflare Workers.
 - **Cache Atomicity**: KV increment() is not truly atomic. For production counters, consider using Durable Objects.
+- **SQS Polling**: For processing SQS messages, set up a cron job or use Cloudflare Workers Cron Triggers to poll the queue regularly.
