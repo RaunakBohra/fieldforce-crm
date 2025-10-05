@@ -1,182 +1,130 @@
 import { Hono } from 'hono';
-import { hash, compare } from 'bcryptjs';
-import { getPrisma } from '../utils/db';
-import { generateToken } from '../utils/jwt';
+import { signupSchema, loginSchema } from '../validators/authSchemas';
+import { authMiddleware } from '../middleware/auth';
+import { loginRateLimiter, signupRateLimiter } from '../middleware/rateLimiter';
+import { logger, getLogContext } from '../utils/logger';
 import { Bindings } from '../index';
+import type { Dependencies } from '../config/dependencies';
+import { ZodError } from 'zod';
 
-const auth = new Hono<{ Bindings: Bindings }>();
+/**
+ * Authentication Routes
+ * Declarative HTTP layer following hexagonal architecture
+ * All business logic delegated to AuthService
+ */
 
-// Signup
-auth.post('/signup', async (c) => {
+const auth = new Hono<{ Bindings: Bindings; Variables: { deps: Dependencies } }>();
+
+/**
+ * POST /signup
+ * Register a new user account
+ * Rate limited: 3 signups per hour per IP
+ */
+auth.post('/signup', signupRateLimiter, async (c) => {
+  const deps = c.get('deps');
+
   try {
-    const { email, password, name, phone } = await c.req.json();
+    const body = await c.req.json();
+    const input = signupSchema.parse(body);
 
-    // Validation
-    if (!email || !password || !name) {
-      return c.json({ error: 'Email, password, and name are required' }, 400);
+    logger.info('Signup attempt', { ...getLogContext(c), email: input.email });
+
+    const result = await deps.authService.signup(input);
+
+    if (!result.success) {
+      return c.json({ success: false, error: result.error }, 400);
     }
 
-    if (password.length < 8) {
-      return c.json({ error: 'Password must be at least 8 characters' }, 400);
-    }
-
-    const prisma = getPrisma(c.env.DATABASE_URL);
-
-    // Check if user exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (existingUser) {
-      return c.json({ error: 'User already exists' }, 400);
-    }
-
-    // Hash password
-    const hashedPassword = await hash(password, 10);
-
-    // Create user
-    const user = await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        name,
-        phone,
-      },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        phone: true,
-        role: true,
-        createdAt: true,
-      },
-    });
-
-    // Generate token
-    const token = await generateToken(
-      {
-        userId: user.id,
-        email: user.email,
-        role: user.role,
-      },
-      c.env.JWT_SECRET,
-      c.env.JWT_EXPIRES_IN
-    );
+    logger.info('Signup successful', { ...getLogContext(c), userId: result.data?.user.id });
 
     return c.json(
       {
         success: true,
         message: 'User created successfully',
-        data: {
-          user,
-          token,
-        },
+        data: result.data,
       },
       201
     );
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Signup failed';
-    console.error('Signup error:', error);
-    return c.json({ error: message }, 500);
+    if (error instanceof ZodError) {
+      return c.json(
+        {
+          success: false,
+          error: error.errors[0]?.message || 'Validation failed',
+          details: error.errors,
+        },
+        400
+      );
+    }
+    throw error;
   }
 });
 
-// Login
-auth.post('/login', async (c) => {
+/**
+ * POST /login
+ * Authenticate user and return JWT token
+ * Rate limited: 5 attempts per 15 minutes per IP
+ */
+auth.post('/login', loginRateLimiter, async (c) => {
+  const deps = c.get('deps');
+
   try {
-    const { email, password } = await c.req.json();
+    const body = await c.req.json();
+    const input = loginSchema.parse(body);
 
-    // Validation
-    if (!email || !password) {
-      return c.json({ error: 'Email and password are required' }, 400);
+    logger.info('Login attempt', { ...getLogContext(c), email: input.email });
+
+    const result = await deps.authService.login(input);
+
+    if (!result.success) {
+      return c.json({ success: false, error: result.error }, 401);
     }
 
-    const prisma = getPrisma(c.env.DATABASE_URL);
-
-    // Find user
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (!user) {
-      return c.json({ error: 'Invalid credentials' }, 401);
-    }
-
-    // Verify password
-    const isValid = await compare(password, user.password);
-
-    if (!isValid) {
-      return c.json({ error: 'Invalid credentials' }, 401);
-    }
-
-    // Generate token
-    const token = await generateToken(
-      {
-        userId: user.id,
-        email: user.email,
-        role: user.role,
-      },
-      c.env.JWT_SECRET,
-      c.env.JWT_EXPIRES_IN
-    );
+    logger.info('Login successful', { ...getLogContext(c), userId: result.data?.user.id });
 
     return c.json({
       success: true,
       message: 'Login successful',
-      data: {
-        user: {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          phone: user.phone,
-          role: user.role,
-        },
-        token,
-      },
+      data: result.data,
     });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Login failed';
-    console.error('Login error:', error);
-    return c.json({ error: message }, 500);
+    if (error instanceof ZodError) {
+      return c.json(
+        {
+          success: false,
+          error: error.errors[0]?.message || 'Validation failed',
+          details: error.errors,
+        },
+        400
+      );
+    }
+    throw error;
   }
 });
 
-// Get current user
-auth.get('/me', async (c) => {
-  try {
-    const user = c.get('user');
+/**
+ * GET /me
+ * Get current authenticated user details
+ * Requires valid JWT token
+ */
+auth.get('/me', authMiddleware, async (c) => {
+  const deps = c.get('deps');
+  const user = c.get('user');
 
-    if (!user) {
-      return c.json({ error: 'Unauthorized' }, 401);
-    }
-
-    const prisma = getPrisma(c.env.DATABASE_URL);
-
-    const currentUser = await prisma.user.findUnique({
-      where: { id: user.userId },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        phone: true,
-        role: true,
-        createdAt: true,
-      },
-    });
-
-    if (!currentUser) {
-      return c.json({ error: 'User not found' }, 404);
-    }
-
-    return c.json({
-      success: true,
-      data: currentUser,
-    });
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Failed to get user';
-    console.error('Get user error:', error);
-    return c.json({ error: message }, 500);
+  if (!user) {
+    return c.json({ success: false, error: 'Unauthorized' }, 401);
   }
+
+  const result = await deps.authService.getCurrentUser(user.userId);
+
+  if (!result.success) {
+    return c.json({ success: false, error: result.error }, 404);
+  }
+
+  return c.json({
+    success: true,
+    data: result.data,
+  });
 });
 
 export default auth;

@@ -1,8 +1,15 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
-import { getPrisma } from './utils/db';
+import { createDependencies, Dependencies } from './config/dependencies';
+import { securityHeaders } from './middleware/securityHeaders';
+import { logger } from './utils/logger';
 import authRoutes from './routes/auth';
 import { authMiddleware } from './middleware/auth';
+
+/**
+ * Main Application Entry Point
+ * Follows hexagonal architecture with dependency injection
+ */
 
 export type Bindings = {
   DATABASE_URL: string;
@@ -11,29 +18,51 @@ export type Bindings = {
   ENVIRONMENT: string;
 };
 
-const app = new Hono<{ Bindings: Bindings }>();
+const app = new Hono<{ Bindings: Bindings; Variables: { deps: Dependencies } }>();
 
-// CORS middleware
-app.use('/*', cors({
-  origin: ['http://localhost:3000', 'http://localhost:5173'],
-  credentials: true,
-}));
+/**
+ * Global Middleware
+ */
 
-// Health check
+// Security headers (OWASP best practices)
+app.use('/*', securityHeaders);
+
+// CORS configuration
+app.use(
+  '/*',
+  cors({
+    origin: ['http://localhost:3000', 'http://localhost:5173'],
+    credentials: true,
+  })
+);
+
+// Dependency injection middleware - creates services for each request
+app.use('/*', async (c, next) => {
+  const deps = createDependencies(c.env);
+  c.set('deps', deps);
+  await next();
+});
+
+/**
+ * Public Routes
+ */
+
+// Health check endpoint
 app.get('/health', (c) => {
   return c.json({
     status: 'ok',
     platform: 'cloudflare-workers',
     environment: c.env?.ENVIRONMENT || 'local',
     timestamp: new Date().toISOString(),
+    version: '1.0.0',
   });
 });
 
-// Database test
+// Database connectivity test
 app.get('/db-test', async (c) => {
   try {
-    const prisma = getPrisma(c.env.DATABASE_URL);
-    const userCount = await prisma.user.count();
+    const deps = c.get('deps');
+    const userCount = await deps.prisma.user.count();
 
     return c.json({
       success: true,
@@ -42,14 +71,22 @@ app.get('/db-test', async (c) => {
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Database connection failed';
-    return c.json({
-      success: false,
-      error: message,
-    }, 500);
+    logger.error('Database test failed', error);
+    return c.json(
+      {
+        success: false,
+        error: message,
+      },
+      500
+    );
   }
 });
 
-// Auth routes (public)
+/**
+ * API Routes
+ */
+
+// Authentication routes (public)
 app.route('/api/auth', authRoutes);
 
 // Protected route example
@@ -61,15 +98,53 @@ app.get('/api/protected', authMiddleware, (c) => {
   });
 });
 
+/**
+ * Error Handlers
+ */
+
 // 404 handler
 app.notFound((c) => {
-  return c.json({ error: 'Not found' }, 404);
+  logger.warn('Route not found', { path: c.req.path, method: c.req.method });
+  return c.json({ success: false, error: 'Not found' }, 404);
 });
 
-// Error handler
+// Global error handler
 app.onError((err, c) => {
-  console.error('Error:', err);
-  return c.json({ error: err.message || 'Internal server error' }, 500);
+  // Handle validation errors (from zValidator)
+  if (err.name === 'HTTPException') {
+    const httpErr = err as { status?: number; message: string };
+    const status = httpErr.status || 400;
+
+    logger.warn('Validation error', {
+      path: c.req.path,
+      method: c.req.method,
+      error: err.message,
+    });
+
+    return c.json(
+      {
+        success: false,
+        error: err.message || 'Validation failed',
+      },
+      status
+    );
+  }
+
+  // Handle other errors
+  logger.error('Unhandled error', err, {
+    path: c.req.path,
+    method: c.req.method,
+  });
+
+  return c.json(
+    {
+      success: false,
+      error: c.env?.ENVIRONMENT === 'production'
+        ? 'Internal server error'
+        : err.message || 'Internal server error',
+    },
+    500
+  );
 });
 
 export default app;
