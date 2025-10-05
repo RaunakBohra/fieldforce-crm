@@ -1,4 +1,5 @@
 import { ICacheService, CacheOptions } from '../../core/ports/ICacheService';
+import { logger } from '../../utils/logger';
 
 /**
  * Cloudflare KV Cache Service Implementation
@@ -26,7 +27,7 @@ export class CloudflareKVCacheService implements ICacheService {
       const value = await this.kv.get(this.getKey(key), 'json');
       return value as T | null;
     } catch (error: unknown) {
-      console.error('KV get error:', error);
+      logger.error('KV get error', error, { key });
       return null;
     }
   }
@@ -48,7 +49,7 @@ export class CloudflareKVCacheService implements ICacheService {
         kvOptions
       );
     } catch (error: unknown) {
-      console.error('KV set error:', error);
+      logger.error('KV set error', error, { key });
       throw error;
     }
   }
@@ -60,7 +61,7 @@ export class CloudflareKVCacheService implements ICacheService {
     try {
       await this.kv.delete(this.getKey(key));
     } catch (error: unknown) {
-      console.error('KV delete error:', error);
+      logger.error('KV delete error', error, { key });
       throw error;
     }
   }
@@ -73,7 +74,7 @@ export class CloudflareKVCacheService implements ICacheService {
       const value = await this.kv.get(this.getKey(key));
       return value !== null;
     } catch (error: unknown) {
-      console.error('KV has error:', error);
+      logger.error('KV has error', error, { key });
       return false;
     }
   }
@@ -104,7 +105,7 @@ export class CloudflareKVCacheService implements ICacheService {
 
       return count;
     } catch (error: unknown) {
-      console.error('KV deletePattern error:', error);
+      logger.error('KV deletePattern error', error, { pattern });
       return 0;
     }
   }
@@ -121,7 +122,7 @@ export class CloudflareKVCacheService implements ICacheService {
       await this.set(key, newValue, options);
       return newValue;
     } catch (error: unknown) {
-      console.error('KV increment error:', error);
+      logger.error('KV increment error', error, { key });
       throw error;
     }
   }

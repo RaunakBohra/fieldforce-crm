@@ -55,10 +55,10 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-100 py-12">
+    <div className="min-h-screen flex items-center justify-center bg-teal-50 py-12">
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg">
         <div>
-          <h2 className="text-3xl font-bold text-center text-slate-800">
+          <h2 className="text-3xl font-bold text-center text-teal-800">
             Field Force CRM
           </h2>
           <p className="mt-2 text-center text-slate-600">
@@ -68,7 +68,7 @@ export default function Signup() {
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
+            <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-lg">
               {error}
             </div>
           )}
@@ -164,7 +164,7 @@ export default function Signup() {
 
           <p className="text-center text-sm text-slate-600">
             Already have an account?{' '}
-            <Link to="/login" className="text-blue-600 hover:text-blue-700 font-medium">
+            <Link to="/login" className="text-teal-600 hover:text-teal-700 font-medium">
               Sign in
             </Link>
           </p>

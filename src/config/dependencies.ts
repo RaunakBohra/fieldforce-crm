@@ -7,6 +7,7 @@ import { IEmailService } from '../core/ports/IEmailService';
 import { ICacheService } from '../core/ports/ICacheService';
 import { IStorageService } from '../core/ports/IStorageService';
 import { IQueueService } from '../core/ports/IQueueService';
+import { logger } from '../utils/logger';
 // SESEmailService disabled - nodemailer not compatible with Cloudflare Workers
 // import { SESEmailService } from '../infrastructure/email/SESEmailService';
 import { CloudflareKVCacheService } from '../infrastructure/cache/CloudflareKVCacheService';
@@ -42,11 +43,11 @@ export function createDependencies(env: Bindings): Dependencies {
   // TODO: Replace with Cloudflare Email Routing or Resend.com API
   const email: IEmailService = {
     async sendEmail() {
-      console.warn('Email service not configured');
+      logger.warn('Email service not configured');
       return { success: false, error: 'Email service not available' };
     },
     async sendTemplatedEmail() {
-      console.warn('Email service not configured');
+      logger.warn('Email service not configured');
       return { success: false, error: 'Email service not available' };
     },
     async verifyConnection() {

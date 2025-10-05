@@ -1,4 +1,5 @@
 import { IStorageService, UploadOptions, UploadResult } from '../../core/ports/IStorageService';
+import { logger } from '../../utils/logger';
 
 /**
  * Cloudflare R2 Storage Service Implementation
@@ -58,7 +59,7 @@ export class R2StorageService implements IStorageService {
     try {
       await this.bucket.delete(key);
     } catch (error: unknown) {
-      console.error('R2 delete error:', error);
+      logger.error('R2 delete error', error, { key });
       throw error;
     }
   }
@@ -111,7 +112,7 @@ export class R2StorageService implements IStorageService {
         checksums: object.checksums,
       };
     } catch (error: unknown) {
-      console.error('R2 getMetadata error:', error);
+      logger.error('R2 getMetadata error', error, { key });
       return null;
     }
   }
@@ -128,7 +129,7 @@ export class R2StorageService implements IStorageService {
 
       return listed.objects.map((obj) => obj.key);
     } catch (error: unknown) {
-      console.error('R2 list error:', error);
+      logger.error('R2 list error', error, { prefix });
       return [];
     }
   }
