@@ -124,18 +124,11 @@ model Contact {
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 
-  // Single column indexes
-  @@index([assignedToId])
-  @@index([companyId])
-  @@index([contactType])
-  @@index([city])
-  @@index([isActive])
-
-  // Composite indexes for common query patterns
+  // Optimized indexes for query performance
+  @@index([assignedToId])                           // Field rep lookup
+  @@index([companyId])                              // Company lookup
   @@index([companyId, isActive, contactType])       // List active contacts by company and type
   @@index([assignedToId, isActive])                 // Field rep's active contacts
-  @@index([companyId, contactType, isActive])       // Contacts by type within company (duplicate for clarity)
-  @@index([city, contactType])                      // Geographic + type queries
   @@index([nextVisitDate, assignedToId])            // Visit planning queries
   @@index([isActive, createdAt])                    // Recent active contacts
 }
@@ -211,17 +204,11 @@ model Visit {
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 
-  // Indexes for common queries
-  @@index([contactId, visitDate])
-  @@index([fieldRepId, visitDate])
-  @@index([visitDate])
-  @@index([status])
+  // Optimized indexes for query performance
+  @@index([fieldRepId, visitDate])          // Field rep's visits by date
+  @@index([contactId, visitDate])           // Contact visit history
   @@index([fieldRepId, status, visitDate])  // Field rep's visits filtered by status
-  @@index([contactId, status])              // Contact's visit history
-
-  // Dashboard performance indexes
-  @@index([fieldRepId, createdAt])          // Dashboard stats by field rep and date
-  @@index([createdAt])                      // Dashboard stats for admin (all visits by date)
+  @@index([fieldRepId, createdAt])          // Dashboard stats
 }
 
 enum VisitType {
@@ -273,13 +260,8 @@ model Product {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  @@index([category])
-  @@index([isActive])
-  @@index([sku])
-
-  // Composite indexes for common query patterns
-  @@index([isActive, category])  // Active products by category
-  @@index([category, isActive])  // Category filter with active status
+  @@index([sku])                    // SKU lookup (unique constraint handles this)
+  @@index([isActive, category])    // Active products by category
 }
 
 model Order {
@@ -317,21 +299,10 @@ model Order {
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
-  @@index([contactId])
-  @@index([createdById])
-  @@index([status])
-  @@index([orderNumber])
-  @@index([createdAt])
-  @@index([paymentStatus])
-
-  // Composite indexes for common query patterns
-  @@index([createdById, status, createdAt])  // Field rep's orders by status and date
-  @@index([contactId, status])               // Contact's order history
-  @@index([status, createdAt])               // Orders by status and date
-  @@index([paymentStatus, status])           // Payment tracking queries
-
-  // Dashboard performance indexes
-  @@index([createdById, paymentStatus])      // Dashboard payment stats by field rep
+  @@index([orderNumber])                        // Order lookup (unique constraint)
+  @@index([createdById, status, createdAt])    // Field rep's orders by status and date
+  @@index([createdById, paymentStatus, status]) // Payment tracking and outstanding orders
+  @@index([status, createdAt])                 // Admin analytics queries
 }
 
 model OrderItem {
@@ -400,20 +371,10 @@ model Payment {
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
-  @@index([orderId])
-  @@index([contactId])
-  @@index([recordedById])
-  @@index([paymentDate])
-  @@index([paymentMode])
-  @@index([status])
-
-  // Composite indexes for common query patterns
+  @@index([orderId])                     // Order payment lookup
   @@index([recordedById, paymentDate])   // Field rep's payment history
-  @@index([orderId, status])             // Order payment tracking
   @@index([paymentMode, paymentDate])    // Payment mode analytics
-
-  // Dashboard performance indexes
-  @@index([recordedById, createdAt])     // Dashboard recent activity by field rep
+  @@index([recordedById, createdAt])     // Dashboard recent activity
 }
 
 enum PaymentMode {

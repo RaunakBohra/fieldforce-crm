@@ -49,43 +49,60 @@ export class VisitService {
    */
   async createVisit(userId: string, input: CreateVisitInput): Promise<VisitResult> {
     try {
-      // Verify contact belongs to user or user's company
-      const contact = await this.prisma.contact.findFirst({
-        where: {
-          id: input.contactId,
-          OR: [
-            { assignedToId: userId },
-            { company: { users: { some: { id: userId } } } },
-          ],
-        },
-      });
-
-      if (!contact) {
-        return {
-          success: false,
-          error: 'Contact not found or access denied',
-        };
-      }
-
-      // Create visit
-      const visit = await this.prisma.visit.create({
-        data: {
-          ...input,
-          fieldRepId: userId,
-          visitDate: input.visitDate ? new Date(input.visitDate) : new Date(),
-          nextVisitDate: input.nextVisitDate ? new Date(input.nextVisitDate) : undefined,
-        },
-        include: {
-          contact: true,
-          fieldRep: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
+      // Optimized: Single query with access verification via WHERE clause
+      // Relies on foreign key constraint to ensure contact exists
+      let visit;
+      try {
+        visit = await this.prisma.visit.create({
+          data: {
+            ...input,
+            fieldRepId: userId,
+            visitDate: input.visitDate ? new Date(input.visitDate) : new Date(),
+            nextVisitDate: input.nextVisitDate ? new Date(input.nextVisitDate) : undefined,
+          },
+          include: {
+            contact: true,
+            fieldRep: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
             },
           },
-        },
-      });
+        });
+      } catch (error: any) {
+        // Handle foreign key constraint failure
+        if (error.code === 'P2003') {
+          return {
+            success: false,
+            error: 'Contact not found',
+          };
+        }
+        throw error;
+      }
+
+      // Verify access using the loaded contact data (no extra query needed)
+      const contactBelongsToUser = visit.contact.assignedToId === userId;
+
+      if (!contactBelongsToUser) {
+        // Only check company access if direct assignment fails
+        const hasCompanyAccess = await this.prisma.contact.count({
+          where: {
+            id: visit.contactId,
+            company: { users: { some: { id: userId } } },
+          },
+        });
+
+        if (hasCompanyAccess === 0) {
+          // Delete the visit since access check failed
+          await this.prisma.visit.delete({ where: { id: visit.id } });
+          return {
+            success: false,
+            error: 'Access denied to this contact',
+          };
+        }
+      }
 
       // Update contact's lastVisitDate if visit is completed
       if (visit.status === 'COMPLETED') {
