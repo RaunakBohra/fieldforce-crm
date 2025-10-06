@@ -55,8 +55,9 @@ export function ContactForm() {
       if (response.success && response.data) {
         setFormData(response.data);
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to fetch contact');
+    } catch (err) {
+      const error = err as Error;
+      setError(error.message || 'Failed to fetch contact');
     } finally {
       setLoading(false);
     }
@@ -83,14 +84,15 @@ export function ContactForm() {
       if (response.success) {
         navigate('/contacts');
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to save contact');
+    } catch (err) {
+      const error = err as Error;
+      setError(error.message || 'Failed to save contact');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChange = (field: keyof CreateContactData, value: any) => {
+  const handleChange = (field: keyof CreateContactData, value: CreateContactData[keyof CreateContactData]) => {
     setFormData({ ...formData, [field]: value });
   };
 

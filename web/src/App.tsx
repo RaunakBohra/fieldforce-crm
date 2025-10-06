@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
@@ -24,48 +25,50 @@ function PrivateRoute({ children }: { children: ReactElement }) {
 
 function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/themes" element={<ThemePreview />} />
-          <Route
-            path="/dashboard"
-            element={
-              <PrivateRoute>
-                <Dashboard />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/contacts"
-            element={
-              <PrivateRoute>
-                <ContactsList />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/contacts/new"
-            element={
-              <PrivateRoute>
-                <ContactForm />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/contacts/:id/edit"
-            element={
-              <PrivateRoute>
-                <ContactForm />
-              </PrivateRoute>
-            }
-          />
-          <Route path="/" element={<Navigate to="/dashboard" />} />
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/themes" element={<ThemePreview />} />
+            <Route
+              path="/dashboard"
+              element={
+                <PrivateRoute>
+                  <Dashboard />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/contacts"
+              element={
+                <PrivateRoute>
+                  <ContactsList />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/contacts/new"
+              element={
+                <PrivateRoute>
+                  <ContactForm />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/contacts/:id/edit"
+              element={
+                <PrivateRoute>
+                  <ContactForm />
+                </PrivateRoute>
+              }
+            />
+            <Route path="/" element={<Navigate to="/dashboard" />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 

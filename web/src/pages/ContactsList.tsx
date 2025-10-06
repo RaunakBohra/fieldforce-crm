@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
-import type { Contact, ContactStats } from '../services/api';
+import type { Contact, ContactStats, ContactQueryParams } from '../services/api';
 import { Pencil, Trash2, Plus, Search, Filter } from 'lucide-react';
 
 export function ContactsList() {
@@ -30,7 +30,7 @@ export function ContactsList() {
   const fetchContacts = async () => {
     try {
       setLoading(true);
-      const params: any = {
+      const params: ContactQueryParams = {
         page: currentPage,
         limit,
       };
@@ -45,8 +45,9 @@ export function ContactsList() {
         setContacts(response.data.contacts);
         setTotalPages(Math.ceil(response.data.total / limit));
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to fetch contacts');
+    } catch (err) {
+      const error = err as Error;
+      setError(error.message || 'Failed to fetch contacts');
     } finally {
       setLoading(false);
     }
@@ -72,8 +73,9 @@ export function ContactsList() {
         fetchContacts();
         fetchStats();
       }
-    } catch (err: any) {
-      alert(err.message || 'Failed to delete contact');
+    } catch (err) {
+      const error = err as Error;
+      alert(error.message || 'Failed to delete contact');
     }
   };
 
