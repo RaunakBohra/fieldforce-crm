@@ -82,7 +82,17 @@
       "Bash(open:*)",
       "Bash(xargs kill:*)",
       "Bash(CLOUDFLARE_ACCOUNT_ID=7e506c3c49803094e72145796c0f8598 npx wrangler pages deploy /Users/raunakbohra/Desktop/medical-CRM/web/dist --project-name=fieldforce-crm --commit-dirty=true)",
-      "Bash(CLOUDFLARE_ACCOUNT_ID=610762493d34333f1a6d72a037b345cf npx wrangler deploy)"
+      "Bash(CLOUDFLARE_ACCOUNT_ID=610762493d34333f1a6d72a037b345cf npx wrangler deploy)",
+      "Bash(do sed -i '' 's/text-yellow-800/text-warn-800/g' \"$file\")",
+      "Bash(do sed -i '' 's/bg-red-600/bg-danger-600/g' \"$file\")",
+      "Bash(do sed -i '' 's/bg-green-100/bg-success-100/g' \"$file\")",
+      "Bash(do sed -i '' 's/bg-blue-600/bg-primary-600/g' \"$file\")",
+      "Bash(do sed -i '' 's/bg-red-100/bg-danger-100/g' \"$file\")",
+      "Bash(do sed -i '' 's/bg-orange-100/bg-warn-100/g' \"$file\")",
+      "Bash(do sed -i '' 's/bg-primary-600 text-white rounded-lg hover:bg-primary-700/bg-primary-600 text-white rounded-lg hover:bg-primary-500/g' \"$file\")",
+      "Bash(wc:*)",
+      "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_EK1XpFYRye6M@ep-ancient-art-a1aag2jx-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require\" npx tsx scripts/make-admin.ts iwbtracking@gmail.com)",
+      "Bash(xargs:*)"
     ],
     "deny": [],
     "ask": []

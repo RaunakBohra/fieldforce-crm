@@ -23,32 +23,36 @@ Read: `/docs/02-guidelines/FEATURE_GUIDELINES.md` (Sections 1, 3, 7: PWA, i18n, 
 
 ### ❌ NEVER:
 1. Use emojis (✅, ❌, 🚀) → Use Heroicons/Lucide SVG icons
-2. Use colors other than Sky Blue/Indigo for primary/accent actions
+2. Use teal or old amber colors → Use primary (indigo) and accent (pink)
 3. Use class components (use functional components only)
 4. Exceed 150-300 lines per component
 5. Use `any` type in TypeScript
 6. Skip accessibility attributes (ARIA labels, keyboard nav)
+7. Use gray-* → Use neutral-* (slate) instead
 
 ### ✅ ALWAYS:
-1. Use **Sky Blue** (#3B82F6 / blue-500) for primary actions
-2. Use **Indigo** (#6366F1 / indigo-500) for accent/secondary actions
-3. Use Heroicons or Lucide React for icons
-4. Type all component props
-5. Add loading and error states
-6. Make components responsive (mobile-first)
-7. Add proper ARIA labels
-8. Test on mobile devices
+1. Use **Primary Indigo** (#3730a3 / primary-600) for main actions
+2. Use **Accent Pink** (#db2777 / accent-600) for badges/pills
+3. Use **Focus Indigo** (#4f46e5 / primary-500) for focus rings
+4. Use Heroicons or Lucide React for icons
+5. Type all component props
+6. Add loading and error states
+7. Make components responsive (mobile-first)
+8. Add proper ARIA labels
+9. Test on mobile devices
 
-## Design System Colors
-- **Primary**: Sky Blue `#3B82F6` (Tailwind: `blue-500`)
-- **Accent**: Indigo `#6366F1` (Tailwind: `indigo-500`)
-- **Background**: White `#FFFFFF`
-- **Surface**: Gray 50 `#F9FAFB` (Tailwind: `gray-50`)
-- **Text Primary**: Gray 900 `#111827` (Tailwind: `gray-900`)
-- **Text Secondary**: Gray 600 `#6B7280` (Tailwind: `gray-600`)
-- **Success**: Emerald `#10B981` (Tailwind: `emerald-500`)
-- **Warning**: Amber `#F59E0B` (Tailwind: `amber-500`)
-- **Error**: Red `#EF4444` (Tailwind: `red-500`)
+## Design System Colors (Indigo/Pink Modern Theme)
+- **Primary**: Indigo `#3730a3` (Tailwind: `primary-600` default, `primary-500` hover)
+- **Primary Dark**: Deep Indigo `#1e3a8a` (Tailwind: `primary-800` navbar/backgrounds)
+- **Accent**: Pink `#db2777` (Tailwind: `accent-600` badges, `accent-500` hover)
+- **Focus**: Indigo `#4f46e5` (Tailwind: `primary-500` focus rings)
+- **Background**: White `#FFFFFF` (Tailwind: `bg-white`)
+- **Soft Background**: Slate 100 `#f1f5f9` (Tailwind: `bg-neutral-100`)
+- **Text Primary**: Slate 900 `#0f172a` (Tailwind: `neutral-900`)
+- **Text Secondary**: Slate 600 `#475569` (Tailwind: `neutral-600`)
+- **Success**: Emerald `#10b981` / `#059669` (Tailwind: `success-500` / `success-600`)
+- **Warning**: Orange `#f97316` / `#ea580c` (Tailwind: `warn-500` / `warn-600`)
+- **Error**: Red `#ef4444` / `#dc2626` (Tailwind: `danger-500` / `danger-600`)
 
 ## React Patterns
 
@@ -75,25 +79,25 @@ export default function ContactCard({ contact, onSelect, isSelected = false }: C
       className={`
         p-4 rounded-lg border-2 cursor-pointer transition-all
         ${isSelected
-          ? 'border-blue-500 bg-blue-50'
-          : 'border-gray-200 hover:border-blue-300'
+          ? 'border-primary-600 bg-primary-50'
+          : 'border-neutral-200 hover:border-primary-300'
         }
       `}
     >
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <h3 className="text-lg font-semibold text-gray-900">{contact.name}</h3>
-          <p className="text-sm text-gray-600">{contact.type}</p>
+          <h3 className="text-lg font-semibold text-neutral-900">{contact.name}</h3>
+          <p className="text-sm text-neutral-600">{contact.type}</p>
         </div>
 
         {contact.verified && (
-          <CheckCircleIcon className="w-5 h-5 text-blue-500" />
+          <CheckCircleIcon className="w-5 h-5 text-primary-600" />
           {/* ✅ GOOD: SVG icon, not emoji */}
         )}
       </div>
 
-      <div className="mt-2 flex items-center gap-2 text-sm text-gray-700">
-        <PhoneIcon className="w-4 h-4 text-gray-500" />
+      <div className="mt-2 flex items-center gap-2 text-sm text-neutral-700">
+        <PhoneIcon className="w-4 h-4 text-neutral-500" />
         <span>{contact.phone}</span>
       </div>
 
@@ -125,49 +129,55 @@ class ContactCard extends React.Component<any> {  // ❌ Class component, any ty
 }
 ```
 
-### 2. Color Scheme (Navy Blue/Blue Only) 🎨
+### 2. Color Scheme (Indigo/Pink Modern) 🎨
 
 #### Tailwind CSS Classes (ONLY THESE):
 
 ```tsx
-// ✅ PRIMARY (Navy Blue)
-className="bg-slate-700 hover:bg-slate-800"  // Dark buttons
-className="bg-blue-600 hover:bg-blue-700"    // Accent buttons
-className="text-slate-700"                    // Text
-className="border-slate-700"                  // Borders
-className="ring-blue-600"                     // Focus rings
+// ✅ PRIMARY (Indigo)
+className="bg-primary-600 hover:bg-primary-500"  // Main CTA buttons
+className="bg-primary-800"                        // Navbar/dark backgrounds
+className="text-primary-600"                      // Primary text links
+className="border-primary-600"                    // Primary borders
+className="ring-primary-500"                        // Focus rings
 
-// ✅ NEUTRAL (Gray/Slate)
-className="bg-slate-100"                      // Backgrounds
-className="bg-slate-50"                       // Light backgrounds
-className="text-slate-900"                    // Primary text
-className="text-slate-600"                    // Secondary text
+// ✅ ACCENT (Pink)
+className="bg-accent-600 hover:bg-accent-500"    // Badges/pills
+className="text-accent-600"                       // Accent text
+
+// ✅ NEUTRAL (Slate)
+className="bg-neutral-100"                       // Soft backgrounds (#f1f5f9)
+className="bg-neutral-50"                         // Very light backgrounds
+className="bg-white"                              // Main backgrounds
+className="text-neutral-900"                      // Primary text
+className="text-neutral-600"                      // Secondary text
+className="border-neutral-300"                    // Borders
 
 // ✅ SEMANTIC COLORS (Status only)
-className="text-green-600"   // Success states
-className="text-red-600"     // Error states
-className="text-yellow-600"  // Warning states
+className="text-success-600"   // Success states
+className="text-danger-600"    // Error states
+className="text-warn-600"      // Warning states
 
 // ❌ FORBIDDEN
-className="bg-teal-600"      // ❌ No teal!
-className="bg-amber-600"     // ❌ No amber!
-className="bg-purple-600"    // ❌ No purple!
-className="bg-pink-600"      // ❌ No pink!
-className="bg-indigo-600"    // ❌ No indigo!
+className="bg-teal-600"      // ❌ No teal! (old theme)
+className="bg-amber-600"     // ❌ No amber! (old theme)
+className="bg-blue-600"      // ❌ Use primary-600 instead
+className="bg-gray-100"      // ❌ Use neutral-100 instead
 ```
 
 #### Button Components:
 
 ```tsx
-// ✅ GOOD: Navy Blue/Blue buttons (defined in globals.css)
+// ✅ GOOD: Indigo/Pink buttons (defined in index.css)
 <button className="btn-primary">Save</button>
-{/* bg-slate-700 hover:bg-slate-800 */}
+{/* bg-primary-600 hover:bg-primary-500 */}
 
-<button className="btn-secondary">Cancel</button>
-{/* bg-blue-600 hover:bg-blue-700 */}
+<button className="btn-secondary">Featured</button>
+{/* bg-accent-600 hover:bg-accent-500 (pink) */}
 
-// ❌ BAD: Wrong colors
+// ❌ BAD: Wrong colors (old theme)
 <button className="bg-teal-600">Save</button>
+<button className="bg-blue-600">Save</button>
 ```
 
 ### 3. Icons (NO EMOJIS!) 🚫
@@ -439,8 +449,8 @@ function ContactForm() {
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           className={`
             mt-1 block w-full rounded-md border px-3 py-2
-            ${errors.name ? 'border-red-500' : 'border-gray-300'}
-            focus:ring-teal-600 focus:border-teal-600
+            ${errors.name ? 'border-danger-500' : 'border-neutral-300'}
+            focus:ring-primary-500 focus:border-primary-500
           `}
           aria-invalid={!!errors.name}
           aria-describedby={errors.name ? 'name-error' : undefined}
@@ -478,7 +488,7 @@ function ContactCard({ contact, onSelect, onDelete }: ContactCardProps) {
         }
       }}
       aria-label={`Select contact ${contact.name}`}
-      className="cursor-pointer focus:ring-2 focus:ring-teal-600"
+      className="cursor-pointer focus:ring-2 focus:ring-primary-500"
     >
       <h3 id={`contact-${contact.id}-name`}>{contact.name}</h3>
       <button
@@ -576,7 +586,7 @@ function ContactList() {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600" />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600" />
         <span className="sr-only">Loading contacts...</span>
       </div>
     );
@@ -607,9 +617,9 @@ function ContactList() {
   if (contacts.length === 0) {
     return (
       <div className="text-center py-12">
-        <UserIcon className="w-12 h-12 text-gray-400 mx-auto" />
-        <h3 className="mt-2 text-lg font-medium text-gray-900">No contacts yet</h3>
-        <p className="mt-1 text-gray-600">Get started by creating your first contact</p>
+        <UserIcon className="w-12 h-12 text-neutral-400 mx-auto" />
+        <h3 className="mt-2 text-lg font-medium text-neutral-900">No contacts yet</h3>
+        <p className="mt-1 text-neutral-600">Get started by creating your first contact</p>
         <button className="mt-4 btn-primary">
           Add Contact
         </button>
@@ -636,11 +646,13 @@ function ContactList() {
 - [ ] Default export
 
 ### ✅ Styling:
-- [ ] Teal (#0d9488) for primary actions
-- [ ] Amber (#d97706) for secondary actions
+- [ ] Indigo (#3730a3 primary-600) for primary actions
+- [ ] Pink (#db2777 accent-600) for badges/pills
+- [ ] Focus Indigo (#4f46e5 primary-500) for focus rings
 - [ ] No emojis (use Heroicons/Lucide)
 - [ ] Responsive (mobile-first)
 - [ ] Tailwind utility classes
+- [ ] Use neutral-* (slate) not gray-*
 
 ### ✅ Functionality:
 - [ ] Loading state implemented
@@ -675,9 +687,9 @@ function ContactList() {
 
 [FRONTEND-002] Wrong Color Scheme
   Location: src/components/Button.tsx:12
-  Code: className="bg-blue-600"
-  Issue: Using blue instead of teal/amber
-  Fix: Change to className="bg-teal-600" (primary) or className="bg-amber-600" (secondary)
+  Code: className="bg-blue-600" or className="bg-teal-600"
+  Issue: Using wrong colors (should be indigo/pink)
+  Fix: Change to className="bg-primary-600" (indigo) or className="bg-accent-600" (pink)
 
 [FRONTEND-003] Missing TypeScript Types
   Location: src/components/ContactCard.tsx:5
@@ -694,13 +706,14 @@ function ContactList() {
 ### ✅ Frontend Quality Passed:
 
 ```
-- Teal/amber color scheme ✅
+- Indigo/pink color scheme ✅
 - No emojis (Heroicons used) ✅
 - TypeScript strict mode ✅
 - Responsive design (mobile-first) ✅
 - Loading/error/empty states ✅
 - Accessibility (ARIA labels) ✅
 - Performance (memoization) ✅
+- Using neutral-* (slate) colors ✅
 ```
 
 ## When to Review

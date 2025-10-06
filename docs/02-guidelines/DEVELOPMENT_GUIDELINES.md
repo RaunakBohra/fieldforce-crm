@@ -1395,22 +1395,36 @@ const contacts = await prisma.contact.findMany({
 
 ### 8.1 Color Palette
 
-**PRIMARY COLORS** (From Global Guidelines):
-- **Teal**: Primary brand color (buttons, links, highlights)
-  - `teal-50`: #f0fdfa
-  - `teal-100`: #ccfbf1
-  - `teal-500`: #14b8a6
-  - `teal-600`: #0d9488 (Primary)
-  - `teal-700`: #0f766e
+**PRIMARY COLORS** (Indigo/Pink Modern Theme):
+- **Primary (Indigo)**: Main CTA buttons, navbars, key actions
+  - `primary-50`: #eef2ff (light backgrounds)
+  - `primary-100`: #e0e7ff
+  - `primary-500`: #4f46e5 (hover states)
+  - `primary-600`: #3730a3 (default CTA)
+  - `primary-700`: #312e81
+  - `primary-800`: #1e3a8a (navbar/dark backgrounds)
 
-- **Amber**: Secondary/accent color
-  - `amber-50`: #fffbeb
-  - `amber-100`: #fef3c7
-  - `amber-500`: #f59e0b
-  - `amber-600`: #d97706 (Secondary)
+- **Accent (Pink)**: Badges, pills, secondary highlights
+  - `accent-50`: #fdf2f8
+  - `accent-100`: #fce7f3
+  - `accent-500`: #ec4899 (hover)
+  - `accent-600`: #db2777 (default badges/pills)
+  - `accent-700`: #be185d
 
-**NEUTRAL COLORS**:
-- `gray-50` to `gray-900` for backgrounds, text, borders
+**FOCUS COLORS**:
+- `focus-500`: #6366f1 (focus rings on inputs)
+- `focus-600`: #4f46e5 (active outline)
+
+**SEMANTIC COLORS**:
+- **Warn**: `warn-500` (#f97316), `warn-600` (#ea580c) - Orange for warnings
+- **Success**: `success-500` (#10b981), `success-600` (#059669) - Green for success
+- **Danger**: `danger-500` (#ef4444), `danger-600` (#dc2626) - Red for errors
+
+**NEUTRAL COLORS (Slate)**:
+- `neutral-50` to `neutral-950` for backgrounds, text, borders
+- Use `neutral-100` (#f1f5f9) for soft backgrounds
+- Use white for main backgrounds
+- Use `neutral-900` (#0f172a) for strong/dark backgrounds
 
 ### 8.2 No Emojis - Use SVG Logos
 
@@ -1493,42 +1507,52 @@ import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/solid';
 
 **Button Variants**:
 ```tsx
-// Primary button (Teal)
-<button className="bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 disabled:opacity-50">
+// Primary button (Indigo)
+<button className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-500 disabled:opacity-50">
   Primary Action
 </button>
 
-// Secondary button (Amber)
-<button className="bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700">
+// Secondary button (Pink)
+<button className="bg-accent-600 text-white px-4 py-2 rounded-lg hover:bg-accent-500">
   Secondary Action
 </button>
 
 // Outline button
-<button className="border-2 border-teal-600 text-teal-600 px-4 py-2 rounded-lg hover:bg-teal-50">
+<button className="border-2 border-primary-600 text-primary-600 px-4 py-2 rounded-lg hover:bg-primary-50">
   Outline
 </button>
 
 // Danger button
-<button className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
+<button className="bg-danger-600 text-white px-4 py-2 rounded-lg hover:bg-danger-500">
   Delete
+</button>
+
+// Warning button
+<button className="bg-warn-600 text-white px-4 py-2 rounded-lg hover:bg-warn-500">
+  Warning
 </button>
 ```
 
 **Status Badges**:
 ```tsx
 // Success
-<span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+<span className="px-2 py-1 text-xs font-semibold rounded-full bg-success-100 text-success-800">
   Approved
 </span>
 
 // Warning
-<span className="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+<span className="px-2 py-1 text-xs font-semibold rounded-full bg-warn-100 text-warn-800">
   Pending
 </span>
 
 // Error
-<span className="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+<span className="px-2 py-1 text-xs font-semibold rounded-full bg-danger-100 text-danger-800">
   Rejected
+</span>
+
+// Pink Accent Badge
+<span className="px-2 py-1 text-xs font-semibold rounded-full bg-accent-100 text-accent-800">
+  Featured
 </span>
 ```
 
@@ -1568,11 +1592,11 @@ const handleKeyDown = (e: React.KeyboardEvent) => {
 **Focus States**:
 ```tsx
 <input className="
-  border border-gray-300
+  border border-neutral-300
   focus:outline-none
   focus:ring-2
-  focus:ring-teal-500
-  focus:border-teal-500
+  focus:ring-primary-500
+  focus:border-transparent
 " />
 ```
 
