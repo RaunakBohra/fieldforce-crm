@@ -4,6 +4,8 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
 import ThemePreview from './pages/ThemePreview';
+import { ContactsList } from './pages/ContactsList';
+import { ContactForm } from './pages/ContactForm';
 import { ReactElement } from 'react';
 
 function PrivateRoute({ children }: { children: ReactElement }) {
@@ -33,6 +35,30 @@ function App() {
             element={
               <PrivateRoute>
                 <Dashboard />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/contacts"
+            element={
+              <PrivateRoute>
+                <ContactsList />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/contacts/new"
+            element={
+              <PrivateRoute>
+                <ContactForm />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/contacts/:id/edit"
+            element={
+              <PrivateRoute>
+                <ContactForm />
               </PrivateRoute>
             }
           />

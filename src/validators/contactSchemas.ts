@@ -12,14 +12,45 @@ const indianPhoneRegex = /^[6-9]\d{9}$/;
 const indianPincodeRegex = /^\d{6}$/;
 
 /**
- * Contact Type Enum
+ * Contact Category Enum (Primary Classification)
+ */
+export const ContactCategoryEnum = z.enum([
+  'DISTRIBUTION',  // B2B: Wholesalers, Retailers, etc.
+  'MEDICAL',       // B2C: Doctors, Hospitals, etc.
+]);
+
+/**
+ * Distribution Contact Types
+ */
+export const DistributionTypeEnum = z.enum([
+  'SUPER_ADMIN',   // Top-level company administrators
+  'SUB_SUPER',     // Regional/state managers (Nepal, etc.)
+  'WHOLESALER',    // Bulk distributors
+  'RETAILER',      // End retailers
+]);
+
+/**
+ * Medical Contact Types
+ */
+export const MedicalTypeEnum = z.enum([
+  'DOCTOR',        // For donations, ROI tracking
+  'HOSPITAL',      // Institutional contacts
+  'CLINIC',        // Smaller medical facilities
+  'PHARMACIST',    // Pharmacy contacts
+]);
+
+/**
+ * Combined Contact Type Enum (for backward compatibility)
  */
 export const ContactTypeEnum = z.enum([
-  'DOCTOR',
-  'PHARMACIST',
+  'SUPER_ADMIN',
+  'SUB_SUPER',
+  'WHOLESALER',
   'RETAILER',
+  'DOCTOR',
   'HOSPITAL',
   'CLINIC',
+  'PHARMACIST',
   'OTHER',
 ]);
 
@@ -39,6 +70,9 @@ export const VisitFrequencyEnum = z.enum([
  * Create Contact Schema
  */
 export const createContactSchema = z.object({
+  // Primary Classification
+  contactCategory: ContactCategoryEnum.default('MEDICAL'),
+
   // Basic Information (required)
   name: z
     .string()
@@ -112,7 +146,7 @@ export const createContactSchema = z.object({
     .optional()
     .or(z.literal('')),
 
-  // Professional Details
+  // Professional Details (Medical)
   hospitalName: z
     .string()
     .max(200, 'Hospital name must not exceed 200 characters')
@@ -130,6 +164,26 @@ export const createContactSchema = z.object({
   licenseNumber: z
     .string()
     .max(50, 'License number must not exceed 50 characters')
+    .trim()
+    .optional()
+    .or(z.literal('')),
+
+  // Distribution-specific fields
+  territory: z
+    .string()
+    .max(100, 'Territory must not exceed 100 characters')
+    .trim()
+    .optional()
+    .or(z.literal('')),
+
+  creditLimit: z
+    .number()
+    .positive('Credit limit must be positive')
+    .optional(),
+
+  paymentTerms: z
+    .string()
+    .max(200, 'Payment terms must not exceed 200 characters')
     .trim()
     .optional()
     .or(z.literal('')),
@@ -250,7 +304,7 @@ export const updateContactSchema = z.object({
     .optional()
     .or(z.literal('')),
 
-  // Professional Details
+  // Professional Details (Medical)
   hospitalName: z
     .string()
     .max(200, 'Hospital name must not exceed 200 characters')
@@ -268,6 +322,26 @@ export const updateContactSchema = z.object({
   licenseNumber: z
     .string()
     .max(50, 'License number must not exceed 50 characters')
+    .trim()
+    .optional()
+    .or(z.literal('')),
+
+  // Distribution-specific fields
+  territory: z
+    .string()
+    .max(100, 'Territory must not exceed 100 characters')
+    .trim()
+    .optional()
+    .or(z.literal('')),
+
+  creditLimit: z
+    .number()
+    .positive('Credit limit must be positive')
+    .optional(),
+
+  paymentTerms: z
+    .string()
+    .max(200, 'Payment terms must not exceed 200 characters')
     .trim()
     .optional()
     .or(z.literal('')),
@@ -337,6 +411,8 @@ export const contactQuerySchema = z.object({
     .default('20'),
 
   // Filters
+  contactCategory: ContactCategoryEnum.optional(),
+
   contactType: ContactTypeEnum.optional(),
 
   city: z.string().trim().optional(),

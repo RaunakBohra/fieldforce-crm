@@ -1,9 +1,28 @@
+import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { api, ContactStats } from '../services/api';
+import { Users, MapPin, ShoppingCart } from 'lucide-react';
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [contactStats, setContactStats] = useState<ContactStats | null>(null);
+
+  useEffect(() => {
+    fetchContactStats();
+  }, []);
+
+  const fetchContactStats = async () => {
+    try {
+      const response = await api.getContactStats();
+      if (response.success && response.data) {
+        setContactStats(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch contact stats:', error);
+    }
+  };
 
   const handleLogout = () => {
     logout();
@@ -15,8 +34,22 @@ export default function Dashboard() {
       <nav className="bg-primary-800 text-white shadow-lg" role="navigation" aria-label="Main navigation">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
+            <div className="flex items-center space-x-8">
               <h1 className="text-xl font-bold">Field Force CRM</h1>
+              <nav className="hidden md:flex space-x-4">
+                <button
+                  onClick={() => navigate('/dashboard')}
+                  className="hover:bg-primary-700 px-3 py-2 rounded-lg transition-colors"
+                >
+                  Dashboard
+                </button>
+                <button
+                  onClick={() => navigate('/contacts')}
+                  className="hover:bg-primary-700 px-3 py-2 rounded-lg transition-colors"
+                >
+                  Contacts
+                </button>
+              </nav>
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm" aria-label="Current user">{user?.name}</span>
@@ -46,20 +79,41 @@ export default function Dashboard() {
           </section>
 
           <section className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6" aria-label="Statistics overview">
-            <div className="bg-white rounded-lg shadow p-6" role="article">
-              <h3 className="text-lg font-semibold text-neutral-900 mb-2">Contacts</h3>
-              <p className="text-3xl font-bold text-primary-600" aria-label="Contact count">0</p>
-              <p className="text-sm text-accent-500 mt-1">Coming in Day 2</p>
-            </div>
+            <button
+              onClick={() => navigate('/contacts')}
+              className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow text-left"
+              role="article"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-lg font-semibold text-neutral-900">Contacts</h3>
+                <Users className="w-6 h-6 text-primary-800" />
+              </div>
+              <p className="text-3xl font-bold text-primary-600" aria-label="Contact count">
+                {contactStats?.total ?? 0}
+              </p>
+              {contactStats && (
+                <div className="mt-2 text-sm text-accent-500">
+                  <span>{contactStats.distribution} Distribution</span>
+                  <span className="mx-2">•</span>
+                  <span>{contactStats.medical} Medical</span>
+                </div>
+              )}
+            </button>
 
             <div className="bg-white rounded-lg shadow p-6" role="article">
-              <h3 className="text-lg font-semibold text-neutral-900 mb-2">Visits</h3>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-lg font-semibold text-neutral-900">Visits</h3>
+                <MapPin className="w-6 h-6 text-primary-800" />
+              </div>
               <p className="text-3xl font-bold text-primary-600" aria-label="Visit count">0</p>
               <p className="text-sm text-accent-500 mt-1">Coming in Day 3</p>
             </div>
 
             <div className="bg-white rounded-lg shadow p-6" role="article">
-              <h3 className="text-lg font-semibold text-neutral-900 mb-2">Orders</h3>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-lg font-semibold text-neutral-900">Orders</h3>
+                <ShoppingCart className="w-6 h-6 text-primary-800" />
+              </div>
               <p className="text-3xl font-bold text-primary-600" aria-label="Order count">0</p>
               <p className="text-sm text-accent-500 mt-1">Coming in Day 4</p>
             </div>
