@@ -10,6 +10,9 @@ import visitRoutes from './routes/visits';
 import productRoutes from './routes/products';
 import orderRoutes from './routes/orders';
 import paymentRoutes from './routes/payments';
+import dashboardRoutes from './routes/dashboard';
+import analyticsRoutes from './routes/analytics';
+import userRoutes from './routes/users';
 import { authMiddleware } from './middleware/auth';
 
 /**
@@ -168,6 +171,15 @@ app.route('/api/orders', orderRoutes);
 
 // Payment tracking routes (protected)
 app.route('/api/payments', paymentRoutes);
+
+// Dashboard routes (protected)
+app.route('/api/dashboard', dashboardRoutes);
+
+// Analytics routes (protected)
+app.route('/api/analytics', analyticsRoutes);
+
+// User management routes (protected, admin/manager only)
+app.route('/api/users', userRoutes);
 
 // Protected route example
 app.get('/api/protected', authMiddleware, (c) => {
