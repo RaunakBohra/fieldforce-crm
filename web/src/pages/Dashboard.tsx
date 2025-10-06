@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
-import type { DashboardStats, DashboardActivity, TopPerformer } from '../services/api';
+import type { DashboardStats, DashboardActivity, TopPerformer, TerritoryPerformance } from '../services/api';
 import {
   MapPin,
   ShoppingCart,
@@ -9,7 +9,8 @@ import {
   CreditCard,
   Clock,
   CheckCircle2,
-  Users
+  Users,
+  Globe
 } from 'lucide-react';
 import { PageContainer, ContentSection, Card } from '../components/layout';
 import { StatusBadge, LoadingSpinner } from '../components/ui';
@@ -22,6 +23,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [activities, setActivities] = useState<DashboardActivity[]>([]);
   const [topPerformers, setTopPerformers] = useState<TopPerformer[]>([]);
+  const [territoryStats, setTerritoryStats] = useState<TerritoryPerformance[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -42,10 +44,11 @@ export default function Dashboard() {
         setLoading(false); // Show stats immediately
       }
 
-      // Load secondary data in background (activities and performers)
-      const [activitiesRes, performersRes] = await Promise.all([
+      // Load secondary data in background (activities, performers, and territory stats)
+      const [activitiesRes, performersRes, territoryRes] = await Promise.all([
         api.getRecentActivity(),
         isAdmin ? api.getTopPerformers() : Promise.resolve({ success: false, data: null }),
+        isAdmin ? api.getTerritoryPerformance() : Promise.resolve({ success: false, data: null }),
       ]);
 
       if (activitiesRes.success && activitiesRes.data) {
@@ -54,6 +57,10 @@ export default function Dashboard() {
 
       if (performersRes.success && performersRes.data) {
         setTopPerformers(performersRes.data.performers);
+      }
+
+      if (territoryRes.success && territoryRes.data) {
+        setTerritoryStats(territoryRes.data.territories.slice(0, 5)); // Top 5 territories
       }
     } catch (error: any) {
       setError(error.message || 'Failed to load dashboard');
@@ -345,6 +352,74 @@ export default function Dashboard() {
                       <p className="font-semibold text-primary-700">
                         {formatCurrency(performer.totalRevenue)}
                       </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </section>
+        )}
+
+        {/* Territory Performance (Admin/Manager Only) */}
+        {isAdmin && territoryStats.length > 0 && (
+          <section className="mt-6">
+            <Card>
+              <div className="flex justify-between items-center mb-4">
+                <div>
+                  <h2 className="text-lg font-semibold text-neutral-900">
+                    Top Territories (Last 30 Days)
+                  </h2>
+                  <p className="text-sm text-neutral-500 mt-1">Performance by geographic region</p>
+                </div>
+                <button
+                  onClick={() => navigate('/analytics')}
+                  className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+                >
+                  View All →
+                </button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {territoryStats.map((territory, index) => (
+                  <div
+                    key={territory.territoryId}
+                    className="p-4 bg-gradient-to-br from-neutral-50 to-neutral-100 rounded-lg border border-neutral-200 hover:shadow-md transition-shadow cursor-pointer"
+                    onClick={() => navigate('/analytics')}
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-success-100 text-success-700 font-bold flex items-center justify-center text-sm">
+                          {index + 1}
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-neutral-900 text-sm">{territory.territoryName}</h3>
+                          <p className="text-xs text-neutral-500">{territory.territoryCode}</p>
+                        </div>
+                      </div>
+                      <Globe className="w-5 h-5 text-neutral-400" />
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-neutral-600">Revenue</span>
+                        <span className="text-sm font-bold text-primary-700">
+                          {formatCurrency(territory.totalRevenue)}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-2 pt-2 border-t border-neutral-200">
+                        <div className="text-center">
+                          <p className="text-xs text-neutral-500">Contacts</p>
+                          <p className="text-sm font-semibold text-neutral-900">{territory.contactCount}</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-xs text-neutral-500">Orders</p>
+                          <p className="text-sm font-semibold text-neutral-900">{territory.orderCount}</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-xs text-neutral-500">Visits</p>
+                          <p className="text-sm font-semibold text-neutral-900">{territory.visitCount}</p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ))}
