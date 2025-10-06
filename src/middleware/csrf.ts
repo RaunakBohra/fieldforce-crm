@@ -59,7 +59,9 @@ async function generateCsrfToken(secret: string): Promise<string> {
 /**
  * Verify CSRF token authenticity
  */
-async function verifyCsrfToken(token: string, secret: string): Promise<boolean> {
+async function verifyCsrfToken(token: string | undefined, secret: string): Promise<boolean> {
+  if (!token) return false;
+
   const parts = token.split('.');
   if (parts.length !== 2) return false;
 
@@ -99,7 +101,15 @@ export async function csrfProtection(
 
   // State-changing methods: verify token
   if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
-    const cookieToken = c.req.cookie(CSRF_COOKIE_NAME);
+    // Parse cookie manually from Cookie header
+    const cookieHeader = c.req.header('Cookie') || '';
+    const cookies = cookieHeader.split(';').reduce((acc, cookie) => {
+      const [key, value] = cookie.trim().split('=');
+      if (key && value) acc[key] = value;
+      return acc;
+    }, {} as Record<string, string>);
+
+    const cookieToken = cookies[CSRF_COOKIE_NAME];
     const headerToken = c.req.header(CSRF_HEADER_NAME);
 
     // Both tokens must be present
