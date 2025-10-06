@@ -30,6 +30,7 @@ model User {
   contacts  Contact[] // Contacts assigned to this user
   visits    Visit[]   // Visits conducted by this user
   orders    Order[]   // Orders created by this user
+  payments  Payment[] // Payments recorded by this user
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -107,6 +108,7 @@ model Contact {
   // Relations
   visits          Visit[]      // Visits to this contact
   orders          Order[]      // Orders from this contact
+  payments        Payment[]    // Payments from this contact
 
   // Additional Information
   notes           String?      // Special notes about the contact
@@ -284,6 +286,7 @@ model Order {
   // Order Details
   totalAmount   Decimal     @db.Decimal(10, 2)
   status        OrderStatus @default(PENDING)
+  paymentStatus PaymentStatus @default(UNPAID)
 
   // Delivery Information
   deliveryAddress String?
@@ -298,6 +301,7 @@ model Order {
 
   // Relations
   items         OrderItem[]
+  payments      Payment[]
 
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
@@ -307,11 +311,13 @@ model Order {
   @@index([status])
   @@index([orderNumber])
   @@index([createdAt])
+  @@index([paymentStatus])
 
   // Composite indexes for common query patterns
   @@index([createdById, status, createdAt])  // Field rep's orders by status and date
   @@index([contactId, status])               // Contact's order history
   @@index([status, createdAt])               // Orders by status and date
+  @@index([paymentStatus, status])           // Payment tracking queries
 }
 
 model OrderItem {
@@ -348,5 +354,67 @@ enum OrderStatus {
 // Note: This relation is added above in the Order model
 
 // ============================================================================
-// DAY 5: Payment Management (placeholder for future implementation)
+// DAY 5: Payment Management
 // ============================================================================
+
+model Payment {
+  id              String        @id @default(cuid())
+  paymentNumber   String        @unique
+
+  // Order relation (optional - payments can be standalone or linked to orders)
+  orderId         String?
+  order           Order?        @relation(fields: [orderId], references: [id])
+
+  // Contact relation (for standalone payments without order)
+  contactId       String?
+  contact         Contact?      @relation(fields: [contactId], references: [id])
+
+  // Payment Details
+  amount          Decimal       @db.Decimal(10, 2)
+  paymentMode     PaymentMode
+  paymentDate     DateTime      @default(now())
+  referenceNumber String?       // Transaction ID, Cheque Number, etc.
+  status          PaymentStatus @default(COMPLETED)
+
+  // Notes
+  notes           String?
+
+  // Recorded by (Field Rep)
+  recordedById    String
+  recordedBy      User          @relation(fields: [recordedById], references: [id])
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([orderId])
+  @@index([contactId])
+  @@index([recordedById])
+  @@index([paymentDate])
+  @@index([paymentMode])
+  @@index([status])
+
+  // Composite indexes for common query patterns
+  @@index([recordedById, paymentDate])   // Field rep's payment history
+  @@index([orderId, status])             // Order payment tracking
+  @@index([paymentMode, paymentDate])    // Payment mode analytics
+}
+
+enum PaymentMode {
+  CASH
+  UPI
+  NEFT
+  RTGS
+  CHEQUE
+  CARD
+  OTHER
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+  UNPAID    // For order payment status
+  PARTIAL   // For order payment status
+  PAID      // For order payment status
+}

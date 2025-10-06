@@ -9,6 +9,7 @@ import contactRoutes from './routes/contacts';
 import visitRoutes from './routes/visits';
 import productRoutes from './routes/products';
 import orderRoutes from './routes/orders';
+import paymentRoutes from './routes/payments';
 import { authMiddleware } from './middleware/auth';
 
 /**
@@ -87,6 +88,7 @@ app.use('/api/contacts/*', csrfProtection);
 app.use('/api/visits/*', csrfProtection);
 app.use('/api/orders/*', csrfProtection);
 app.use('/api/products/*', csrfProtection);
+app.use('/api/payments/*', csrfProtection);
 // Add other protected routes here as needed
 
 /**
@@ -149,6 +151,9 @@ app.route('/api/products', productRoutes);
 
 // Order management routes (protected)
 app.route('/api/orders', orderRoutes);
+
+// Payment tracking routes (protected)
+app.route('/api/payments', paymentRoutes);
 
 // Protected route example
 app.get('/api/protected', authMiddleware, (c) => {
