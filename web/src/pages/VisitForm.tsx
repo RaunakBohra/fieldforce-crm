@@ -171,7 +171,7 @@ export function VisitForm() {
           </h1>
 
           {error && (
-            <div className="mb-6 bg-danger-50 border border-danger-200 text-danger-700 px-4 py-3 rounded-lg">
+            <div className="mb-6 error-message">
               {error}
             </div>
           )}
@@ -187,13 +187,13 @@ export function VisitForm() {
                 placeholder="Search contacts..."
                 value={contactSearch}
                 onChange={(e) => setContactSearch(e.target.value)}
-                className="w-full px-3 py-2 mb-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="input-field mb-2"
               />
               <select
                 required
                 value={formData.contactId}
                 onChange={(e) => setFormData({ ...formData, contactId: e.target.value })}
-                className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="select-field"
               >
                 <option value="">Select a contact</option>
                 {contacts.map((contact) => (
@@ -217,7 +217,7 @@ export function VisitForm() {
                   type="datetime-local"
                   value={formData.visitDate}
                   onChange={(e) => setFormData({ ...formData, visitDate: e.target.value })}
-                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="input-field"
                 />
               </div>
 
@@ -233,7 +233,7 @@ export function VisitForm() {
                   value={formData.duration || ''}
                   onChange={(e) => setFormData({ ...formData, duration: e.target.value ? parseInt(e.target.value) : undefined })}
                   placeholder="e.g., 30"
-                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="input-field"
                 />
               </div>
 
@@ -245,7 +245,7 @@ export function VisitForm() {
                 <select
                   value={formData.visitType}
                   onChange={(e) => setFormData({ ...formData, visitType: e.target.value as any })}
-                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="select-field"
                 >
                   <option value="FIELD_VISIT">Field Visit</option>
                   <option value="FOLLOW_UP">Follow Up</option>
@@ -265,7 +265,7 @@ export function VisitForm() {
                 <select
                   value={formData.status}
                   onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="select-field"
                 >
                   <option value="PLANNED">Planned</option>
                   <option value="IN_PROGRESS">In Progress</option>
@@ -284,7 +284,7 @@ export function VisitForm() {
                 <select
                   value={formData.outcome}
                   onChange={(e) => setFormData({ ...formData, outcome: e.target.value as any })}
-                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="select-field"
                 >
                   <option value="SUCCESSFUL">Successful</option>
                   <option value="PARTIAL">Partial</option>
@@ -338,7 +338,7 @@ export function VisitForm() {
                   value={formData.locationName || ''}
                   onChange={(e) => setFormData({ ...formData, locationName: e.target.value })}
                   placeholder="Location name (e.g., Hospital Name, Clinic Address)"
-                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="input-field"
                 />
               </div>
             </div>
@@ -354,7 +354,7 @@ export function VisitForm() {
                 onChange={(e) => setFormData({ ...formData, purpose: e.target.value })}
                 placeholder="Brief purpose of visit"
                 maxLength={500}
-                className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="input-field"
               />
             </div>
 
@@ -369,7 +369,7 @@ export function VisitForm() {
                 rows={4}
                 maxLength={2000}
                 placeholder="Detailed notes about the visit..."
-                className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="textarea-field"
               />
             </div>
 
@@ -383,7 +383,7 @@ export function VisitForm() {
                 value={productsInput}
                 onChange={(e) => setProductsInput(e.target.value)}
                 placeholder="Product 1, Product 2, Product 3"
-                className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="input-field"
               />
               <p className="mt-1 text-xs text-neutral-500">
                 Separate multiple products with commas
@@ -415,7 +415,7 @@ export function VisitForm() {
                       type="datetime-local"
                       value={formData.nextVisitDate || ''}
                       onChange={(e) => setFormData({ ...formData, nextVisitDate: e.target.value })}
-                      className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="input-field"
                     />
                   </div>
                   <div>
@@ -428,7 +428,7 @@ export function VisitForm() {
                       rows={3}
                       maxLength={1000}
                       placeholder="Follow-up requirements..."
-                      className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="textarea-field"
                     />
                   </div>
                 </>
@@ -440,14 +440,14 @@ export function VisitForm() {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="btn-primary flex-1"
               >
                 {loading ? 'Saving...' : isEditing ? 'Update Visit' : 'Create Visit'}
               </button>
               <button
                 type="button"
                 onClick={() => navigate('/visits')}
-                className="px-6 py-3 border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 transition-colors"
+                className="btn-secondary"
               >
                 Cancel
               </button>

@@ -109,7 +109,7 @@ export default function PaymentForm() {
         <Card>
           <form onSubmit={handleSubmit}>
           {error && (
-            <div className="mb-4 p-3 bg-danger-100 text-danger-700 rounded-lg">
+            <div className="mb-4 error-message">
               {error}
             </div>
           )}
@@ -124,7 +124,7 @@ export default function PaymentForm() {
                 step="0.01"
                 value={formData.amount}
                 onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="input-field"
                 required
               />
             </div>
@@ -136,7 +136,7 @@ export default function PaymentForm() {
               <select
                 value={formData.paymentMode}
                 onChange={(e) => setFormData({ ...formData, paymentMode: e.target.value })}
-                className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="select-field"
                 required
               >
                 <option value="CASH">Cash</option>
@@ -156,7 +156,7 @@ export default function PaymentForm() {
                 type="date"
                 value={formData.paymentDate}
                 onChange={(e) => setFormData({ ...formData, paymentDate: e.target.value })}
-                className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="input-field"
                 required
               />
             </div>
@@ -170,7 +170,7 @@ export default function PaymentForm() {
                 value={formData.referenceNumber}
                 onChange={(e) => setFormData({ ...formData, referenceNumber: e.target.value })}
                 placeholder="Transaction ID / Cheque No"
-                className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="input-field"
               />
             </div>
 
@@ -181,7 +181,7 @@ export default function PaymentForm() {
               <textarea
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="textarea-field"
                 rows={3}
                 placeholder="Add any notes about this payment..."
               />
@@ -192,14 +192,14 @@ export default function PaymentForm() {
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-500 disabled:opacity-50 font-semibold"
+              className="btn-primary flex-1"
             >
               {loading ? 'Recording Payment...' : 'Record Payment'}
             </button>
             <button
               type="button"
               onClick={() => navigate('/payments')}
-              className="flex-1 bg-neutral-300 text-neutral-700 py-2 px-4 rounded-lg hover:bg-neutral-400 font-semibold"
+              className="btn-secondary flex-1"
             >
               Cancel
             </button>

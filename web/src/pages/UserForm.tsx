@@ -189,7 +189,7 @@ export function UserForm() {
           <Card>
             <form onSubmit={handleSubmit} className="space-y-6">
               {error && (
-                <div className="bg-danger-50 border border-danger-200 text-danger-700 px-4 py-3 rounded-lg">
+                <div className="error-message">
                   {error}
                 </div>
               )}
@@ -206,7 +206,7 @@ export function UserForm() {
                   value={formData.name}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="input-field"
                   placeholder="John Doe"
                 />
               </div>
@@ -223,7 +223,7 @@ export function UserForm() {
                   value={formData.email}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="input-field"
                   placeholder="john.doe@example.com"
                 />
               </div>
@@ -239,7 +239,7 @@ export function UserForm() {
                   name="phone"
                   value={formData.phone}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="input-field"
                   placeholder="+1234567890"
                 />
               </div>
@@ -255,7 +255,7 @@ export function UserForm() {
                   value={formData.role}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="select-field"
                 >
                   <option value="FIELD_REP">Field Representative</option>
                   <option value="MANAGER">Manager</option>
@@ -278,7 +278,7 @@ export function UserForm() {
                   name="territoryId"
                   value={formData.territoryId}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="select-field"
                 >
                   <option value="">No Territory Assigned</option>
                   {territories.map(territory => (
@@ -304,7 +304,7 @@ export function UserForm() {
                   value={formData.password}
                   onChange={handleChange}
                   required={!isEditMode}
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="input-field"
                   placeholder="••••••••"
                   minLength={8}
                 />
@@ -326,7 +326,7 @@ export function UserForm() {
                     value={formData.confirmPassword}
                     onChange={handleChange}
                     required={!isEditMode || !!formData.password}
-                    className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="input-field"
                     placeholder="••••••••"
                   />
                 </div>
@@ -337,7 +337,7 @@ export function UserForm() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="btn-primary flex-1"
                 >
                   <Save className="w-4 h-4" />
                   {submitting ? 'Saving...' : isEditMode ? 'Update User' : 'Create User'}
@@ -345,7 +345,7 @@ export function UserForm() {
                 <button
                   type="button"
                   onClick={() => navigate('/users')}
-                  className="px-6 py-2 border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 transition-colors"
+                  className="btn-secondary"
                 >
                   <X className="w-4 h-4 inline mr-2" />
                   Cancel

@@ -81,7 +81,7 @@ export function ProductForm() {
         </Card>
 
         {error && (
-          <div className="mb-6 bg-danger-50 border border-danger-200 text-danger-700 px-4 py-3 rounded-md">
+          <div className="mb-6 error-message">
             {error}
           </div>
         )}
@@ -97,7 +97,7 @@ export function ProductForm() {
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="input-field"
                   required
                 />
               </div>
@@ -110,7 +110,7 @@ export function ProductForm() {
                   type="text"
                   value={formData.sku}
                   onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="input-field"
                   placeholder="e.g., PROD-001"
                   required
                 />
@@ -123,7 +123,7 @@ export function ProductForm() {
                 <select
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="select-field"
                   required
                 >
                   <option value="">Select Category</option>
@@ -137,7 +137,7 @@ export function ProductForm() {
                     type="text"
                     placeholder="Enter new category name"
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full mt-2 px-4 py-2 border border-neutral-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="input-field mt-2"
                     required
                   />
                 )}
@@ -152,7 +152,7 @@ export function ProductForm() {
                   step="0.01"
                   value={formData.price}
                   onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="input-field"
                   required
                 />
               </div>
@@ -165,7 +165,7 @@ export function ProductForm() {
                   type="number"
                   value={formData.stock}
                   onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="input-field"
                   required
                 />
               </div>
@@ -178,7 +178,7 @@ export function ProductForm() {
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   rows={3}
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="textarea-field"
                   placeholder="Product description..."
                 />
               </div>
@@ -188,7 +188,7 @@ export function ProductForm() {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 flex items-center justify-center gap-2 bg-primary-600 text-white px-6 py-2 rounded-md hover:bg-primary-500 disabled:opacity-50"
+                className="btn-primary flex-1"
               >
                 <Save size={20} />
                 {loading ? 'Creating...' : 'Create Product'}
@@ -196,7 +196,7 @@ export function ProductForm() {
               <button
                 type="button"
                 onClick={() => navigate('/products')}
-                className="flex-1 px-6 py-2 border border-neutral-300 text-neutral-700 rounded-md hover:bg-neutral-50"
+                className="btn-secondary flex-1"
               >
                 Cancel
               </button>

@@ -156,7 +156,7 @@ export function OrderForm() {
         </Card>
 
         {error && (
-          <div className="mb-6 bg-danger-50 border border-danger-200 text-danger-700 px-4 py-3 rounded-md">
+          <div className="mb-6 error-message">
             {error}
           </div>
         )}
@@ -170,12 +170,12 @@ export function OrderForm() {
                 placeholder="Search contacts..."
                 value={contactSearch}
                 onChange={(e) => setContactSearch(e.target.value)}
-                className="w-full px-4 py-2 mb-3 border border-neutral-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="input-field mb-3"
               />
               <select
                 value={contactId}
                 onChange={(e) => setContactId(e.target.value)}
-                className="w-full px-4 py-2 border border-neutral-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="select-field"
                 required
               >
                 <option value="">Choose a contact...</option>
@@ -209,7 +209,7 @@ export function OrderForm() {
                 placeholder="Search products..."
                 value={productSearch}
                 onChange={(e) => setProductSearch(e.target.value)}
-                className="w-full px-4 py-2 mb-4 border border-neutral-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="input-field mb-4"
               />
 
               {items.length === 0 ? (
@@ -223,7 +223,7 @@ export function OrderForm() {
                         <select
                           value={item.productId}
                           onChange={(e) => updateItem(index, 'productId', e.target.value)}
-                          className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:ring-2 focus:ring-primary-500"
+                          className="select-field"
                           required
                         >
                           <option value="">Select product...</option>
@@ -241,7 +241,7 @@ export function OrderForm() {
                           min="1"
                           value={item.quantity}
                           onChange={(e) => updateItem(index, 'quantity', parseInt(e.target.value))}
-                          className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:ring-2 focus:ring-primary-500"
+                          className="input-field"
                           required
                         />
                       </div>
@@ -252,7 +252,7 @@ export function OrderForm() {
                           step="0.01"
                           value={item.price}
                           onChange={(e) => updateItem(index, 'price', parseFloat(e.target.value))}
-                          className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:ring-2 focus:ring-primary-500"
+                          className="input-field"
                           required
                         />
                       </div>
@@ -295,7 +295,7 @@ export function OrderForm() {
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={3}
-                className="w-full px-4 py-2 border border-neutral-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="textarea-field"
                 placeholder="Add any special instructions or notes..."
               />
             </Card>
@@ -305,7 +305,7 @@ export function OrderForm() {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 flex items-center justify-center gap-2 bg-primary-600 text-white px-6 py-3 rounded-md hover:bg-primary-500 disabled:opacity-50 font-semibold"
+                className="btn-primary flex-1"
               >
                 <Save size={20} />
                 {loading ? 'Creating Order...' : 'Create Order'}
@@ -313,7 +313,7 @@ export function OrderForm() {
               <button
                 type="button"
                 onClick={() => navigate('/orders')}
-                className="flex-1 px-6 py-3 border border-neutral-300 text-neutral-700 rounded-md hover:bg-neutral-50 font-semibold"
+                className="btn-secondary flex-1"
               >
                 Cancel
               </button>

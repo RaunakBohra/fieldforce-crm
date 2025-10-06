@@ -120,7 +120,7 @@ export function ContactForm() {
         <form onSubmit={handleSubmit} className="bg-white rounded-lg border border-neutral-200 p-6">
           {/* Error */}
           {error && (
-            <div className="mb-6 bg-danger-50 border border-danger-200 text-danger-700 px-4 py-3 rounded-lg">
+            <div className="mb-6 error-message">
               {error}
             </div>
           )}
@@ -168,7 +168,7 @@ export function ContactForm() {
                   value={formData.name}
                   onChange={(e) => handleChange('name', e.target.value)}
                   required
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-800 focus:border-transparent"
+                  className="input-field"
                 />
               </div>
 
@@ -180,7 +180,7 @@ export function ContactForm() {
                   value={formData.contactType}
                   onChange={(e) => handleChange('contactType', e.target.value)}
                   required
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-800 focus:border-transparent"
+                  className="select-field"
                 >
                   {getContactTypes().map((type) => (
                     <option key={type.value} value={type.value}>
@@ -198,7 +198,7 @@ export function ContactForm() {
                   type="text"
                   value={formData.designation || ''}
                   onChange={(e) => handleChange('designation', e.target.value)}
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-800 focus:border-transparent"
+                  className="input-field"
                 />
               </div>
 
@@ -211,7 +211,7 @@ export function ContactForm() {
                     type="text"
                     value={formData.specialty || ''}
                     onChange={(e) => handleChange('specialty', e.target.value)}
-                    className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-800 focus:border-transparent"
+                    className="input-field"
                   />
                 </div>
               )}
@@ -232,7 +232,7 @@ export function ContactForm() {
                   value={formData.phone || ''}
                   onChange={(e) => handleChange('phone', e.target.value)}
                   placeholder="10-digit number"
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-800 focus:border-transparent"
+                  className="input-field"
                 />
               </div>
 
@@ -244,7 +244,7 @@ export function ContactForm() {
                   type="email"
                   value={formData.email || ''}
                   onChange={(e) => handleChange('email', e.target.value)}
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-800 focus:border-transparent"
+                  className="input-field"
                 />
               </div>
 
@@ -256,7 +256,7 @@ export function ContactForm() {
                   type="tel"
                   value={formData.alternatePhone || ''}
                   onChange={(e) => handleChange('alternatePhone', e.target.value)}
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-800 focus:border-transparent"
+                  className="input-field"
                 />
               </div>
             </div>
@@ -274,7 +274,7 @@ export function ContactForm() {
                 value={formData.address || ''}
                 onChange={(e) => handleChange('address', e.target.value)}
                 rows={2}
-                className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-800 focus:border-transparent"
+                className="textarea-field"
               />
             </div>
 
@@ -287,7 +287,7 @@ export function ContactForm() {
                   type="text"
                   value={formData.city || ''}
                   onChange={(e) => handleChange('city', e.target.value)}
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-800 focus:border-transparent"
+                  className="input-field"
                 />
               </div>
 
@@ -299,7 +299,7 @@ export function ContactForm() {
                   type="text"
                   value={formData.state || ''}
                   onChange={(e) => handleChange('state', e.target.value)}
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-800 focus:border-transparent"
+                  className="input-field"
                 />
               </div>
 
@@ -312,7 +312,7 @@ export function ContactForm() {
                   value={formData.pincode || ''}
                   onChange={(e) => handleChange('pincode', e.target.value)}
                   placeholder="6 digits"
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-800 focus:border-transparent"
+                  className="input-field"
                 />
               </div>
             </div>
@@ -332,7 +332,7 @@ export function ContactForm() {
                     type="text"
                     value={formData.hospitalName || ''}
                     onChange={(e) => handleChange('hospitalName', e.target.value)}
-                    className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-800 focus:border-transparent"
+                    className="input-field"
                   />
                 </div>
 
@@ -344,7 +344,7 @@ export function ContactForm() {
                     type="text"
                     value={formData.clinicName || ''}
                     onChange={(e) => handleChange('clinicName', e.target.value)}
-                    className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-800 focus:border-transparent"
+                    className="input-field"
                   />
                 </div>
 
@@ -356,7 +356,7 @@ export function ContactForm() {
                     type="text"
                     value={formData.licenseNumber || ''}
                     onChange={(e) => handleChange('licenseNumber', e.target.value)}
-                    className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-800 focus:border-transparent"
+                    className="input-field"
                   />
                 </div>
               </div>
@@ -377,7 +377,7 @@ export function ContactForm() {
                     value={formData.territory || ''}
                     onChange={(e) => handleChange('territory', e.target.value)}
                     placeholder="e.g., Nepal, Punjab, etc."
-                    className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-800 focus:border-transparent"
+                    className="input-field"
                   />
                 </div>
 
@@ -391,7 +391,7 @@ export function ContactForm() {
                     onChange={(e) => handleChange('creditLimit', e.target.value ? Number(e.target.value) : undefined)}
                     min="0"
                     step="1000"
-                    className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-800 focus:border-transparent"
+                    className="input-field"
                   />
                 </div>
 
@@ -404,7 +404,7 @@ export function ContactForm() {
                     value={formData.paymentTerms || ''}
                     onChange={(e) => handleChange('paymentTerms', e.target.value)}
                     placeholder="e.g., Net 30, COD, etc."
-                    className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-800 focus:border-transparent"
+                    className="input-field"
                   />
                 </div>
               </div>
@@ -423,7 +423,7 @@ export function ContactForm() {
                 <select
                   value={formData.visitFrequency}
                   onChange={(e) => handleChange('visitFrequency', e.target.value)}
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-800 focus:border-transparent"
+                  className="select-field"
                 >
                   {VISIT_FREQUENCIES.map((freq) => (
                     <option key={freq.value} value={freq.value}>
@@ -442,7 +442,7 @@ export function ContactForm() {
                   value={formData.preferredDay || ''}
                   onChange={(e) => handleChange('preferredDay', e.target.value)}
                   placeholder="e.g., Monday"
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-800 focus:border-transparent"
+                  className="input-field"
                 />
               </div>
 
@@ -455,7 +455,7 @@ export function ContactForm() {
                   value={formData.preferredTime || ''}
                   onChange={(e) => handleChange('preferredTime', e.target.value)}
                   placeholder="e.g., 10:00 AM"
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-800 focus:border-transparent"
+                  className="input-field"
                 />
               </div>
             </div>
@@ -473,7 +473,7 @@ export function ContactForm() {
                 value={formData.notes || ''}
                 onChange={(e) => handleChange('notes', e.target.value)}
                 rows={3}
-                className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-800 focus:border-transparent"
+                className="textarea-field"
               />
             </div>
 
@@ -496,14 +496,14 @@ export function ContactForm() {
             <button
               type="button"
               onClick={() => navigate('/contacts')}
-              className="px-6 py-2 border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 transition-colors"
+              className="btn-secondary"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex items-center gap-2 px-6 py-2 bg-primary-800 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="btn-primary"
             >
               <Save className="w-5 h-5" />
               {loading ? 'Saving...' : isEditMode ? 'Update Contact' : 'Create Contact'}

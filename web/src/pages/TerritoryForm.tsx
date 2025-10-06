@@ -190,7 +190,7 @@ export function TerritoryForm() {
           <Card>
             <form onSubmit={handleSubmit} className="space-y-6">
               {error && (
-                <div className="bg-danger-50 border border-danger-200 text-danger-700 px-4 py-3 rounded-lg">
+                <div className="error-message">
                   {error}
                 </div>
               )}
@@ -207,7 +207,7 @@ export function TerritoryForm() {
                   value={formData.name}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="input-field"
                   placeholder="Mumbai Central"
                 />
               </div>
@@ -224,7 +224,7 @@ export function TerritoryForm() {
                   value={formData.code}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent font-mono"
+                  className="input-field font-mono"
                   placeholder="MH-MUM-CENT"
                   pattern="[A-Z0-9-_]+"
                   title="Uppercase letters, numbers, hyphens, and underscores only"
@@ -245,7 +245,7 @@ export function TerritoryForm() {
                   value={formData.description}
                   onChange={handleChange}
                   rows={3}
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="textarea-field"
                   placeholder="Optional description of the territory"
                 />
               </div>
@@ -261,7 +261,7 @@ export function TerritoryForm() {
                   value={formData.type}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="select-field"
                 >
                   <option value="COUNTRY">Country</option>
                   <option value="STATE">State/Province</option>
@@ -281,7 +281,7 @@ export function TerritoryForm() {
                   name="parentId"
                   value={formData.parentId}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="select-field"
                 >
                   <option value="">None (Top Level)</option>
                   {territories
@@ -309,7 +309,7 @@ export function TerritoryForm() {
                   value={formData.country}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="input-field"
                   placeholder="India"
                 />
               </div>
@@ -325,7 +325,7 @@ export function TerritoryForm() {
                   name="state"
                   value={formData.state}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="input-field"
                   placeholder="Maharashtra"
                 />
               </div>
@@ -341,7 +341,7 @@ export function TerritoryForm() {
                   name="city"
                   value={formData.city}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="input-field"
                   placeholder="Mumbai"
                 />
               </div>
@@ -357,7 +357,7 @@ export function TerritoryForm() {
                   name="pincode"
                   value={formData.pincode}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="input-field"
                   placeholder="400001"
                 />
               </div>
@@ -382,7 +382,7 @@ export function TerritoryForm() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="btn-primary flex-1"
                 >
                   <Save className="w-4 h-4" />
                   {submitting ? 'Saving...' : isEditMode ? 'Update Territory' : 'Create Territory'}
@@ -390,7 +390,7 @@ export function TerritoryForm() {
                 <button
                   type="button"
                   onClick={() => navigate('/territories')}
-                  className="px-6 py-2 border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 transition-colors"
+                  className="btn-secondary"
                 >
                   <X className="w-4 h-4 inline mr-2" />
                   Cancel
