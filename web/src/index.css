@@ -9,15 +9,277 @@
 }
 
 @layer components {
+  /* ========================================
+     BUTTON STYLES - Single Source of Truth
+     ======================================== */
+
+  /* Primary Button - Main CTAs */
   .btn-primary {
-    @apply bg-primary-600 hover:bg-primary-500 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply flex items-center justify-center gap-2 px-4 py-2.5
+           bg-primary-600 hover:bg-primary-500
+           text-white font-medium text-sm
+           rounded-lg shadow-sm hover:shadow-md
+           transition-all min-h-[44px]
+           disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
+  /* Secondary Button - Alternative actions */
   .btn-secondary {
-    @apply bg-accent-600 hover:bg-accent-500 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply flex items-center justify-center gap-2 px-4 py-2.5
+           bg-surface-soft text-primary-700
+           hover:bg-primary-50 hover:border-neutral-400
+           border-2 border-primary-200 font-medium text-sm
+           rounded-lg transition-all min-h-[44px]
+           disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
+  /* Accent Button - Special highlights */
+  .btn-accent {
+    @apply flex items-center justify-center gap-2 px-4 py-2.5
+           bg-accent-600 hover:bg-accent-500
+           text-white font-medium text-sm
+           rounded-lg shadow-sm hover:shadow-md
+           transition-all min-h-[44px]
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* Success Button - Positive actions */
+  .btn-success {
+    @apply flex items-center justify-center gap-2 px-4 py-2.5
+           bg-success-600 hover:bg-success-700
+           text-white font-medium text-sm
+           rounded-lg shadow-sm hover:shadow-md
+           transition-all min-h-[44px]
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* Warning Button - Cautionary actions */
+  .btn-warn {
+    @apply flex items-center justify-center gap-2 px-4 py-2.5
+           bg-warn-600 hover:bg-warn-700
+           text-white font-medium text-sm
+           rounded-lg shadow-sm hover:shadow-md
+           transition-all min-h-[44px]
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* Danger Button - Destructive actions */
+  .btn-danger {
+    @apply flex items-center justify-center gap-2 px-4 py-2.5
+           bg-danger-600 hover:bg-danger-700
+           text-white font-medium text-sm
+           rounded-lg shadow-sm hover:shadow-md
+           transition-all min-h-[44px]
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* Ghost Button - Subtle actions */
+  .btn-ghost {
+    @apply flex items-center justify-center gap-2 px-4 py-2.5
+           bg-transparent text-neutral-700
+           hover:bg-neutral-50 hover:border-neutral-400
+           border-2 border-neutral-300 font-medium text-sm
+           rounded-lg transition-all min-h-[44px]
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* Quick Action Card Button */
+  .btn-quick-action {
+    @apply p-4 rounded-lg text-left shadow-md
+           hover:shadow-lg transition-all min-h-[120px]
+           flex flex-col text-white;
+  }
+
+  /* ========================================
+     INPUT & FORM STYLES
+     ======================================== */
+
+  /* Standard Input Field */
   .input-field {
-    @apply w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent;
+    @apply w-full px-4 py-2.5
+           border border-neutral-300 rounded-lg
+           focus:ring-2 focus:ring-primary-600 focus:border-primary-600
+           hover:border-neutral-400
+           transition-all text-sm min-h-[44px]
+           disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-neutral-100;
+  }
+
+  /* Search Input Field */
+  .input-search {
+    @apply w-full pl-9 pr-4 py-2.5
+           border border-neutral-300 rounded-lg
+           focus:ring-2 focus:ring-primary-600 focus:border-primary-600
+           hover:border-neutral-400
+           transition-all text-sm min-h-[44px];
+  }
+
+  /* Select Dropdown */
+  .select-field {
+    @apply w-full px-4 py-2.5
+           border border-neutral-300 rounded-lg bg-white
+           focus:ring-2 focus:ring-primary-600 focus:border-primary-600
+           hover:border-neutral-400
+           transition-all text-sm min-h-[44px]
+           disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-neutral-100;
+  }
+
+  /* Textarea Field */
+  .textarea-field {
+    @apply w-full px-4 py-2.5
+           border border-neutral-300 rounded-lg
+           focus:ring-2 focus:ring-primary-600 focus:border-primary-600
+           hover:border-neutral-400
+           transition-all text-sm min-h-[100px]
+           disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-neutral-100;
+  }
+
+  /* ========================================
+     CARD & CONTAINER STYLES
+     ======================================== */
+
+  /* Standard Card */
+  .card {
+    @apply bg-white rounded-lg border border-neutral-200 shadow-sm p-6;
+  }
+
+  /* Card Header */
+  .card-header {
+    @apply flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6;
+  }
+
+  /* Filter Card */
+  .card-filter {
+    @apply bg-white rounded-lg border border-neutral-200 shadow-sm p-6;
+  }
+
+  /* Stats Card */
+  .card-stats {
+    @apply bg-white rounded-lg border border-neutral-200 shadow-sm p-6;
+  }
+
+  /* ========================================
+     BADGE & STATUS STYLES
+     ======================================== */
+
+  /* Success Badge */
+  .badge-success {
+    @apply inline-flex items-center px-2.5 py-1
+           bg-success-50 text-success-600
+           text-xs font-medium rounded-full;
+  }
+
+  /* Warning Badge */
+  .badge-warn {
+    @apply inline-flex items-center px-2.5 py-1
+           bg-warn-50 text-warn-600
+           text-xs font-medium rounded-full;
+  }
+
+  /* Danger Badge */
+  .badge-danger {
+    @apply inline-flex items-center px-2.5 py-1
+           bg-danger-50 text-danger-600
+           text-xs font-medium rounded-full;
+  }
+
+  /* Primary Badge */
+  .badge-primary {
+    @apply inline-flex items-center px-2.5 py-1
+           bg-primary-50 text-primary-600
+           text-xs font-medium rounded-full;
+  }
+
+  /* Neutral Badge */
+  .badge-neutral {
+    @apply inline-flex items-center px-2.5 py-1
+           bg-neutral-100 text-neutral-600
+           text-xs font-medium rounded-full;
+  }
+
+  /* ========================================
+     LAYOUT UTILITIES
+     ======================================== */
+
+  /* Page Header */
+  .page-header {
+    @apply flex flex-col md:flex-row md:justify-between md:items-center gap-4;
+  }
+
+  /* Page Title */
+  .page-title {
+    @apply text-2xl md:text-3xl font-bold text-neutral-900;
+  }
+
+  /* Page Subtitle */
+  .page-subtitle {
+    @apply mt-1 text-sm text-neutral-600;
+  }
+
+  /* Filter Grid */
+  .filter-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4;
+  }
+
+  /* Stats Grid */
+  .stats-grid {
+    @apply grid gap-4 min-w-max;
+  }
+
+  /* Table Container */
+  .table-container {
+    @apply bg-white rounded-lg border border-neutral-200 overflow-hidden;
+  }
+
+  /* ========================================
+     ICON UTILITIES
+     ======================================== */
+
+  /* Icon in Button */
+  .icon-btn {
+    @apply w-5 h-5 flex-shrink-0;
+  }
+
+  /* Search Icon */
+  .icon-search {
+    @apply absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none;
+  }
+
+  /* Status Icon */
+  .icon-status {
+    @apply w-5 h-5 text-primary-600;
+  }
+
+  /* ========================================
+     TEXT UTILITIES
+     ======================================== */
+
+  /* Section Heading */
+  .section-heading {
+    @apply text-lg font-semibold text-neutral-900;
+  }
+
+  /* Card Title */
+  .card-title {
+    @apply text-lg font-semibold text-neutral-900 mb-5;
+  }
+
+  /* Error Message */
+  .error-message {
+    @apply bg-danger-50 border border-danger-200 text-danger-700 px-4 py-3 rounded-lg;
+  }
+
+  /* Success Message */
+  .success-message {
+    @apply bg-success-50 border border-success-200 text-success-700 px-4 py-3 rounded-lg;
+  }
+
+  /* Warning Message */
+  .warn-message {
+    @apply bg-warn-50 border border-warn-200 text-warn-700 px-4 py-3 rounded-lg;
+  }
+
+  /* Info Message */
+  .info-message {
+    @apply bg-primary-50 border border-primary-200 text-primary-700 px-4 py-3 rounded-lg;
   }
 }
