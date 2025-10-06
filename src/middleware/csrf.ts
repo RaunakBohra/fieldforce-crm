@@ -89,7 +89,7 @@ export async function csrfProtection(
 
     // Set CSRF token in cookie (HttpOnly=false so JS can read it)
     c.header('Set-Cookie',
-      `${CSRF_COOKIE_NAME}=${token}; Path=/; SameSite=Strict; Secure; Max-Age=3600`
+      `${CSRF_COOKIE_NAME}=${token}; Path=/; SameSite=None; Secure; Max-Age=3600`
     );
 
     // Also expose in response header for SPA to access
@@ -166,7 +166,7 @@ export async function getCsrfToken(c: Context<{ Bindings: Bindings }>) {
 
   // Set cookie
   c.header('Set-Cookie',
-    `${CSRF_COOKIE_NAME}=${token}; Path=/; SameSite=Strict; Secure; Max-Age=3600`
+    `${CSRF_COOKIE_NAME}=${token}; Path=/; SameSite=None; Secure; Max-Age=3600`
   );
 
   return c.json({
