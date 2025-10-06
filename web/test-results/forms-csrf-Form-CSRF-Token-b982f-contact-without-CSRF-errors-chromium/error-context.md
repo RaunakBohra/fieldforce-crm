@@ -6,7 +6,7 @@
     - heading "Field Force CRM" [level=1] [ref=e6]
     - paragraph [ref=e7]: Sign in to your account
   - form "Login form" [ref=e8]:
-    - alert [ref=e9]: Too many login attempts. Please try again in 15 minutes.
+    - alert [ref=e9]: "Network error: Unable to connect to server"
     - generic [ref=e10]:
       - generic [ref=e11]:
         - generic [ref=e12]: Email address

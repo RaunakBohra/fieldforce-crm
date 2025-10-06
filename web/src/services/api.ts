@@ -336,6 +336,30 @@ export interface OrderQueryParams {
   endDate?: string;
 }
 
+// Payment Types
+export interface Payment {
+  id: string;
+  paymentNumber: string;
+  orderId: string;
+  amount: number;
+  paymentMode: 'CASH' | 'CHEQUE' | 'NEFT' | 'UPI' | 'CARD' | 'OTHER';
+  paymentDate: string;
+  referenceNumber?: string;
+  status: 'PENDING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreatePaymentData {
+  orderId: string;
+  amount: number;
+  paymentMode: 'CASH' | 'CHEQUE' | 'NEFT' | 'UPI' | 'CARD' | 'OTHER';
+  paymentDate: string;
+  referenceNumber?: string;
+  notes?: string;
+}
+
 class ApiService {
   private async getHeaders(includeAuth: boolean = false, includeCsrf: boolean = false): Promise<HeadersInit> {
     const headers: HeadersInit = {
@@ -814,6 +838,39 @@ class ApiService {
       });
 
       return this.handleResponse<void>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  // Payment Management
+  async createPayment(data: CreatePaymentData): Promise<ApiResponse<Payment>> {
+    try {
+      const response = await fetch(`${API_URL}/api/payments`, {
+        method: 'POST',
+        headers: await this.getHeaders(true, true),
+        body: JSON.stringify(data),
+      });
+
+      return this.handleResponse<Payment>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  async getOrder(id: string): Promise<ApiResponse<Order>> {
+    try {
+      const response = await fetch(`${API_URL}/api/orders/${id}`, {
+        headers: await this.getHeaders(true, true),
+      });
+
+      return this.handleResponse<Order>(response);
     } catch (error) {
       if (error instanceof TypeError && error.message.includes('fetch')) {
         throw new Error('Network error: Unable to connect to server');

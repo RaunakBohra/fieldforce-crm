@@ -1,21 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { api } from '../services/api';
+import type { Order } from '../services/api';
 import { Navigation } from '../components/Navigation';
-
-interface Order {
-  id: string;
-  orderNumber: string;
-  totalAmount: number;
-  paymentStatus: string;
-  contact: { name: string };
-  payments?: Array<{ amount: number }>;
-}
 
 export default function PaymentForm() {
   const { orderId } = useParams();
   const navigate = useNavigate();
-  const { token } = useAuth();
 
   const [order, setOrder] = useState<Order | null>(null);
   const [formData, setFormData] = useState({
@@ -36,31 +27,25 @@ export default function PaymentForm() {
 
   const fetchOrder = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://fieldforce-crm.raunakbohra.workers.dev'}/api/orders/${orderId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await response.json();
-      if (data.success) {
-        setOrder(data.data);
+      const response = await api.getOrder(orderId!);
+      if (response.success && response.data) {
+        setOrder(response.data);
 
         // Pre-fill amount with remaining balance
-        const totalPaid = data.data.payments?.reduce(
-          (sum: number, p: { amount: number }) => sum + p.amount,
+        const totalPaid = response.data.items?.reduce(
+          (sum, item) => sum + item.totalPrice,
           0
         ) || 0;
-        const remaining = data.data.totalAmount - totalPaid;
-        setFormData({ ...formData, amount: remaining.toString() });
+        const remaining = response.data.totalAmount - totalPaid;
+        setFormData(prev => ({ ...prev, amount: remaining.toString() }));
+      } else {
+        setError(response.error || 'Failed to load order details');
       }
     } catch (error) {
       console.error('Failed to fetch order:', error);
-      setError('Failed to load order details');
+      const err = error as Error;
+      setError(err.message || 'Failed to load order details');
     }
-  };
-
-  const fetchCsrfToken = async () => {
-    const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://fieldforce-crm.raunakbohra.workers.dev'}/api/csrf-token`);
-    const data = await response.json();
-    return data.csrfToken;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -69,33 +54,20 @@ export default function PaymentForm() {
     setError('');
 
     try {
-      const csrfToken = await fetchCsrfToken();
-
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://fieldforce-crm.raunakbohra.workers.dev'}/api/payments`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-          'x-csrf-token': csrfToken,
-        },
-        body: JSON.stringify({
-          orderId,
-          ...formData,
-          amount: parseFloat(formData.amount),
-        }),
+      const response = await api.createPayment({
+        orderId: orderId!,
+        amount: parseFloat(formData.amount),
+        paymentMode: formData.paymentMode as 'CASH' | 'CHEQUE' | 'NEFT' | 'UPI' | 'CARD' | 'OTHER',
+        paymentDate: formData.paymentDate,
+        referenceNumber: formData.referenceNumber || undefined,
+        notes: formData.notes || undefined,
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to record payment');
-      }
-
-      if (data.success) {
-        alert(`Payment recorded successfully! Payment #: ${data.data.paymentNumber}`);
+      if (response.success && response.data) {
+        alert(`Payment recorded successfully! Payment #: ${response.data.paymentNumber}`);
         navigate('/payments');
       } else {
-        throw new Error(data.error || 'Failed to record payment');
+        setError(response.error || 'Failed to record payment');
       }
     } catch (error: unknown) {
       const err = error as Error;

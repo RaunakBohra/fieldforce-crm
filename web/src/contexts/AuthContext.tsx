@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { api, type User } from '../services/api';
+import { initializeCsrfToken, clearCsrfToken } from '../utils/csrf';
 
 interface AuthContextType {
   user: User | null;
@@ -49,6 +50,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(response.data.user);
       setToken(response.data.token);
       localStorage.setItem('token', response.data.token);
+
+      // Reinitialize CSRF token after login
+      await initializeCsrfToken().catch(err =>
+        console.warn('Failed to initialize CSRF token after login:', err)
+      );
     } else {
       throw new Error(response.error || 'Login failed');
     }
@@ -61,6 +67,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(response.data.user);
       setToken(response.data.token);
       localStorage.setItem('token', response.data.token);
+
+      // Reinitialize CSRF token after signup
+      await initializeCsrfToken().catch(err =>
+        console.warn('Failed to initialize CSRF token after signup:', err)
+      );
     } else {
       throw new Error(response.error || 'Signup failed');
     }
@@ -70,6 +81,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setToken(null);
     localStorage.removeItem('token');
+
+    // Clear CSRF token on logout
+    clearCsrfToken();
   };
 
   return (

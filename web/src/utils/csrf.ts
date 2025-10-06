@@ -28,22 +28,27 @@ function getCsrfTokenFromCookie(): string | null {
 async function fetchCsrfToken(): Promise<string> {
   const API_URL = import.meta.env.VITE_API_URL;
 
-  const response = await fetch(`${API_URL}/api/csrf-token`, {
-    method: 'GET',
-    credentials: 'include', // Important: Include cookies
-  });
+  try {
+    const response = await fetch(`${API_URL}/api/csrf-token`, {
+      method: 'GET',
+      credentials: 'include', // Important: Include cookies for CSRF cookie
+    });
 
-  if (!response.ok) {
-    throw new Error('Failed to fetch CSRF token');
+    if (!response.ok) {
+      throw new Error(`Failed to fetch CSRF token: HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+    if (data.success && data.data?.csrfToken) {
+      cachedToken = data.data.csrfToken;
+      return data.data.csrfToken;
+    }
+
+    throw new Error('Invalid CSRF token response format');
+  } catch (error) {
+    console.error('CSRF token fetch error:', error);
+    throw error;
   }
-
-  const data = await response.json();
-  if (data.success && data.data?.csrfToken) {
-    cachedToken = data.data.csrfToken;
-    return data.data.csrfToken;
-  }
-
-  throw new Error('Invalid CSRF token response');
 }
 
 /**
