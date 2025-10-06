@@ -4,7 +4,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { lazy, Suspense, useEffect, type ReactElement } from 'react';
 import { syncOfflineData, isOnline } from './utils/offlineStorage';
 import OfflineIndicator from './components/OfflineIndicator';
-import { api } from './lib/api';
+import { api } from './services/api';
 
 // Lazy load pages for code splitting
 const Login = lazy(() => import('./pages/Login'));
