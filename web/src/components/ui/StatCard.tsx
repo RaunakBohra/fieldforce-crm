@@ -52,21 +52,23 @@ export function StatCard({
   className = '',
 }: StatCardProps) {
   const Component = onClick ? 'button' : 'div';
-  const clickableClasses = onClick ? 'cursor-pointer hover:shadow-lg transition-shadow text-left w-full' : '';
+  const clickableClasses = onClick ? 'cursor-pointer hover:shadow-lg transition-shadow text-left w-full min-h-[44px]' : '';
 
   return (
     <Component
       onClick={onClick}
-      className={`bg-white rounded-lg shadow p-4 md:p-6 ${clickableClasses} ${className}`}
+      className={`bg-white rounded-lg shadow p-2 md:p-3 ${clickableClasses} ${className}`}
     >
-      <div className="flex items-center justify-between mb-2">
-        <div className="text-sm font-medium text-neutral-600">{title}</div>
-        {Icon && <Icon className={`w-5 h-5 md:w-6 md:h-6 ${iconColor}`} />}
+      <div className="flex items-center gap-2 md:gap-3">
+        {Icon && <Icon className={`w-5 h-5 flex-shrink-0 ${iconColor}`} />}
+        <div className="flex-1 min-w-0">
+          <div className="text-xs md:text-sm font-medium text-neutral-600 truncate">{title}</div>
+          {subtitle && <div className="text-xs text-neutral-500 truncate">{subtitle}</div>}
+        </div>
+        <div className={`text-lg md:text-xl font-bold ${valueColor} flex-shrink-0`}>
+          {typeof value === 'number' ? value.toLocaleString() : value}
+        </div>
       </div>
-      <div className={`text-2xl md:text-3xl font-bold ${valueColor}`}>
-        {typeof value === 'number' ? value.toLocaleString() : value}
-      </div>
-      {subtitle && <div className="mt-2 text-sm text-neutral-600">{subtitle}</div>}
     </Component>
   );
 }
