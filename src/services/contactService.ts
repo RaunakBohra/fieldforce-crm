@@ -89,8 +89,21 @@ export class ContactService {
         isActive: input.isActive ?? true,
       };
 
-      // Add territoryId if provided
+      // Add territoryId if provided (validate it exists and is active)
       if (input.territoryId && input.territoryId.trim()) {
+        const territory = await prisma.territory.findUnique({
+          where: { id: input.territoryId },
+          select: { id: true, isActive: true },
+        });
+
+        if (!territory) {
+          return { success: false, error: 'Territory not found' };
+        }
+
+        if (!territory.isActive) {
+          return { success: false, error: 'Territory is not active' };
+        }
+
         contactData.territoryId = input.territoryId;
       }
 
@@ -361,6 +374,29 @@ export class ContactService {
       }
       if (input.notes !== undefined) {
         updateData.notes = input.notes.trim() || null;
+      }
+
+      // Validate territoryId if provided
+      if (input.territoryId !== undefined) {
+        if (input.territoryId && input.territoryId.trim()) {
+          const territory = await this.prisma.territory.findUnique({
+            where: { id: input.territoryId },
+            select: { id: true, isActive: true },
+          });
+
+          if (!territory) {
+            return { success: false, error: 'Territory not found' };
+          }
+
+          if (!territory.isActive) {
+            return { success: false, error: 'Territory is not active' };
+          }
+
+          updateData.territoryId = input.territoryId;
+        } else {
+          // Empty string means remove territory
+          updateData.territoryId = null;
+        }
       }
 
       const contact = await this.prisma.contact.update({

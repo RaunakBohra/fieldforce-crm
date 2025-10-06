@@ -235,7 +235,7 @@ app.onError((err, c) => {
         success: false,
         error: err.message || 'Validation failed',
       },
-      status
+      status as any
     );
   }
 

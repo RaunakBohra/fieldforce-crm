@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { authMiddleware } from '../middleware/auth';
+import { requireManager } from '../middleware/rbac';
 import { logger, getLogContext } from '../utils/logger';
 import type { Bindings } from '../index';
 import type { Dependencies } from '../config/dependencies';
@@ -352,8 +353,9 @@ analytics.get('/payment-modes', async (c) => {
  * Get performance metrics grouped by territory
  * Returns: territories with order count, revenue, visit count, contact count
  * Query params: startDate, endDate (optional)
+ * Authorization: ADMIN or MANAGER only
  */
-analytics.get('/territory-performance', async (c) => {
+analytics.get('/territory-performance', requireManager, async (c) => {
   const deps = c.get('deps');
   const user = c.get('user');
 
@@ -367,81 +369,119 @@ analytics.get('/territory-performance', async (c) => {
     const endDate = endDateParam ? new Date(endDateParam) : new Date();
     const startDate = startDateParam ? new Date(startDateParam) : new Date(endDate.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-    // Get all active territories
-    const territories = await deps.prisma.territory.findMany({
-      where: {
-        isActive: true,
-      },
-      select: {
-        id: true,
-        name: true,
-        code: true,
-        type: true,
-      },
-      orderBy: {
-        name: 'asc',
-      },
-    });
+    // Optimized: Use database aggregation to avoid N+1 queries
+    // Execute all queries in parallel using Promise.all
+    const [territories, contactCounts, orderAggregates, visitCounts] = await Promise.all([
+      // 1. Get all active territories
+      deps.prisma.territory.findMany({
+        where: { isActive: true },
+        select: { id: true, name: true, code: true, type: true },
+        orderBy: { name: 'asc' },
+      }),
 
-    // For each territory, get performance metrics
-    const performanceData = await Promise.all(
-      territories.map(async (territory) => {
-        // Count contacts in this territory
-        const contactCount = await deps.prisma.contact.count({
+      // 2. Get contact counts per territory (single query with GROUP BY)
+      deps.prisma.contact.groupBy({
+        by: ['territoryId'],
+        where: { isActive: true, territoryId: { not: null } },
+        _count: { id: true },
+      }),
+
+      // 3. Get order aggregates per territory (single query with GROUP BY)
+      deps.prisma.order.groupBy({
+        by: ['contactId'],
+        where: {
+          contact: { territoryId: { not: null } },
+          createdAt: { gte: startDate, lte: endDate },
+        },
+        _count: { id: true },
+        _sum: { totalAmount: true },
+      }).then(async (orderGroups) => {
+        // Get contactId -> territoryId mapping
+        const contactIds = orderGroups.map(g => g.contactId);
+        const contacts = await deps.prisma.contact.findMany({
+          where: { id: { in: contactIds } },
+          select: { id: true, territoryId: true },
+        });
+        const contactToTerritory = new Map(contacts.map(c => [c.id, c.territoryId]));
+
+        // Group by territory
+        const territoryMap = new Map<string, { orderCount: number; totalRevenue: number; deliveredOrders: number }>();
+
+        for (const group of orderGroups) {
+          const territoryId = contactToTerritory.get(group.contactId);
+          if (!territoryId) continue;
+
+          const existing = territoryMap.get(territoryId) || { orderCount: 0, totalRevenue: 0, deliveredOrders: 0 };
+          existing.orderCount += (group._count?.id || group._count || 0);
+          existing.totalRevenue += Number(group._sum?.totalAmount || 0);
+          territoryMap.set(territoryId, existing);
+        }
+
+        // Get delivered order counts
+        const deliveredCounts = await deps.prisma.order.groupBy({
+          by: ['contactId'],
           where: {
-            territoryId: territory.id,
-            isActive: true,
+            contact: { territoryId: { not: null } },
+            createdAt: { gte: startDate, lte: endDate },
+            status: 'DELIVERED',
           },
+          _count: { id: true },
         });
 
-        // Get orders from contacts in this territory
-        const orders = await deps.prisma.order.findMany({
-          where: {
-            contact: {
-              territoryId: territory.id,
-            },
-            createdAt: {
-              gte: startDate,
-              lte: endDate,
-            },
-          },
-          select: {
-            totalAmount: true,
-            status: true,
-          },
+        for (const group of deliveredCounts) {
+          const territoryId = contactToTerritory.get(group.contactId);
+          if (!territoryId) continue;
+          const existing = territoryMap.get(territoryId);
+          if (existing) {
+            existing.deliveredOrders += (group._count?.id || group._count || 0);
+          }
+        }
+
+        return territoryMap;
+      }),
+
+      // 4. Get visit counts per territory (single query with GROUP BY)
+      deps.prisma.visit.groupBy({
+        by: ['contactId'],
+        where: {
+          contact: { territoryId: { not: null } },
+          createdAt: { gte: startDate, lte: endDate },
+        },
+        _count: { id: true },
+      }).then(async (visitGroups) => {
+        // Get contactId -> territoryId mapping
+        const contactIds = visitGroups.map(g => g.contactId);
+        const contacts = await deps.prisma.contact.findMany({
+          where: { id: { in: contactIds } },
+          select: { id: true, territoryId: true },
         });
+        const contactToTerritory = new Map(contacts.map(c => [c.id, c.territoryId]));
 
-        // Calculate order metrics
-        const orderCount = orders.length;
-        const totalRevenue = orders.reduce((sum, order) => sum + Number(order.totalAmount), 0);
-        const deliveredOrders = orders.filter(o => o.status === 'DELIVERED').length;
+        // Group by territory
+        const territoryMap = new Map<string, number>();
+        for (const group of visitGroups) {
+          const territoryId = contactToTerritory.get(group.contactId);
+          if (!territoryId) continue;
+          territoryMap.set(territoryId, (territoryMap.get(territoryId) || 0) + (group._count?.id || group._count || 0));
+        }
+        return territoryMap;
+      }),
+    ]);
 
-        // Get visits to contacts in this territory
-        const visitCount = await deps.prisma.visit.count({
-          where: {
-            contact: {
-              territoryId: territory.id,
-            },
-            createdAt: {
-              gte: startDate,
-              lte: endDate,
-            },
-          },
-        });
+    // Build performance data from aggregated results
+    const contactCountMap = new Map(contactCounts.map(c => [c.territoryId!, c._count.id]));
 
-        return {
-          territoryId: territory.id,
-          territoryName: territory.name,
-          territoryCode: territory.code,
-          territoryType: territory.type,
-          contactCount,
-          orderCount,
-          deliveredOrders,
-          totalRevenue,
-          visitCount,
-        };
-      })
-    );
+    const performanceData = territories.map(territory => ({
+      territoryId: territory.id,
+      territoryName: territory.name,
+      territoryCode: territory.code,
+      territoryType: territory.type,
+      contactCount: contactCountMap.get(territory.id) || 0,
+      orderCount: orderAggregates.get(territory.id)?.orderCount || 0,
+      deliveredOrders: orderAggregates.get(territory.id)?.deliveredOrders || 0,
+      totalRevenue: orderAggregates.get(territory.id)?.totalRevenue || 0,
+      visitCount: visitCounts.get(territory.id) || 0,
+    }));
 
     // Sort by total revenue (descending)
     performanceData.sort((a, b) => b.totalRevenue - a.totalRevenue);
