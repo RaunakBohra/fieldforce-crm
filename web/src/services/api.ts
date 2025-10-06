@@ -1360,6 +1360,137 @@ class ApiService {
       throw error;
     }
   }
+
+  // Reports
+  async getVisitsReport(params?: {
+    startDate?: string;
+    endDate?: string;
+    status?: string;
+    fieldRepId?: string;
+    contactId?: string;
+    format?: 'json' | 'csv';
+  }): Promise<ApiResponse<any>> {
+    try {
+      const queryString = params ? '?' + new URLSearchParams(
+        Object.entries(params)
+          .filter(([, value]) => value !== undefined)
+          .map(([key, value]) => [key, String(value)])
+      ).toString() : '';
+
+      const response = await fetch(`${API_URL}/api/reports/visits${queryString}`, {
+        headers: await this.getHeaders(true),
+        credentials: 'include',
+      });
+
+      // Handle CSV downloads
+      if (params?.format === 'csv') {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `visits_report_${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        return { success: true, data: null };
+      }
+
+      return this.handleResponse<any>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  async getOrdersReport(params?: {
+    startDate?: string;
+    endDate?: string;
+    status?: string;
+    paymentStatus?: string;
+    fieldRepId?: string;
+    contactId?: string;
+    format?: 'json' | 'csv';
+  }): Promise<ApiResponse<any>> {
+    try {
+      const queryString = params ? '?' + new URLSearchParams(
+        Object.entries(params)
+          .filter(([, value]) => value !== undefined)
+          .map(([key, value]) => [key, String(value)])
+      ).toString() : '';
+
+      const response = await fetch(`${API_URL}/api/reports/orders${queryString}`, {
+        headers: await this.getHeaders(true),
+        credentials: 'include',
+      });
+
+      // Handle CSV downloads
+      if (params?.format === 'csv') {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `orders_report_${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        return { success: true, data: null };
+      }
+
+      return this.handleResponse<any>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  async getPaymentsReport(params?: {
+    startDate?: string;
+    endDate?: string;
+    paymentMode?: string;
+    fieldRepId?: string;
+    contactId?: string;
+    format?: 'json' | 'csv';
+  }): Promise<ApiResponse<any>> {
+    try {
+      const queryString = params ? '?' + new URLSearchParams(
+        Object.entries(params)
+          .filter(([, value]) => value !== undefined)
+          .map(([key, value]) => [key, String(value)])
+      ).toString() : '';
+
+      const response = await fetch(`${API_URL}/api/reports/payments${queryString}`, {
+        headers: await this.getHeaders(true),
+        credentials: 'include',
+      });
+
+      // Handle CSV downloads
+      if (params?.format === 'csv') {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `payments_report_${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        return { success: true, data: null };
+      }
+
+      return this.handleResponse<any>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
 }
 
 const api = new ApiService();

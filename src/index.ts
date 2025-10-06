@@ -13,6 +13,7 @@ import paymentRoutes from './routes/payments';
 import dashboardRoutes from './routes/dashboard';
 import analyticsRoutes from './routes/analytics';
 import userRoutes from './routes/users';
+import reportRoutes from './routes/reports';
 import { authMiddleware } from './middleware/auth';
 
 /**
@@ -180,6 +181,9 @@ app.route('/api/analytics', analyticsRoutes);
 
 // User management routes (protected, admin/manager only)
 app.route('/api/users', userRoutes);
+
+// Reports routes (protected)
+app.route('/api/reports', reportRoutes);
 
 // Protected route example
 app.get('/api/protected', authMiddleware, (c) => {

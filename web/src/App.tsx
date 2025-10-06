@@ -21,6 +21,7 @@ const PaymentsList = lazy(() => import('./pages/PaymentsList'));
 const PaymentForm = lazy(() => import('./pages/PaymentForm'));
 const PendingPayments = lazy(() => import('./pages/PendingPayments'));
 const Analytics = lazy(() => import('./pages/Analytics'));
+const Reports = lazy(() => import('./pages/Reports'));
 const UsersList = lazy(() => import('./pages/UsersList').then(m => ({ default: m.UsersList })));
 const UserForm = lazy(() => import('./pages/UserForm').then(m => ({ default: m.UserForm })));
 
@@ -193,6 +194,14 @@ function App() {
               element={
                 <PrivateRoute>
                   <Analytics />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/reports"
+              element={
+                <PrivateRoute>
+                  <Reports />
                 </PrivateRoute>
               }
             />

@@ -59,6 +59,12 @@ export function Navigation() {
               >
                 Analytics
               </button>
+              <button
+                onClick={() => navigate('/reports')}
+                className="hover:bg-primary-700 px-3 py-2 rounded-lg transition-colors"
+              >
+                Reports
+              </button>
               {user?.role === 'ADMIN' && (
                 <button
                   onClick={() => navigate('/users')}
