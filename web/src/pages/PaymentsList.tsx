@@ -109,23 +109,23 @@ export default function PaymentsList() {
       <ContentSection>
         {/* Header */}
         <Card className="border-b border-neutral-200 rounded-none">
-          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+          <div className="page-header">
             <div className="flex-1">
-              <h1 className="text-2xl md:text-3xl font-bold text-neutral-900">Payments</h1>
-              <p className="mt-1 text-sm text-neutral-600">
+              <h1 className="page-title">Payments</h1>
+              <p className="page-subtitle">
                 Track and manage payment records
               </p>
             </div>
             <div className="flex gap-3">
               <button
                 onClick={() => navigate('/payments/pending')}
-                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-warn-600 text-white rounded-lg hover:bg-warn-500 hover:shadow-md transition-all min-h-[44px] shadow-sm"
+                className="btn-warn"
               >
                 <span className="font-medium">View Pending</span>
               </button>
               <button
                 onClick={() => navigate('/payments/new')}
-                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-primary-800 text-white rounded-lg hover:bg-primary-700 hover:shadow-md transition-all min-h-[44px] shadow-sm"
+                className="btn-primary"
               >
                 <span className="font-medium">Record Payment</span>
               </button>
@@ -161,7 +161,7 @@ export default function PaymentsList() {
         {/* Payment Mode Breakdown */}
         {stats?.paymentModes && Object.keys(stats.paymentModes).length > 0 && (
           <Card className="mt-6 border border-neutral-200">
-            <h2 className="text-lg font-semibold mb-4">Payment Mode Breakdown</h2>
+            <h2 className="section-heading mb-4">Payment Mode Breakdown</h2>
             <div className="overflow-x-auto">
               <div className="grid grid-cols-6 gap-4 min-w-max">
                 {Object.entries(stats.paymentModes).map(([mode, amount]) => (
@@ -178,8 +178,8 @@ export default function PaymentsList() {
         {/* Filters */}
         <Card className="mt-6 border border-neutral-200 shadow-sm">
           <div className="flex items-center gap-2 mb-5">
-            <Filter className="w-5 h-5 text-primary-600" />
-            <h2 className="text-lg font-semibold text-neutral-900">Filters</h2>
+            <Filter className="icon-status" />
+            <h2 className="section-heading">Filters</h2>
             {hasActiveFilters && (
               <span className="px-2 py-1 text-xs font-semibold rounded-full bg-primary-100 text-primary-800">
                 Active
@@ -190,13 +190,13 @@ export default function PaymentsList() {
           <div className="space-y-3 md:space-y-4">
             {/* Search */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" />
+              <Search className="icon-search" />
               <input
                 type="text"
                 placeholder="Search by contact name, order, payment, or reference number..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-4 py-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-all hover:border-neutral-400 text-sm min-h-[44px]"
+                className="input-search"
               />
             </div>
 
@@ -208,7 +208,7 @@ export default function PaymentsList() {
                   type="date"
                   value={filter.startDate}
                   onChange={(e) => setFilter({ ...filter, startDate: e.target.value })}
-                  className="w-full px-4 py-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-all hover:border-neutral-400 text-sm min-h-[44px] bg-white"
+                  className="select-field"
                 />
               </div>
               <div>
@@ -217,7 +217,7 @@ export default function PaymentsList() {
                   type="date"
                   value={filter.endDate}
                   onChange={(e) => setFilter({ ...filter, endDate: e.target.value })}
-                  className="w-full px-4 py-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-all hover:border-neutral-400 text-sm min-h-[44px] bg-white"
+                  className="select-field"
                 />
               </div>
               <div>
@@ -225,7 +225,7 @@ export default function PaymentsList() {
                 <select
                   value={filter.paymentMode}
                   onChange={(e) => setFilter({ ...filter, paymentMode: e.target.value })}
-                  className="w-full px-4 py-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-all hover:border-neutral-400 text-sm min-h-[44px] bg-white"
+                  className="select-field"
                 >
                   <option value="">All Modes</option>
                   <option value="CASH">Cash</option>
@@ -249,7 +249,7 @@ export default function PaymentsList() {
                   value={filter.minAmount}
                   onChange={(e) => setFilter({ ...filter, minAmount: e.target.value })}
                   placeholder="e.g., 1000"
-                  className="w-full px-4 py-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-all hover:border-neutral-400 text-sm min-h-[44px]"
+                  className="input-field"
                 />
               </div>
               <div>
@@ -261,14 +261,14 @@ export default function PaymentsList() {
                   value={filter.maxAmount}
                   onChange={(e) => setFilter({ ...filter, maxAmount: e.target.value })}
                   placeholder="e.g., 100000"
-                  className="w-full px-4 py-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-all hover:border-neutral-400 text-sm min-h-[44px]"
+                  className="input-field"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-1">&nbsp;</label>
                 <button
                   onClick={resetFilters}
-                  className="w-full px-4 py-2.5 border-2 border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 hover:border-neutral-400 transition-all font-medium text-sm min-h-[44px]"
+                  className="w-full btn-ghost"
                 >
                   Reset Filters
                 </button>

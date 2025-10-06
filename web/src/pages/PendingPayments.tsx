@@ -49,16 +49,16 @@ export default function PendingPayments() {
       <ContentSection>
         {/* Header */}
         <Card className="border-b border-neutral-200 rounded-none">
-          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+          <div className="page-header">
             <div className="flex-1">
-              <h1 className="text-2xl md:text-3xl font-bold text-neutral-900">Pending Payments</h1>
-              <p className="mt-1 text-sm text-neutral-600">
+              <h1 className="page-title">Pending Payments</h1>
+              <p className="page-subtitle">
                 Track and follow up on pending payments
               </p>
             </div>
             <button
               onClick={() => navigate('/payments')}
-              className="flex items-center justify-center gap-2 px-4 py-2.5 bg-primary-800 text-white rounded-lg hover:bg-primary-700 hover:shadow-md transition-all min-h-[44px] shadow-sm"
+              className="btn-primary"
             >
               <span className="font-medium">View All Payments</span>
             </button>

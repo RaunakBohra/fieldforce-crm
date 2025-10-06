@@ -91,12 +91,12 @@ export function UsersList() {
       <ContentSection>
         {/* Header */}
         <Card className="border-b border-neutral-200 rounded-none">
-          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+          <div className="page-header">
             <div className="flex-1 flex items-center gap-3">
               <UsersIcon className="w-8 h-8 text-primary-600" />
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-neutral-900">User Management</h1>
-                <p className="mt-1 text-sm text-neutral-600">
+                <h1 className="page-title">User Management</h1>
+                <p className="page-subtitle">
                   Manage users and their roles
                 </p>
               </div>
@@ -104,9 +104,9 @@ export function UsersList() {
             {currentUser?.role === 'ADMIN' && (
               <button
                 onClick={() => navigate('/users/new')}
-                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 hover:shadow-md transition-all min-h-[44px] shadow-sm"
+                className="btn-primary"
               >
-                <Plus className="w-5 h-5 flex-shrink-0" />
+                <Plus className="icon-btn" />
                 <span className="font-medium">Add User</span>
               </button>
             )}
@@ -116,25 +116,25 @@ export function UsersList() {
         {/* Filters */}
         <Card className="mt-6 border border-neutral-200 shadow-sm">
           <div className="flex items-center gap-2 mb-5">
-            <UsersIcon className="w-5 h-5 text-primary-600" />
-            <h2 className="text-lg font-semibold text-neutral-900">Filters</h2>
+            <UsersIcon className="icon-status" />
+            <h2 className="section-heading">Filters</h2>
           </div>
 
-          <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+          <form onSubmit={handleSearch} className="filter-grid">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" />
+              <Search className="icon-search" />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search by name, email, or phone..."
-                className="w-full pl-9 pr-4 py-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-all hover:border-neutral-400 text-sm min-h-[44px]"
+                className="input-search"
               />
             </div>
             <select
               value={roleFilter}
               onChange={(e) => { setRoleFilter(e.target.value); setPage(1); }}
-              className="px-4 py-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-all hover:border-neutral-400 text-sm min-h-[44px] bg-white"
+              className="select-field"
             >
               <option value="">All Roles</option>
               <option value="ADMIN">Admin</option>
@@ -144,7 +144,7 @@ export function UsersList() {
             <select
               value={statusFilter}
               onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-              className="px-4 py-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-all hover:border-neutral-400 text-sm min-h-[44px] bg-white"
+              className="select-field"
             >
               <option value="">All Status</option>
               <option value="active">Active</option>
@@ -152,7 +152,7 @@ export function UsersList() {
             </select>
             <button
               type="submit"
-              className="px-4 py-2.5 border-2 border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 hover:border-neutral-400 transition-all font-medium text-sm min-h-[44px]"
+              className="btn-ghost"
             >
               Search
             </button>

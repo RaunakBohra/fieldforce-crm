@@ -346,11 +346,11 @@ export default function Dashboard() {
 
         {/* Quick Actions */}
         <section className="mt-6">
-          <h2 className="text-lg font-semibold text-neutral-900 mb-4">Quick Actions</h2>
+          <h2 className="section-heading mb-4">Quick Actions</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
             <button
               onClick={() => navigate('/visits/new')}
-              className="p-4 bg-primary-600 text-white rounded-lg hover:bg-primary-700 hover:shadow-lg transition-all text-left shadow-md min-h-[120px] flex flex-col"
+              className="btn-quick-action bg-primary-600 hover:bg-primary-700"
             >
               <MapPin className="w-6 h-6 mb-3 flex-shrink-0" />
               <div className="flex-1">
@@ -360,7 +360,7 @@ export default function Dashboard() {
             </button>
             <button
               onClick={() => navigate('/orders/new')}
-              className="p-4 bg-warn-600 text-white rounded-lg hover:bg-warn-700 hover:shadow-lg transition-all text-left shadow-md min-h-[120px] flex flex-col"
+              className="btn-quick-action bg-warn-600 hover:bg-warn-700"
             >
               <ShoppingCart className="w-6 h-6 mb-3 flex-shrink-0" />
               <div className="flex-1">
@@ -370,7 +370,7 @@ export default function Dashboard() {
             </button>
             <button
               onClick={() => navigate('/payments')}
-              className="p-4 bg-success-600 text-white rounded-lg hover:bg-success-700 hover:shadow-lg transition-all text-left shadow-md min-h-[120px] flex flex-col"
+              className="btn-quick-action bg-success-600 hover:bg-success-700"
             >
               <CreditCard className="w-6 h-6 mb-3 flex-shrink-0" />
               <div className="flex-1">
@@ -380,7 +380,7 @@ export default function Dashboard() {
             </button>
             <button
               onClick={() => navigate('/contacts/new')}
-              className="p-4 bg-primary-600 text-white rounded-lg hover:bg-primary-700 hover:shadow-lg transition-all text-left shadow-md min-h-[120px] flex flex-col"
+              className="btn-quick-action bg-primary-600 hover:bg-primary-700"
             >
               <Users className="w-6 h-6 mb-3 flex-shrink-0" />
               <div className="flex-1">

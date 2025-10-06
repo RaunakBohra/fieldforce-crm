@@ -83,6 +83,11 @@ export default {
           800: '#1e293b',
           900: '#0f172a',
           950: '#020617',
+        },
+        surface: {
+          DEFAULT: '#ffffff',
+          soft: '#f1f5f9',
+          strong: '#0f172a',
         }
       }
     },

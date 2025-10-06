@@ -105,18 +105,18 @@ export function ProductsList() {
       <ContentSection>
         {/* Header */}
         <Card className="border-b border-neutral-200 rounded-none">
-          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+          <div className="page-header">
             <div className="flex-1">
-              <h1 className="text-2xl md:text-3xl font-bold text-neutral-900">Product Catalog</h1>
-              <p className="mt-1 text-sm text-neutral-600">
+              <h1 className="page-title">Product Catalog</h1>
+              <p className="page-subtitle">
                 Browse and select products for orders
               </p>
             </div>
             <button
               onClick={() => navigate('/products/new')}
-              className="flex items-center justify-center gap-2 px-4 py-2.5 bg-primary-800 text-white rounded-lg hover:bg-primary-700 hover:shadow-md transition-all min-h-[44px] shadow-sm"
+              className="btn-primary"
             >
-              <Plus className="w-5 h-5 flex-shrink-0" />
+              <Plus className="icon-btn" />
               <span className="font-medium">Add Product</span>
             </button>
           </div>
@@ -125,26 +125,26 @@ export function ProductsList() {
         {/* Filters */}
         <Card className="mt-6 border border-neutral-200 shadow-sm">
           <div className="flex items-center gap-2 mb-5">
-            <Package className="w-5 h-5 text-primary-600" />
-            <h2 className="text-lg font-semibold text-neutral-900">Filters</h2>
+            <Package className="icon-status" />
+            <h2 className="section-heading">Filters</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" />
+              <Search className="icon-search" />
               <input
                 type="text"
                 placeholder="Search products..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-4 py-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-all hover:border-neutral-400 text-sm min-h-[44px]"
+                className="input-search"
               />
             </div>
 
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="px-4 py-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-all hover:border-neutral-400 text-sm min-h-[44px] bg-white"
+              className="select-field"
             >
               <option value="ALL">All Categories</option>
               {categories.map((cat) => (
@@ -158,7 +158,7 @@ export function ProductsList() {
                 setCategoryFilter('ALL');
                 setCurrentPage(1);
               }}
-              className="px-4 py-2.5 border-2 border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 hover:border-neutral-400 transition-all font-medium text-sm min-h-[44px]"
+              className="btn-ghost"
             >
               Reset Filters
             </button>
@@ -167,7 +167,7 @@ export function ProductsList() {
 
         {/* Error */}
         {error && (
-          <div className="mt-4 bg-danger-50 border border-danger-200 text-danger-700 px-4 py-3 rounded-lg">
+          <div className="mt-4 error-message">
             {error}
           </div>
         )}
