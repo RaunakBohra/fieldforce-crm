@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api } from '../services/api';
 import type { CreateVisitData, Contact } from '../services/api';
-import { MapPin, Navigation as NavigationIcon, Loader2 } from 'lucide-react';
+import { MapPin, Navigation as NavigationIcon, Loader2, Camera as CameraIcon, X, Plus, Trash2 } from 'lucide-react';
 import { PageContainer, ContentSection, Card } from '../components/layout';
+import { Camera } from '../components/Camera';
+import { compressImage, getImageSizeKB } from '../utils/imageCompression';
 
 export function VisitForm() {
   const navigate = useNavigate();
@@ -15,6 +17,10 @@ export function VisitForm() {
   const [error, setError] = useState('');
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [contactSearch, setContactSearch] = useState('');
+  const [showCamera, setShowCamera] = useState(false);
+  const [photos, setPhotos] = useState<string[]>([]);
+  const [samples, setSamples] = useState<Array<{ productId: string; productName: string; quantity: number }>>([]);
+  const [products, setProducts] = useState<any[]>([]);
 
   const [formData, setFormData] = useState<CreateVisitData>({
     contactId: '',
@@ -44,8 +50,15 @@ export function VisitForm() {
   }, [contactSearch]);
 
   useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  useEffect(() => {
     if (isEditing) {
       fetchVisit();
+    } else {
+      // Auto-capture GPS on new visit
+      captureLocation();
     }
   }, [id]);
 
@@ -59,6 +72,17 @@ export function VisitForm() {
       }
     } catch (err) {
       console.error('Failed to fetch contacts:', err);
+    }
+  };
+
+  const fetchProducts = async () => {
+    try {
+      const response = await api.getProducts({ limit: 100, isActive: true });
+      if (response.success && response.data) {
+        setProducts(response.data.products);
+      }
+    } catch (err) {
+      console.error('Failed to fetch products:', err);
     }
   };
 
@@ -103,6 +127,14 @@ export function VisitForm() {
       return;
     }
 
+    // Show permission prompt via confirm
+    if (!isEditing && !formData.latitude) {
+      const userConsent = window.confirm(
+        'Allow location access to verify visit location?\n\nThis helps track field rep activities and ensures visit authenticity.'
+      );
+      if (!userConsent) return;
+    }
+
     setFetchingLocation(true);
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -115,8 +147,12 @@ export function VisitForm() {
       },
       (error) => {
         console.error('Error getting location:', error);
-        alert('Failed to get location: ' + error.message);
         setFetchingLocation(false);
+        if (error.code === 1) {
+          alert('Location permission denied. Please enable location access in your browser settings.');
+        } else {
+          alert('Failed to get location: ' + error.message);
+        }
       },
       {
         enableHighAccuracy: true,
@@ -124,6 +160,41 @@ export function VisitForm() {
         maximumAge: 0,
       }
     );
+  };
+
+  const handlePhotoCapture = async (photoDataUrl: string) => {
+    try {
+      // Compress to 200KB
+      const compressed = await compressImage(photoDataUrl, 200);
+      const sizeKB = getImageSizeKB(compressed);
+
+      console.log(`Photo compressed to ${sizeKB.toFixed(1)}KB`);
+
+      if (photos.length < 2) {
+        setPhotos([...photos, compressed]);
+      }
+    } catch (err) {
+      console.error('Photo compression error:', err);
+      alert('Failed to compress photo');
+    }
+  };
+
+  const removePhoto = (index: number) => {
+    setPhotos(photos.filter((_, i) => i !== index));
+  };
+
+  const addSample = () => {
+    setSamples([...samples, { productId: '', productName: '', quantity: 1 }]);
+  };
+
+  const removeSample = (index: number) => {
+    setSamples(samples.filter((_, i) => i !== index));
+  };
+
+  const updateSample = (index: number, field: 'productId' | 'productName' | 'quantity', value: string | number) => {
+    const updated = [...samples];
+    updated[index] = { ...updated[index], [field]: value };
+    setSamples(updated);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -138,11 +209,20 @@ export function VisitForm() {
         .map(p => p.trim())
         .filter(p => p.length > 0);
 
+      // Convert samples to samplesGiven JSON format
+      const samplesGiven = samples.reduce((acc, sample) => {
+        if (sample.productId && sample.quantity > 0) {
+          acc[sample.productId] = sample.quantity;
+        }
+        return acc;
+      }, {} as Record<string, number>);
+
       const visitData: CreateVisitData = {
         ...formData,
         products: productsArray,
         visitDate: formData.visitDate ? new Date(formData.visitDate).toISOString() : undefined,
         nextVisitDate: formData.nextVisitDate ? new Date(formData.nextVisitDate).toISOString() : undefined,
+        samplesGiven: Object.keys(samplesGiven).length > 0 ? samplesGiven : undefined,
       };
 
       const response = isEditing
@@ -390,6 +470,71 @@ export function VisitForm() {
               </p>
             </div>
 
+            {/* Sample Distribution */}
+            <div className="border border-neutral-200 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-3">
+                <label className="block text-sm font-medium text-neutral-700">
+                  Samples Distributed
+                </label>
+                <button
+                  type="button"
+                  onClick={addSample}
+                  className="flex items-center gap-2 px-3 py-1.5 text-sm bg-primary-600 text-white rounded-md hover:bg-primary-500 transition-colors"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Sample
+                </button>
+              </div>
+
+              {samples.length > 0 ? (
+                <div className="space-y-3">
+                  {samples.map((sample, index) => (
+                    <div key={index} className="flex gap-3 items-start">
+                      <div className="flex-1">
+                        <select
+                          value={sample.productId}
+                          onChange={(e) => {
+                            const product = products.find(p => p.id === e.target.value);
+                            updateSample(index, 'productId', e.target.value);
+                            updateSample(index, 'productName', product?.name || '');
+                          }}
+                          className="select-field"
+                        >
+                          <option value="">Select Product</option>
+                          {products.map(product => (
+                            <option key={product.id} value={product.id}>
+                              {product.name} {product.sku && `(${product.sku})`}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="w-24">
+                        <input
+                          type="number"
+                          min="1"
+                          value={sample.quantity}
+                          onChange={(e) => updateSample(index, 'quantity', parseInt(e.target.value) || 1)}
+                          placeholder="Qty"
+                          className="input-field"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeSample(index)}
+                        className="p-2 text-danger-600 hover:bg-danger-50 rounded-lg transition-colors"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-neutral-500 text-center py-4">
+                  No samples added. Click "Add Sample" to track product samples given during visit.
+                </p>
+              )}
+            </div>
+
             {/* Follow-up */}
             <div className="border border-neutral-200 rounded-lg p-4">
               <div className="flex items-center mb-3">
@@ -435,6 +580,55 @@ export function VisitForm() {
               )}
             </div>
 
+            {/* Photos Section */}
+            <div className="border border-neutral-200 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-3">
+                <label className="block text-sm font-medium text-neutral-700">
+                  Photos ({photos.length}/2)
+                </label>
+                {photos.length < 2 && (
+                  <button
+                    type="button"
+                    onClick={() => setShowCamera(true)}
+                    className="flex items-center gap-2 px-3 py-1.5 text-sm bg-primary-600 text-white rounded-md hover:bg-primary-500 transition-colors"
+                  >
+                    <CameraIcon className="w-4 h-4" />
+                    Take Photo
+                  </button>
+                )}
+              </div>
+
+              {photos.length > 0 && (
+                <div className="grid grid-cols-2 gap-3">
+                  {photos.map((photo, index) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={photo}
+                        alt={`Visit photo ${index + 1}`}
+                        className="w-full h-40 object-cover rounded-lg border border-neutral-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removePhoto(index)}
+                        className="absolute top-2 right-2 p-1.5 bg-danger-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                      <p className="text-xs text-neutral-500 mt-1 text-center">
+                        {getImageSizeKB(photo).toFixed(1)}KB
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {photos.length === 0 && (
+                <p className="text-sm text-neutral-500 text-center py-4">
+                  No photos added. Click "Take Photo" to capture visit evidence.
+                </p>
+              )}
+            </div>
+
             {/* Submit Buttons */}
             <div className="flex gap-4">
               <button
@@ -455,6 +649,14 @@ export function VisitForm() {
           </form>
         </Card>
       </ContentSection>
+
+      {/* Camera Modal */}
+      {showCamera && (
+        <Camera
+          onCapture={handlePhotoCapture}
+          onClose={() => setShowCamera(false)}
+        />
+      )}
     </PageContainer>
   );
 }
