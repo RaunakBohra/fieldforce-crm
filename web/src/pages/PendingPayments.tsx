@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import type { PendingOrder } from '../services/api';
 import { PageContainer, ContentSection, Card } from '../components/layout';
-import { StatCard, StatusBadge, TableSkeleton } from '../components/ui';
+import { StatusBadge, TableSkeleton } from '../components/ui';
 import { formatCurrency, getPriorityColor } from '../utils';
 
 export default function PendingPayments() {
@@ -65,25 +65,21 @@ export default function PendingPayments() {
           </div>
 
           {/* Stats */}
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-            <StatCard
-              title="Total Pending Orders"
-              value={pendingOrders.length}
-              valueColor="text-danger-600"
-              className="bg-neutral-50 shadow-none"
-            />
-            <StatCard
-              title="Total Pending Amount"
-              value={formatCurrency(totalPendingAmount)}
-              valueColor="text-warn-600"
-              className="bg-neutral-50 shadow-none"
-            />
-            <StatCard
-              title="Overdue (>30 days)"
-              value={overdueCount}
-              valueColor="text-danger-600"
-              className="bg-neutral-50 shadow-none"
-            />
+          <div className="mt-6 overflow-x-auto">
+            <div className="grid grid-cols-3 gap-4 min-w-max">
+              <div className="text-center">
+                <div className="text-xs font-medium text-neutral-600 mb-2">TOTAL PENDING ORDERS</div>
+                <div className="text-2xl font-bold text-danger-600">{pendingOrders.length}</div>
+              </div>
+              <div className="text-center">
+                <div className="text-xs font-medium text-neutral-600 mb-2">TOTAL PENDING AMOUNT</div>
+                <div className="text-2xl font-bold text-warn-600">{formatCurrency(totalPendingAmount)}</div>
+              </div>
+              <div className="text-center">
+                <div className="text-xs font-medium text-neutral-600 mb-2">OVERDUE (&gt;30 DAYS)</div>
+                <div className="text-2xl font-bold text-danger-600">{overdueCount}</div>
+              </div>
+            </div>
           </div>
         </Card>
 

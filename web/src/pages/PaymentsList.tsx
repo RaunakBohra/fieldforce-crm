@@ -5,7 +5,7 @@ import type { PaymentStats, PaymentQueryParams } from '../services/api';
 import { Search, Filter, X } from 'lucide-react';
 import { useDebounce } from '../hooks/useDebounce';
 import { PageContainer, ContentSection, Card } from '../components/layout';
-import { StatCard, StatusBadge, Pagination, TableSkeleton } from '../components/ui';
+import { StatusBadge, Pagination, TableSkeleton } from '../components/ui';
 import { formatCurrency, formatDate } from '../utils';
 
 interface Payment {
@@ -134,32 +134,26 @@ export default function PaymentsList() {
 
           {/* Stats */}
           {stats && (
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-              <StatCard
-                title="Total Payments"
-                value={stats.totalPayments}
-                valueColor="text-primary-600"
-                className="bg-neutral-50 shadow-none"
-              />
-              <StatCard
-                title="Total Amount"
-                value={formatCurrency(stats.totalAmount)}
-                valueColor="text-success-600"
-                className="bg-neutral-50 shadow-none"
-              />
-              <StatCard
-                title="Avg Payment"
-                value={formatCurrency(parseFloat(stats.averagePayment))}
-                valueColor="text-primary-600"
-                className="bg-neutral-50 shadow-none"
-              />
-              <StatCard
-                title="Outstanding"
-                value={formatCurrency(stats.totalOutstanding)}
-                valueColor="text-danger-600"
-                subtitle={`${stats.outstandingCount} orders`}
-                className="bg-neutral-50 shadow-none"
-              />
+            <div className="mt-6 overflow-x-auto">
+              <div className="grid grid-cols-4 gap-4 min-w-max">
+                <div className="text-center">
+                  <div className="text-xs font-medium text-neutral-600 mb-2">TOTAL PAYMENTS</div>
+                  <div className="text-2xl font-bold text-primary-600">{stats.totalPayments}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs font-medium text-neutral-600 mb-2">TOTAL AMOUNT</div>
+                  <div className="text-2xl font-bold text-success-600">{formatCurrency(stats.totalAmount)}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs font-medium text-neutral-600 mb-2">AVG PAYMENT</div>
+                  <div className="text-2xl font-bold text-primary-600">{formatCurrency(parseFloat(stats.averagePayment))}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs font-medium text-neutral-600 mb-2">OUTSTANDING</div>
+                  <div className="text-2xl font-bold text-danger-600">{formatCurrency(stats.totalOutstanding)}</div>
+                  <div className="text-xs text-neutral-500 mt-1">{stats.outstandingCount} orders</div>
+                </div>
+              </div>
             </div>
           )}
         </Card>
@@ -168,13 +162,15 @@ export default function PaymentsList() {
         {stats?.paymentModes && Object.keys(stats.paymentModes).length > 0 && (
           <Card className="mt-6 border border-neutral-200">
             <h2 className="text-lg font-semibold mb-4">Payment Mode Breakdown</h2>
-            <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-              {Object.entries(stats.paymentModes).map(([mode, amount]) => (
-                <div key={mode} className="text-center">
-                  <p className="text-sm text-neutral-600 uppercase">{mode}</p>
-                  <p className="text-xl font-bold text-primary-600">{formatCurrency(amount as number)}</p>
-                </div>
-              ))}
+            <div className="overflow-x-auto">
+              <div className="grid grid-cols-6 gap-4 min-w-max">
+                {Object.entries(stats.paymentModes).map(([mode, amount]) => (
+                  <div key={mode} className="text-center">
+                    <div className="text-xs font-medium text-neutral-600 mb-2">{mode}</div>
+                    <div className="text-2xl font-bold text-primary-600">{formatCurrency(amount as number)}</div>
+                  </div>
+                ))}
+              </div>
             </div>
           </Card>
         )}

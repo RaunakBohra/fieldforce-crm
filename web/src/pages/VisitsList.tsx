@@ -5,7 +5,7 @@ import type { Visit, VisitStats, VisitQueryParams } from '../services/api';
 import { useDebounce } from '../hooks/useDebounce';
 import { Pencil, Trash2, Plus, Search, MapPin, Calendar, Eye } from 'lucide-react';
 import { PageContainer, ContentSection, Card } from '../components/layout';
-import { StatCard, StatusBadge, Pagination, TableSkeleton } from '../components/ui';
+import { StatusBadge, Pagination, TableSkeleton } from '../components/ui';
 import { formatDateTime, getVisitStatusColor, getVisitOutcomeColor, formatStatusLabel } from '../utils';
 
 export function VisitsList() {
@@ -123,31 +123,25 @@ export function VisitsList() {
 
           {/* Stats */}
           {stats && (
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-              <StatCard
-                title="Total Visits"
-                value={stats.totalVisits}
-                valueColor="text-neutral-900"
-                className="bg-neutral-50 shadow-none"
-              />
-              <StatCard
-                title="Completed"
-                value={stats.completedVisits}
-                valueColor="text-success-600"
-                className="bg-neutral-50 shadow-none"
-              />
-              <StatCard
-                title="Planned"
-                value={stats.plannedVisits}
-                valueColor="text-primary-600"
-                className="bg-neutral-50 shadow-none"
-              />
-              <StatCard
-                title="This Month"
-                value={stats.monthVisits}
-                valueColor="text-primary-800"
-                className="bg-neutral-50 shadow-none"
-              />
+            <div className="mt-6 overflow-x-auto">
+              <div className="grid grid-cols-4 gap-4 min-w-max">
+                <div className="text-center">
+                  <div className="text-xs font-medium text-neutral-600 mb-2">TOTAL VISITS</div>
+                  <div className="text-2xl font-bold text-neutral-900">{stats.totalVisits}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs font-medium text-neutral-600 mb-2">COMPLETED</div>
+                  <div className="text-2xl font-bold text-success-600">{stats.completedVisits}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs font-medium text-neutral-600 mb-2">PLANNED</div>
+                  <div className="text-2xl font-bold text-primary-600">{stats.plannedVisits}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs font-medium text-neutral-600 mb-2">THIS MONTH</div>
+                  <div className="text-2xl font-bold text-primary-800">{stats.monthVisits}</div>
+                </div>
+              </div>
             </div>
           )}
         </Card>
