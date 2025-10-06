@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { List } from 'react-window';
 import { api } from '../services/api';
 import type { PaymentStats, PaymentQueryParams } from '../services/api';
-import { Search, Filter, DollarSign, Plus } from 'lucide-react';
+import { Search, Filter, DollarSign, Plus, FileText } from 'lucide-react';
 import { useDebounce } from '../hooks/useDebounce';
 import { PageContainer, ContentSection, Card } from '../components/layout';
 import { StatusBadge, Pagination, TableSkeleton } from '../components/ui';
 import { formatCurrency, formatDate } from '../utils';
+import { exportPaymentsToPDF } from '../utils/exportUtils';
 
 interface Payment {
   id: string;
@@ -165,6 +166,15 @@ export default function PaymentsList() {
                 className="btn-warn"
               >
                 <span className="font-medium">View Pending</span>
+              </button>
+              <button
+                onClick={() => exportPaymentsToPDF(payments)}
+                disabled={payments.length === 0}
+                className="btn-secondary flex items-center gap-2 disabled:opacity-50"
+                title="Export to PDF"
+              >
+                <FileText className="w-4 h-4" />
+                Export PDF
               </button>
               <button
                 onClick={() => navigate('/payments/new')}
