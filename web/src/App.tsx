@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
+import ThemePreview from './pages/ThemePreview';
 import { ReactElement } from 'react';
 
 function PrivateRoute({ children }: { children: ReactElement }) {
@@ -26,6 +27,7 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/themes" element={<ThemePreview />} />
           <Route
             path="/dashboard"
             element={

@@ -55,13 +55,13 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-sky-50 py-12">
+    <div className="min-h-screen flex items-center justify-center bg-neutral-100 py-12">
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg" role="main">
         <div>
-          <h1 className="text-3xl font-bold text-center text-sky-800">
+          <h1 className="text-3xl font-bold text-center text-primary-800">
             Field Force CRM
           </h1>
-          <p className="mt-2 text-center text-slate-600">
+          <p className="mt-2 text-center text-accent-500">
             Create your account
           </p>
         </div>
@@ -69,7 +69,7 @@ export default function Signup() {
         <form className="mt-8 space-y-6" onSubmit={handleSubmit} aria-label="Signup form">
           {error && (
             <div
-              className="bg-slate-50 border border-slate-200 text-slate-800 px-4 py-3 rounded-lg"
+              className="bg-neutral-50 border border-neutral-200 text-neutral-800 px-4 py-3 rounded-lg"
               role="alert"
               aria-live="polite"
             >
@@ -79,7 +79,7 @@ export default function Signup() {
 
           <div className="space-y-4">
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-slate-700">
+              <label htmlFor="name" className="block text-sm font-medium text-neutral-900">
                 Full Name
               </label>
               <input
@@ -95,7 +95,7 @@ export default function Signup() {
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-slate-700">
+              <label htmlFor="email" className="block text-sm font-medium text-neutral-900">
                 Email address
               </label>
               <input
@@ -111,7 +111,7 @@ export default function Signup() {
             </div>
 
             <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-slate-700">
+              <label htmlFor="phone" className="block text-sm font-medium text-neutral-900">
                 Phone Number (Optional)
               </label>
               <input
@@ -126,7 +126,7 @@ export default function Signup() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-700">
+              <label htmlFor="password" className="block text-sm font-medium text-neutral-900">
                 Password
               </label>
               <input
@@ -142,7 +142,7 @@ export default function Signup() {
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700">
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-neutral-900">
                 Confirm Password
               </label>
               <input
@@ -167,9 +167,9 @@ export default function Signup() {
             {loading ? 'Creating account...' : 'Sign up'}
           </button>
 
-          <p className="text-center text-sm text-slate-600">
+          <p className="text-center text-sm text-accent-500">
             Already have an account?{' '}
-            <Link to="/login" className="text-sky-600 hover:text-sky-700 font-medium">
+            <Link to="/login" className="text-primary-600 hover:text-primary-700 font-medium">
               Sign in
             </Link>
           </p>

@@ -1,34 +1,34 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Medical CRM Demo - Silver Blue Theme', () => {
-  test('View Login Page with Silver Blue Theme', async ({ page }) => {
+test.describe('Medical CRM Demo - Neutral Corporate Theme', () => {
+  test('View Login Page with Neutral Corporate Theme', async ({ page }) => {
     await page.goto('/login');
-    
+
     // Wait for page to load
     await page.waitForSelector('h1');
-    
+
     // Take screenshot of login page
     await page.screenshot({ path: 'login-page.png', fullPage: true });
-    
-    // Verify teal theme elements are present
+
+    // Verify neutral corporate theme elements are present
     await expect(page.locator('h1')).toContainText('Field Force CRM');
-    
+
     // Keep page open for 5 seconds to view
     await page.waitForTimeout(5000);
   });
 
-  test('View Signup Page with Silver Blue Theme', async ({ page }) => {
+  test('View Signup Page with Neutral Corporate Theme', async ({ page }) => {
     await page.goto('/signup');
-    
+
     // Wait for page to load
     await page.waitForSelector('h1');
-    
+
     // Take screenshot
     await page.screenshot({ path: 'signup-page.png', fullPage: true });
-    
+
     // Verify page loaded
     await expect(page.locator('h1')).toContainText('Field Force CRM');
-    
+
     // Keep page open for 5 seconds to view
     await page.waitForTimeout(5000);
   });
