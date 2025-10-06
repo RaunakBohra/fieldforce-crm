@@ -216,6 +216,15 @@ export function VisitDetails() {
                       {visit.locationName && (
                         <p className="text-sm text-neutral-600 mt-1">{visit.locationName}</p>
                       )}
+                      <a
+                        href={`https://www.google.com/maps?q=${visit.latitude},${visit.longitude}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 mt-2 text-sm text-primary-600 hover:text-primary-700 font-medium"
+                      >
+                        <MapPin className="w-4 h-4" />
+                        Open in Google Maps
+                      </a>
                     </div>
                   </div>
                 )}
