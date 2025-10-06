@@ -635,11 +635,11 @@ export default function OrderCreate() {
                     <div>
                       <p className="font-medium">{product.name}</p>
                       <p className="text-sm text-gray-600">{product.sku}</p>
-                      <p className="text-sm font-semibold text-teal-600">₹{product.price}</p>
+                      <p className="text-sm font-semibold text-primary-800">₹{product.price}</p>
                     </div>
                     <button
                       onClick={() => addProduct(product)}
-                      className="bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700"
+                      className="bg-primary-800 text-white px-4 py-2 rounded-lg hover:bg-primary-700"
                     >
                       Add
                     </button>
@@ -672,7 +672,7 @@ export default function OrderCreate() {
                           onChange={(e) => updateQuantity(item.productId, parseInt(e.target.value))}
                           className="w-20 px-2 py-1 border border-gray-300 rounded"
                         />
-                        <p className="font-semibold text-teal-600 w-24 text-right">₹{item.lineTotal}</p>
+                        <p className="font-semibold text-primary-800 w-24 text-right">₹{item.lineTotal}</p>
                         <button
                           onClick={() => removeProduct(item.productId)}
                           className="text-red-600 hover:text-red-800"
@@ -686,7 +686,7 @@ export default function OrderCreate() {
                   <div className="border-t pt-3 mt-3">
                     <div className="flex justify-between items-center text-xl font-bold">
                       <span>Total:</span>
-                      <span className="text-teal-600">₹{calculateTotal()}</span>
+                      <span className="text-primary-800">₹{calculateTotal()}</span>
                     </div>
                   </div>
 
@@ -707,7 +707,7 @@ export default function OrderCreate() {
                     <button
                       onClick={handleSubmit}
                       disabled={loading}
-                      className="flex-1 bg-teal-600 text-white py-3 px-4 rounded-lg hover:bg-teal-700 disabled:opacity-50 font-semibold"
+                      className="flex-1 bg-primary-800 text-white py-3 px-4 rounded-lg hover:bg-primary-700 disabled:opacity-50 font-semibold"
                     >
                       {loading ? 'Creating Order...' : 'Create Order'}
                     </button>
@@ -828,7 +828,7 @@ export default function Orders() {
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
               <div className="bg-white p-6 rounded-lg shadow">
                 <p className="text-sm text-gray-600">Total Orders</p>
-                <p className="text-3xl font-bold text-teal-600">{stats.totalOrders}</p>
+                <p className="text-3xl font-bold text-primary-800">{stats.totalOrders}</p>
               </div>
               <div className="bg-white p-6 rounded-lg shadow">
                 <p className="text-sm text-gray-600">Pending</p>
@@ -889,7 +889,7 @@ export default function Orders() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {order.user.name}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-teal-600">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-primary-800">
                       ₹{order.totalAmount.toLocaleString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -898,7 +898,7 @@ export default function Orders() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <button
                         onClick={() => navigate(`/orders/${order.id}`)}
-                        className="text-teal-600 hover:text-teal-900"
+                        className="text-primary-800 hover:text-teal-900"
                       >
                         View Details
                       </button>

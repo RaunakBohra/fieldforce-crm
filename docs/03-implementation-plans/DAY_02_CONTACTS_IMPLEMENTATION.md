@@ -350,7 +350,7 @@ export default function Contacts() {
           <h1 className="text-3xl font-bold text-gray-900">Contacts</h1>
           <button
             onClick={() => navigate('/contacts/new')}
-            className="bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700"
+            className="bg-primary-800 text-white px-4 py-2 rounded-lg hover:bg-primary-700"
           >
             + Add Contact
           </button>
@@ -407,7 +407,7 @@ export default function Contacts() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <button
                       onClick={() => navigate(`/contacts/${contact.id}`)}
-                      className="text-teal-600 hover:text-teal-900 mr-4"
+                      className="text-primary-800 hover:text-teal-900 mr-4"
                     >
                       Edit
                     </button>
@@ -652,7 +652,7 @@ export default function ContactForm() {
                 <button
                   type="button"
                   onClick={getCurrentLocation}
-                  className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700"
+                  className="px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600"
                 >
                   Get GPS
                 </button>
@@ -664,7 +664,7 @@ export default function ContactForm() {
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 bg-teal-600 text-white py-2 px-4 rounded-lg hover:bg-teal-700 disabled:opacity-50"
+              className="flex-1 bg-primary-800 text-white py-2 px-4 rounded-lg hover:bg-primary-700 disabled:opacity-50"
             >
               {loading ? 'Saving...' : isEditMode ? 'Update Contact' : 'Create Contact'}
             </button>
@@ -766,7 +766,7 @@ export default function Layout({ children }: LayoutProps) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-teal-600 text-white shadow-lg">
+      <nav className="bg-primary-800 text-white shadow-lg">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-8">
@@ -774,16 +774,16 @@ export default function Layout({ children }: LayoutProps) {
                 Field Force CRM
               </Link>
               <div className="hidden md:flex space-x-4">
-                <Link to="/contacts" className="hover:bg-teal-700 px-3 py-2 rounded">
+                <Link to="/contacts" className="hover:bg-primary-700 px-3 py-2 rounded">
                   Contacts
                 </Link>
-                <Link to="/visits" className="hover:bg-teal-700 px-3 py-2 rounded">
+                <Link to="/visits" className="hover:bg-primary-700 px-3 py-2 rounded">
                   Visits
                 </Link>
-                <Link to="/orders" className="hover:bg-teal-700 px-3 py-2 rounded">
+                <Link to="/orders" className="hover:bg-primary-700 px-3 py-2 rounded">
                   Orders
                 </Link>
-                <Link to="/payments" className="hover:bg-teal-700 px-3 py-2 rounded">
+                <Link to="/payments" className="hover:bg-primary-700 px-3 py-2 rounded">
                   Payments
                 </Link>
               </div>
@@ -792,7 +792,7 @@ export default function Layout({ children }: LayoutProps) {
               <span className="text-sm">{user?.name}</span>
               <button
                 onClick={handleLogout}
-                className="bg-teal-700 hover:bg-teal-800 px-4 py-2 rounded"
+                className="bg-primary-700 hover:bg-primary-600 px-4 py-2 rounded"
               >
                 Logout
               </button>

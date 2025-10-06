@@ -907,15 +907,29 @@ export default {
   theme: {
     extend: {
       colors: {
-        teal: {
-          50: '#f0fdfa',
-          600: '#0d9488',
-          700: '#0f766e',
+        primary: {
+          50: '#eff6ff',   // blue-50 - light background
+          100: '#dbeafe',  // blue-100
+          200: '#bfdbfe',  // blue-200
+          300: '#93c5fd',  // blue-300
+          500: '#3b82f6',  // blue-500
+          600: '#2563eb',  // blue-600 - primary (Neutral Corporate)
+          700: '#1d4ed8',  // blue-700 - darker blue
+          800: '#1e40af',  // blue-800 - navy
+          900: '#1e3a8a',  // blue-900
         },
-        amber: {
-          600: '#d97706',
-          700: '#b45309',
+        accent: {
+          500: '#64748b',  // slate-500 - steel
+          600: '#0ea5e9',  // sky-600 - accent cyan
+          700: '#0284c7',  // sky-700
         },
+        neutral: {
+          50: '#f9fafb',   // gray-50
+          100: '#f3f4f6',  // gray-100 - surface background
+          200: '#e5e7eb',  // gray-200
+          800: '#1f2937',  // gray-800
+          900: '#111827',  // gray-900 - text primary
+        }
       },
     },
   },
@@ -931,21 +945,21 @@ export default {
 
 @layer base {
   body {
-    @apply bg-gray-50 text-gray-900;
+    @apply bg-neutral-100 text-neutral-900;
   }
 }
 
 @layer components {
   .btn-primary {
-    @apply bg-teal-600 hover:bg-teal-700 text-white font-medium py-2 px-4 rounded-lg transition-colors;
+    @apply bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .btn-secondary {
-    @apply bg-amber-600 hover:bg-amber-700 text-white font-medium py-2 px-4 rounded-lg transition-colors;
+    @apply bg-accent-500 hover:bg-accent-600 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .input-field {
-    @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent;
+    @apply w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-transparent;
   }
 }
 ```
@@ -1176,7 +1190,7 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg">
         <div>
-          <h2 className="text-3xl font-bold text-center text-teal-600">
+          <h2 className="text-3xl font-bold text-center text-primary-800">
             Field Force CRM
           </h2>
           <p className="mt-2 text-center text-gray-600">
@@ -1233,7 +1247,7 @@ export default function Login() {
 
           <p className="text-center text-sm text-gray-600">
             Don't have an account?{' '}
-            <Link to="/signup" className="text-teal-600 hover:text-teal-700 font-medium">
+            <Link to="/signup" className="text-primary-800 hover:text-primary-700 font-medium">
               Sign up
             </Link>
           </p>
@@ -1306,7 +1320,7 @@ export default function Signup() {
     <div className="min-h-screen flex items-center justify-center bg-gray-100 py-12">
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg">
         <div>
-          <h2 className="text-3xl font-bold text-center text-teal-600">
+          <h2 className="text-3xl font-bold text-center text-primary-800">
             Field Force CRM
           </h2>
           <p className="mt-2 text-center text-gray-600">
@@ -1412,7 +1426,7 @@ export default function Signup() {
 
           <p className="text-center text-sm text-gray-600">
             Already have an account?{' '}
-            <Link to="/login" className="text-teal-600 hover:text-teal-700 font-medium">
+            <Link to="/login" className="text-primary-800 hover:text-primary-700 font-medium">
               Sign in
             </Link>
           </p>
@@ -1439,7 +1453,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <nav className="bg-teal-600 text-white shadow-lg">
+      <nav className="bg-primary-800 text-white shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
@@ -1449,7 +1463,7 @@ export default function Dashboard() {
               <span className="text-sm">{user?.name}</span>
               <button
                 onClick={handleLogout}
-                className="bg-teal-700 hover:bg-teal-800 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                className="bg-primary-700 hover:bg-primary-600 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
               >
                 Logout
               </button>
@@ -1474,19 +1488,19 @@ export default function Dashboard() {
           <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Contacts</h3>
-              <p className="text-3xl font-bold text-teal-600">0</p>
+              <p className="text-3xl font-bold text-primary-800">0</p>
               <p className="text-sm text-gray-500 mt-1">Coming in Day 2</p>
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Visits</h3>
-              <p className="text-3xl font-bold text-teal-600">0</p>
+              <p className="text-3xl font-bold text-primary-800">0</p>
               <p className="text-sm text-gray-500 mt-1">Coming in Day 3</p>
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Orders</h3>
-              <p className="text-3xl font-bold text-teal-600">0</p>
+              <p className="text-3xl font-bold text-primary-800">0</p>
               <p className="text-sm text-gray-500 mt-1">Coming in Day 4</p>
             </div>
           </div>

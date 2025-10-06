@@ -526,7 +526,7 @@ export default function PaymentCreate() {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 bg-teal-600 text-white py-2 px-4 rounded-lg hover:bg-teal-700 disabled:opacity-50 font-semibold"
+                className="flex-1 bg-primary-800 text-white py-2 px-4 rounded-lg hover:bg-primary-700 disabled:opacity-50 font-semibold"
               >
                 {loading ? 'Recording Payment...' : 'Record Payment'}
               </button>
@@ -647,7 +647,7 @@ export default function Payments() {
             <h1 className="text-3xl font-bold text-gray-900">Payments</h1>
             <button
               onClick={() => navigate('/payments/new')}
-              className="bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 font-semibold"
+              className="bg-primary-800 text-white px-4 py-2 rounded-lg hover:bg-primary-700 font-semibold"
             >
               + Record Payment
             </button>
@@ -658,7 +658,7 @@ export default function Payments() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
               <div className="bg-white p-6 rounded-lg shadow">
                 <p className="text-sm text-gray-600">Total Payments</p>
-                <p className="text-3xl font-bold text-teal-600">{stats.totalPayments}</p>
+                <p className="text-3xl font-bold text-primary-800">{stats.totalPayments}</p>
               </div>
               <div className="bg-white p-6 rounded-lg shadow">
                 <p className="text-sm text-gray-600">Total Amount</p>
@@ -684,7 +684,7 @@ export default function Payments() {
                 {Object.entries(stats.paymentModes).map(([mode, amount]: [string, any]) => (
                   <div key={mode} className="text-center">
                     <p className="text-sm text-gray-600 uppercase">{mode}</p>
-                    <p className="text-xl font-bold text-teal-600">₹{amount.toLocaleString()}</p>
+                    <p className="text-xl font-bold text-primary-800">₹{amount.toLocaleString()}</p>
                   </div>
                 ))}
               </div>
@@ -918,7 +918,7 @@ export default function PendingPayments() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                       <button
                         onClick={() => navigate(`/payments/new/${order.id}`)}
-                        className="text-teal-600 hover:text-teal-900"
+                        className="text-primary-800 hover:text-teal-900"
                       >
                         Record Payment
                       </button>
@@ -949,7 +949,7 @@ export default function PendingPayments() {
 
 ### Update Layout navigation:
 ```typescript
-<Link to="/payments/pending" className="hover:bg-teal-700 px-3 py-2 rounded">
+<Link to="/payments/pending" className="hover:bg-primary-700 px-3 py-2 rounded">
   Pending Payments
 </Link>
 ```

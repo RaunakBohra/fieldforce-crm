@@ -602,7 +602,7 @@ export default function VisitCheckIn() {
               <button
                 onClick={handleCheckIn}
                 disabled={loading || !location}
-                className="flex-1 bg-teal-600 text-white py-3 px-4 rounded-lg hover:bg-teal-700 disabled:opacity-50 font-semibold"
+                className="flex-1 bg-primary-800 text-white py-3 px-4 rounded-lg hover:bg-primary-700 disabled:opacity-50 font-semibold"
               >
                 {loading ? 'Checking In...' : 'Check In'}
               </button>
@@ -740,7 +740,7 @@ export default function Visits() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
               <div className="bg-white p-6 rounded-lg shadow">
                 <p className="text-sm text-gray-600">Total Visits</p>
-                <p className="text-3xl font-bold text-teal-600">{stats.totalVisits}</p>
+                <p className="text-3xl font-bold text-primary-800">{stats.totalVisits}</p>
               </div>
               <div className="bg-white p-6 rounded-lg shadow">
                 <p className="text-sm text-gray-600">Verified Visits</p>
@@ -836,7 +836,7 @@ export default function Visits() {
                     <td className="px-6 py-4 text-sm font-medium">
                       <button
                         onClick={() => navigate(`/visits/${visit.id}`)}
-                        className="text-teal-600 hover:text-teal-900"
+                        className="text-primary-800 hover:text-teal-900"
                       >
                         View Details
                       </button>
@@ -876,7 +876,7 @@ export default function Visits() {
 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
   <button
     onClick={() => navigate(`/visits/check-in/${contact.id}`)}
-    className="text-teal-600 hover:text-teal-900 mr-4"
+    className="text-primary-800 hover:text-teal-900 mr-4"
   >
     Check In
   </button>
