@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { api } from '../services/api';
-import type { VisitTrend, RevenueData, PaymentModeData } from '../services/api';
+import type { VisitTrend, RevenueData, PaymentModeData, TerritoryPerformance } from '../services/api';
 import { PageContainer, ContentSection, Card } from '../components/layout';
 import { LoadingSpinner } from '../components/ui';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { format, subDays, startOfMonth, endOfMonth } from 'date-fns';
-import { TrendingUp, DollarSign, CreditCard } from 'lucide-react';
+import { TrendingUp, DollarSign, CreditCard, MapPin } from 'lucide-react';
 import { formatCurrency } from '../utils';
 
 // Color palette matching theme
@@ -31,6 +31,7 @@ export default function Analytics() {
   const [visitTrends, setVisitTrends] = useState<VisitTrend[]>([]);
   const [revenueData, setRevenueData] = useState<RevenueData[]>([]);
   const [paymentModes, setPaymentModes] = useState<PaymentModeData[]>([]);
+  const [territoryPerformance, setTerritoryPerformance] = useState<TerritoryPerformance[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -84,10 +85,11 @@ export default function Analytics() {
       setLoading(true);
       const { startDate, endDate } = getDateRange();
 
-      const [visitRes, revenueRes, paymentRes] = await Promise.all([
+      const [visitRes, revenueRes, paymentRes, territoryRes] = await Promise.all([
         api.getVisitTrends(startDate, endDate),
         api.getOrdersRevenue(startDate, endDate),
         api.getPaymentModes(startDate, endDate),
+        api.getTerritoryPerformance(startDate, endDate),
       ]);
 
       if (visitRes.success && visitRes.data) {
@@ -96,6 +98,10 @@ export default function Analytics() {
 
       if (revenueRes.success && revenueRes.data) {
         setRevenueData(revenueRes.data.trends);
+      }
+
+      if (territoryRes.success && territoryRes.data) {
+        setTerritoryPerformance(territoryRes.data.territories.slice(0, 10)); // Top 10 territories
       }
 
       if (paymentRes.success && paymentRes.data) {
@@ -386,6 +392,108 @@ export default function Analytics() {
                       <div className="text-right">
                         <p className="font-semibold text-primary-700">{formatCurrency(mode.total)}</p>
                         <p className="text-sm text-neutral-500">{mode.percentage.toFixed(1)}%</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </Card>
+        </section>
+
+        {/* Territory Performance Chart */}
+        <section className="mt-6">
+          <Card>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-success-100 flex items-center justify-center">
+                <MapPin className="w-5 h-5 text-success-600" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold text-neutral-900">Territory Performance</h2>
+                <p className="text-sm text-neutral-500">Top 10 territories by revenue</p>
+              </div>
+            </div>
+
+            {territoryPerformance.length === 0 ? (
+              <p className="text-neutral-500 text-center py-8">No territory data available</p>
+            ) : (
+              <div>
+                {/* Bar Chart */}
+                <ResponsiveContainer width="100%" height={400}>
+                  <BarChart data={territoryPerformance} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+                    <XAxis
+                      dataKey="territoryName"
+                      angle={-45}
+                      textAnchor="end"
+                      height={100}
+                      tick={{ fill: '#6b7280', fontSize: 12 }}
+                    />
+                    <YAxis
+                      yAxisId="left"
+                      orientation="left"
+                      stroke={COLORS.primary}
+                      tick={{ fill: '#6b7280', fontSize: 12 }}
+                      label={{ value: 'Revenue', angle: -90, position: 'insideLeft', fill: '#6b7280' }}
+                    />
+                    <YAxis
+                      yAxisId="right"
+                      orientation="right"
+                      stroke={COLORS.success}
+                      tick={{ fill: '#6b7280', fontSize: 12 }}
+                      label={{ value: 'Orders', angle: 90, position: 'insideRight', fill: '#6b7280' }}
+                    />
+                    <Tooltip
+                      contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                      formatter={(value: number, name: string) => {
+                        if (name === 'totalRevenue') return [formatCurrency(value), 'Revenue'];
+                        if (name === 'orderCount') return [value, 'Orders'];
+                        return [value, name];
+                      }}
+                    />
+                    <Legend
+                      verticalAlign="top"
+                      height={36}
+                      formatter={(value) => {
+                        if (value === 'totalRevenue') return 'Revenue';
+                        if (value === 'orderCount') return 'Orders';
+                        return value;
+                      }}
+                    />
+                    <Bar yAxisId="left" dataKey="totalRevenue" fill={COLORS.primary} radius={[8, 8, 0, 0]} />
+                    <Bar yAxisId="right" dataKey="orderCount" fill={COLORS.success} radius={[8, 8, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+
+                {/* Territory Stats Grid */}
+                <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {territoryPerformance.slice(0, 6).map((territory) => (
+                    <div
+                      key={territory.territoryId}
+                      className="p-4 bg-neutral-50 rounded-lg border border-neutral-200 hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <h3 className="font-semibold text-neutral-900">{territory.territoryName}</h3>
+                          <p className="text-xs text-neutral-500">{territory.territoryCode} • {territory.territoryType}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-bold text-primary-700">{formatCurrency(territory.totalRevenue)}</p>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 mt-3 text-xs">
+                        <div className="text-center">
+                          <p className="text-neutral-500">Contacts</p>
+                          <p className="font-semibold text-neutral-900">{territory.contactCount}</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-neutral-500">Orders</p>
+                          <p className="font-semibold text-neutral-900">{territory.orderCount}</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-neutral-500">Visits</p>
+                          <p className="font-semibold text-neutral-900">{territory.visitCount}</p>
+                        </div>
                       </div>
                     </div>
                   ))}

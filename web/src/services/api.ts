@@ -635,6 +635,30 @@ export interface PaymentModesResponse {
   endDate: string;
 }
 
+export interface TerritoryPerformance {
+  territoryId: string;
+  territoryName: string;
+  territoryCode: string;
+  territoryType: string;
+  contactCount: number;
+  orderCount: number;
+  deliveredOrders: number;
+  totalRevenue: number;
+  visitCount: number;
+}
+
+export interface TerritoryPerformanceResponse {
+  territories: TerritoryPerformance[];
+  totals: {
+    contacts: number;
+    orders: number;
+    revenue: number;
+    visits: number;
+  };
+  startDate: string;
+  endDate: string;
+}
+
 class ApiService {
   private async getHeaders(includeAuth: boolean = false, includeCsrf: boolean = false): Promise<HeadersInit> {
     const headers: HeadersInit = {
@@ -1412,6 +1436,29 @@ class ApiService {
       });
 
       return this.handleResponse<PaymentModesResponse>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  async getTerritoryPerformance(startDate?: string, endDate?: string): Promise<ApiResponse<TerritoryPerformanceResponse>> {
+    try {
+      const params = new URLSearchParams();
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+
+      const queryString = params.toString() ? `?${params.toString()}` : '';
+
+      const response = await fetch(`${API_URL}/api/analytics/territory-performance${queryString}`, {
+        method: 'GET',
+        headers: await this.getHeaders(true),
+        credentials: 'include',
+      });
+
+      return this.handleResponse<TerritoryPerformanceResponse>(response);
     } catch (error) {
       if (error instanceof TypeError && error.message.includes('fetch')) {
         throw new Error('Network error: Unable to connect to server');
