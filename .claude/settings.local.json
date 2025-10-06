@@ -68,7 +68,9 @@
       "Bash(R2_ACCESS_KEY_ID=63578ea9052b78fb2628619deff00f37 R2_SECRET_ACCESS_KEY=e0de7be8c75b2a7ced816895a0a74922f1a314efbae7d56887390b5c5784893d node cleanup-r2.js)",
       "Bash(npx wrangler:*)",
       "Bash(npm run deploy:*)",
-      "Bash(CLOUDFLARE_ACCOUNT_ID=610762493d34333f1a6d72a037b345cf npx wrangler secret list)"
+      "Bash(CLOUDFLARE_ACCOUNT_ID=610762493d34333f1a6d72a037b345cf npx wrangler secret list)",
+      "Bash(CLOUDFLARE_ACCOUNT_ID=610762493d34333f1a6d72a037b345cf npx wrangler tail --format pretty)",
+      "Bash(/dev/null)"
     ],
     "deny": [],
     "ask": []
