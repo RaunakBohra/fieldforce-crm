@@ -18,9 +18,18 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
   ],
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:5173',
-    reuseExistingServer: !process.env.CI,
-  },
+  webServer: [
+    {
+      command: 'cd .. && npm run dev',
+      url: 'http://localhost:8787/api/csrf-token',
+      reuseExistingServer: true, // Always reuse existing backend server
+      timeout: 120000,
+    },
+    {
+      command: 'npm run dev',
+      url: 'http://localhost:5173',
+      reuseExistingServer: true, // Always reuse existing frontend server
+      timeout: 120000,
+    },
+  ],
 });

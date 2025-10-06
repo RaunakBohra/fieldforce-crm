@@ -41,6 +41,10 @@ bucket_name = "fieldforce-crm-storage"
 # Node.js compatibility for Prisma
 node_compat = true
 
+# Development server configuration
+[dev]
+port = 8787  # Fixed port for development server
+
 # Development environment
 [env.dev]
 name = "fieldforce-crm-api-dev"
