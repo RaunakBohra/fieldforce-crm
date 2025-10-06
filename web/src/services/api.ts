@@ -244,7 +244,7 @@ class ApiService {
 
   async signup(data: SignupData): Promise<ApiResponse<AuthResponse>> {
     try {
-      const response = await fetch(`${API_URL}/auth/signup`, {
+      const response = await fetch(`${API_URL}/api/auth/signup`, {
         method: 'POST',
         headers: this.getHeaders(),
         body: JSON.stringify(data),
@@ -261,7 +261,7 @@ class ApiService {
 
   async login(credentials: LoginCredentials): Promise<ApiResponse<AuthResponse>> {
     try {
-      const response = await fetch(`${API_URL}/auth/login`, {
+      const response = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
         headers: this.getHeaders(),
         body: JSON.stringify(credentials),
@@ -278,7 +278,7 @@ class ApiService {
 
   async getCurrentUser(): Promise<ApiResponse<User>> {
     try {
-      const response = await fetch(`${API_URL}/auth/me`, {
+      const response = await fetch(`${API_URL}/api/auth/me`, {
         headers: this.getHeaders(true),
       });
 
