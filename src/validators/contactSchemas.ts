@@ -176,6 +176,12 @@ export const createContactSchema = z.object({
     .optional()
     .or(z.literal('')),
 
+  territoryId: z
+    .string()
+    .cuid('Invalid territory ID')
+    .optional()
+    .or(z.literal('')),
+
   creditLimit: z
     .number()
     .positive('Credit limit must be positive')
@@ -334,6 +340,12 @@ export const updateContactSchema = z.object({
     .optional()
     .or(z.literal('')),
 
+  territoryId: z
+    .string()
+    .cuid('Invalid territory ID')
+    .optional()
+    .or(z.literal('')),
+
   creditLimit: z
     .number()
     .positive('Credit limit must be positive')
@@ -416,6 +428,8 @@ export const contactQuerySchema = z.object({
   contactType: ContactTypeEnum.optional(),
 
   city: z.string().trim().optional(),
+
+  territoryId: z.string().cuid('Invalid territory ID').optional(),
 
   isActive: z
     .string()

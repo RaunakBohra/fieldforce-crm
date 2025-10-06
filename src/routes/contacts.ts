@@ -36,6 +36,7 @@ contacts.get('/', async (c) => {
       limit: c.req.query('limit'),
       contactType: c.req.query('contactType'),
       city: c.req.query('city'),
+      territoryId: c.req.query('territoryId'),
       isActive: c.req.query('isActive'),
       search: c.req.query('search'),
     });

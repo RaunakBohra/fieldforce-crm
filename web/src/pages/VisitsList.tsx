@@ -4,10 +4,11 @@ import { List } from 'react-window';
 import { api } from '../services/api';
 import type { Visit, VisitStats, VisitQueryParams } from '../services/api';
 import { useDebounce } from '../hooks/useDebounce';
-import { Pencil, Trash2, Plus, Search, MapPin, Calendar, Eye, Clock } from 'lucide-react';
+import { Pencil, Trash2, Plus, Search, MapPin, Calendar, Eye, Clock, Download, FileText } from 'lucide-react';
 import { PageContainer, ContentSection, Card } from '../components/layout';
 import { StatusBadge, Pagination, TableSkeleton } from '../components/ui';
 import { formatDateTime, getVisitStatusColor, getVisitOutcomeColor } from '../utils';
+import { exportVisitsToCSV, exportVisitReportToPDF } from '../utils/exportUtils';
 
 export function VisitsList() {
   const navigate = useNavigate();
@@ -205,13 +206,33 @@ export function VisitsList() {
                 Track and manage field visits
               </p>
             </div>
-            <button
-              onClick={() => navigate('/visits/new')}
-              className="btn-primary"
-            >
-              <Plus className="icon-btn" />
-              <span className="font-medium">New Visit</span>
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => exportVisitsToCSV(visits)}
+                disabled={visits.length === 0}
+                className="btn-secondary flex items-center gap-2 disabled:opacity-50"
+                title="Export to CSV"
+              >
+                <Download className="w-4 h-4" />
+                CSV
+              </button>
+              <button
+                onClick={() => exportVisitReportToPDF(visits)}
+                disabled={visits.length === 0}
+                className="btn-secondary flex items-center gap-2 disabled:opacity-50"
+                title="Export to PDF"
+              >
+                <FileText className="w-4 h-4" />
+                PDF
+              </button>
+              <button
+                onClick={() => navigate('/visits/new')}
+                className="btn-primary"
+              >
+                <Plus className="icon-btn" />
+                <span className="font-medium">New Visit</span>
+              </button>
+            </div>
           </div>
 
           {/* Stats */}

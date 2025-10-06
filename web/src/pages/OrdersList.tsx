@@ -3,10 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { List } from 'react-window';
 import { api } from '../services/api';
 import type { Order, OrderStats } from '../services/api';
-import { ShoppingCart, Eye, XCircle, Plus } from 'lucide-react';
+import { ShoppingCart, Eye, XCircle, Plus, Download } from 'lucide-react';
 import { PageContainer, ContentSection, Card } from '../components/layout';
 import { StatusBadge, Pagination, TableSkeleton } from '../components/ui';
 import { formatCurrency, formatDate, getOrderStatusColor, getPaymentStatusColor } from '../utils';
+import { exportOrdersToCSV } from '../utils/exportUtils';
 
 export function OrdersList() {
   const navigate = useNavigate();
@@ -165,13 +166,24 @@ export function OrdersList() {
                 Manage customer orders
               </p>
             </div>
-            <button
-              onClick={() => navigate('/orders/new')}
-              className="btn-primary"
-            >
-              <Plus className="icon-btn" />
-              <span className="font-medium">Create Order</span>
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => exportOrdersToCSV(orders)}
+                disabled={orders.length === 0}
+                className="btn-secondary flex items-center gap-2 disabled:opacity-50"
+                title="Export to CSV"
+              >
+                <Download className="w-4 h-4" />
+                Export CSV
+              </button>
+              <button
+                onClick={() => navigate('/orders/new')}
+                className="btn-primary"
+              >
+                <Plus className="icon-btn" />
+                <span className="font-medium">Create Order</span>
+              </button>
+            </div>
           </div>
 
           {/* Stats */}

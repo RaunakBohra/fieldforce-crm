@@ -59,6 +59,7 @@ export class ContactService {
         contactType: ContactType;
         assignedToId: string;
         companyId?: string;
+        territoryId?: string;
         designation?: string;
         specialty?: string;
         phone?: string;
@@ -87,6 +88,11 @@ export class ContactService {
         tags: input.tags || [],
         isActive: input.isActive ?? true,
       };
+
+      // Add territoryId if provided
+      if (input.territoryId && input.territoryId.trim()) {
+        contactData.territoryId = input.territoryId;
+      }
 
       // Add optional fields (convert empty strings to undefined)
       if (input.designation && input.designation.trim()) {
@@ -165,13 +171,14 @@ export class ContactService {
     query: ContactQueryParams
   ): Promise<ContactListResult> {
     try {
-      const { page, limit, contactType, city, isActive, search } = query;
+      const { page, limit, contactType, city, territoryId, isActive, search } = query;
 
       // Build filter conditions
       const where: {
         assignedToId: string;
         contactType?: ContactType;
         city?: string;
+        territoryId?: string;
         isActive?: boolean;
         OR?: Array<{
           name?: { contains: string; mode: 'insensitive' };
@@ -190,6 +197,10 @@ export class ContactService {
 
       if (city) {
         where.city = city;
+      }
+
+      if (territoryId) {
+        where.territoryId = territoryId;
       }
 
       if (isActive !== undefined) {

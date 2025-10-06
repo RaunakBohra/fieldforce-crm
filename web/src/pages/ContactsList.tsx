@@ -21,6 +21,8 @@ export function ContactsList() {
   const [categoryFilter, setCategoryFilter] = useState<'ALL' | 'DISTRIBUTION' | 'MEDICAL'>('ALL');
   const [typeFilter, setTypeFilter] = useState('ALL');
   const [cityFilter, setCityFilter] = useState('');
+  const [territoryFilter, setTerritoryFilter] = useState('');
+  const [territories, setTerritories] = useState<Array<{ id: string; name: string; code: string }>>([]);
 
   // Debounce search inputs to reduce API calls
   const debouncedSearch = useDebounce(searchTerm, 500);
@@ -33,9 +35,24 @@ export function ContactsList() {
   const [useVirtualScrolling, setUseVirtualScrolling] = useState(false);
 
   useEffect(() => {
+    fetchTerritories();
+  }, []);
+
+  useEffect(() => {
     fetchContacts();
     fetchStats();
-  }, [currentPage, categoryFilter, typeFilter, debouncedCity, debouncedSearch]);
+  }, [currentPage, categoryFilter, typeFilter, debouncedCity, debouncedSearch, territoryFilter]);
+
+  const fetchTerritories = async () => {
+    try {
+      const response = await api.getTerritories();
+      if (response.success && response.data) {
+        setTerritories(response.data.territories);
+      }
+    } catch (err) {
+      console.error('Failed to fetch territories:', err);
+    }
+  };
 
   const fetchContacts = async () => {
     try {
@@ -49,6 +66,7 @@ export function ContactsList() {
       if (typeFilter !== 'ALL') params.contactType = typeFilter;
       if (debouncedCity) params.city = debouncedCity;
       if (debouncedSearch) params.search = debouncedSearch;
+      if (territoryFilter) params.territoryId = territoryFilter;
 
       const response = await api.getContacts(params);
       if (response.success && response.data) {
@@ -96,6 +114,7 @@ export function ContactsList() {
     setCategoryFilter('ALL');
     setTypeFilter('ALL');
     setCityFilter('');
+    setTerritoryFilter('');
     setCurrentPage(1);
   };
 
@@ -204,7 +223,7 @@ export function ContactsList() {
             <h2 className="text-lg font-semibold text-neutral-900">Filters</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4">
             {/* Search */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" />
@@ -226,6 +245,20 @@ export function ContactsList() {
               <option value="ALL">All Categories</option>
               <option value="DISTRIBUTION">Distribution</option>
               <option value="MEDICAL">Medical</option>
+            </select>
+
+            {/* Territory Filter */}
+            <select
+              value={territoryFilter}
+              onChange={(e) => setTerritoryFilter(e.target.value)}
+              className="px-4 py-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-all hover:border-neutral-400 text-sm min-h-[44px] bg-white"
+            >
+              <option value="">All Territories</option>
+              {territories.map(territory => (
+                <option key={territory.id} value={territory.id}>
+                  {territory.name} ({territory.code})
+                </option>
+              ))}
             </select>
 
             {/* City Filter */}
