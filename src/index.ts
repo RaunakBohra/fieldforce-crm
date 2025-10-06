@@ -60,7 +60,7 @@ app.use(
     ],
     credentials: true,
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowHeaders: ['Content-Type', 'Authorization'],
+    allowHeaders: ['Content-Type', 'Authorization', 'x-csrf-token'],
     exposeHeaders: ['Content-Length', 'X-Request-Id'],
     maxAge: 86400,
   })
@@ -75,9 +75,8 @@ app.use('/*', async (c, next) => {
 
 // CSRF protection middleware (after dependency injection)
 // Protects against Cross-Site Request Forgery attacks
-// TODO: Re-enable after adding CSRF token support to frontend
-// app.use('/api/contacts/*', csrfProtection);
-// app.use('/api/visits/*', csrfProtection);
+app.use('/api/contacts/*', csrfProtection);
+app.use('/api/visits/*', csrfProtection);
 // Add other protected routes here as needed
 
 /**
