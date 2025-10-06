@@ -2,9 +2,9 @@ import { Context, Next } from 'hono';
 import { logger } from '../utils/logger';
 
 /**
- * Rate Limiting Middleware
- * Simple in-memory rate limiter for authentication endpoints
- * In production with multiple workers, use Cloudflare KV or Redis
+ * Rate Limiting Middleware (Production-Ready with KV Storage)
+ * Uses Cloudflare KV for distributed rate limiting across workers
+ * Fallback to in-memory for local development
  */
 
 interface RateLimitConfig {
@@ -19,19 +19,29 @@ interface RateLimitEntry {
   resetTime: number;
 }
 
-// In-memory store (use Cloudflare KV or Redis in production)
+// In-memory fallback store (only used in local development)
 const rateLimitStore = new Map<string, RateLimitEntry>();
 
 /**
- * Clean up expired entries on-demand
- * Called during rate limit check to avoid memory leaks
+ * Get rate limit entry from KV or in-memory store
  */
-function cleanupExpiredEntries() {
-  const now = Date.now();
-  for (const [key, entry] of rateLimitStore.entries()) {
-    if (now > entry.resetTime) {
-      rateLimitStore.delete(key);
-    }
+async function getRateLimitEntry(kv: KVNamespace | undefined, key: string): Promise<RateLimitEntry | null> {
+  if (kv) {
+    const value = await kv.get(key);
+    return value ? JSON.parse(value) : null;
+  }
+  return rateLimitStore.get(key) || null;
+}
+
+/**
+ * Set rate limit entry in KV or in-memory store
+ */
+async function setRateLimitEntry(kv: KVNamespace | undefined, key: string, entry: RateLimitEntry): Promise<void> {
+  if (kv) {
+    const ttl = Math.ceil((entry.resetTime - Date.now()) / 1000);
+    await kv.put(key, JSON.stringify(entry), { expirationTtl: ttl });
+  } else {
+    rateLimitStore.set(key, entry);
   }
 }
 
@@ -60,25 +70,25 @@ export function rateLimiter(config: RateLimitConfig) {
     const key = `ratelimit:${c.req.path}:${keyGenerator(c)}`;
     const now = Date.now();
 
-    // Clean up expired entries occasionally (10% chance)
-    if (Math.random() < 0.1) {
-      cleanupExpiredEntries();
-    }
+    // Get KV namespace from context (if available)
+    const kv = c.env?.KV;
 
-    // Get current rate limit entry
-    let entry = rateLimitStore.get(key);
+    // Get current rate limit entry from KV or in-memory
+    let entry = await getRateLimitEntry(kv, key);
 
     // Create new entry if doesn't exist or window expired
     if (!entry || now > entry.resetTime) {
       entry = {
-        count: 0,
+        count: 1,
         resetTime: now + windowMs,
       };
-      rateLimitStore.set(key, entry);
+    } else {
+      // Increment request count
+      entry.count++;
     }
 
-    // Increment request count
-    entry.count++;
+    // Save updated entry
+    await setRateLimitEntry(kv, key, entry);
 
     // Add rate limit headers
     c.header('X-RateLimit-Limit', max.toString());
@@ -95,6 +105,7 @@ export function rateLimiter(config: RateLimitConfig) {
         key: keyGenerator(c),
         count: entry.count,
         max,
+        storage: kv ? 'KV' : 'in-memory',
       });
 
       return c.json(

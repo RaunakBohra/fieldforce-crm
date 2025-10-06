@@ -62,29 +62,57 @@ const app = new Hono<{ Bindings: Bindings; Variables: { deps: Dependencies; user
 // Security headers (OWASP best practices)
 app.use('/*', securityHeaders);
 
-// CORS configuration
+// CORS configuration (environment-aware)
 app.use(
   '/*',
   cors({
     origin: (origin) => {
-      const allowedOrigins = [
-        'http://localhost:3000',
-        'http://localhost:5173',
+      // Production origins (only HTTPS)
+      const productionOrigins = [
         'https://crm.raunakbohra.com',
         'https://crm-api.raunakbohra.com',
       ];
 
-      // Allow all Cloudflare Pages deployments (*.pages.dev)
+      // Development origins (HTTP allowed)
+      const developmentOrigins = [
+        'http://localhost:3000',
+        'http://localhost:5173',
+        'http://localhost:8787',
+      ];
+
+      // Get environment
+      const environment = (origin ? new URL(origin).searchParams.get('env') : null) || 'production';
+      const isProduction = environment === 'production';
+
+      // In production, only allow HTTPS origins
+      if (isProduction) {
+        // Allow Cloudflare Pages preview deployments (*.pages.dev)
+        if (origin && origin.match(/^https:\/\/.*\.pages\.dev$/)) {
+          return origin;
+        }
+
+        // Check production whitelist
+        if (productionOrigins.includes(origin || '')) {
+          return origin;
+        }
+
+        // Reject HTTP in production
+        return productionOrigins[0];
+      }
+
+      // In development, allow both HTTP and HTTPS
+      const allAllowedOrigins = [...productionOrigins, ...developmentOrigins];
+
+      if (allAllowedOrigins.includes(origin || '')) {
+        return origin;
+      }
+
+      // Allow pages.dev in development
       if (origin && origin.match(/^https:\/\/.*\.pages\.dev$/)) {
         return origin;
       }
 
-      // Check if origin is in allowed list
-      if (allowedOrigins.includes(origin || '')) {
-        return origin;
-      }
-
-      return allowedOrigins[0]; // fallback
+      return developmentOrigins[0]; // fallback to localhost
     },
     credentials: true,
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -126,29 +154,9 @@ app.get('/health', (c) => {
   });
 });
 
-// Database connectivity test
-app.get('/db-test', async (c) => {
-  try {
-    const deps = c.get('deps');
-    const userCount = await deps.prisma.user.count();
-
-    return c.json({
-      success: true,
-      message: 'Database connected',
-      userCount,
-    });
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Database connection failed';
-    logger.error('Database test failed', error);
-    return c.json(
-      {
-        success: false,
-        error: message,
-      },
-      500
-    );
-  }
-});
+// Database connectivity test (removed for production security)
+// VULN-005: Public endpoint exposes system information
+// Use /health endpoint for basic health checks instead
 
 /**
  * API Routes

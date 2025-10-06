@@ -3,6 +3,7 @@ import { signupSchema, loginSchema } from '../validators/authSchemas';
 import { authMiddleware } from '../middleware/auth';
 import { getCsrfToken } from '../middleware/csrf';
 import { loginRateLimiter, signupRateLimiter } from '../middleware/rateLimiter';
+import { isAccountLocked, recordFailedLogin, resetLockout, getLockoutMessage } from '../middleware/accountLockout';
 import { logger, getLogContext } from '../utils/logger';
 import { Bindings } from '../index';
 import type { Dependencies } from '../config/dependencies';
@@ -73,13 +74,51 @@ auth.post('/login', loginRateLimiter, async (c) => {
     const body = await c.req.json();
     const input = loginSchema.parse(body);
 
+    // Check if account is locked
+    const lockoutStatus = await isAccountLocked(c.env.KV, input.email);
+    if (lockoutStatus.locked && lockoutStatus.lockedUntil) {
+      logger.warn('Login attempt on locked account', {
+        ...getLogContext(c),
+        email: input.email,
+        lockedUntil: new Date(lockoutStatus.lockedUntil).toISOString(),
+      });
+
+      return c.json(
+        {
+          success: false,
+          error: getLockoutMessage(lockoutStatus.lockedUntil),
+          lockedUntil: lockoutStatus.lockedUntil,
+        },
+        403
+      );
+    }
+
     logger.info('Login attempt', { ...getLogContext(c), email: input.email });
 
     const result = await deps.authService.login(input);
 
     if (!result.success) {
-      return c.json({ success: false, error: result.error }, 401);
+      // Record failed attempt
+      const lockout = await recordFailedLogin(c.env.KV, input.email);
+
+      logger.warn('Login failed', {
+        ...getLogContext(c),
+        email: input.email,
+        remainingAttempts: lockout.remainingAttempts,
+      });
+
+      return c.json(
+        {
+          success: false,
+          error: result.error,
+          remainingAttempts: lockout.remainingAttempts,
+        },
+        401
+      );
     }
+
+    // Reset lockout on successful login
+    await resetLockout(c.env.KV, input.email);
 
     logger.info('Login successful', { ...getLogContext(c), userId: result.data?.user.id });
 
