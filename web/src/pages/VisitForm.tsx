@@ -55,10 +55,8 @@ export function VisitForm() {
   useEffect(() => {
     if (isCheckingOut) {
       fetchVisit();
-    } else {
-      // Auto-capture GPS on check-in
-      captureLocation();
     }
+    // GPS is now manual - no auto-capture
   }, [id]);
 
   const fetchContacts = async () => {
@@ -108,14 +106,6 @@ export function VisitForm() {
     if (!navigator.geolocation) {
       alert('Geolocation is not supported by your browser');
       return;
-    }
-
-    // Show permission prompt
-    if (!isCheckingOut && !location) {
-      const userConsent = window.confirm(
-        'Allow location access to verify visit location?\n\nThis helps track field rep activities and ensures visit authenticity.'
-      );
-      if (!userConsent) return;
     }
 
     setFetchingLocation(true);
