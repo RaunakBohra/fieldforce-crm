@@ -4,7 +4,8 @@ import { api } from '../services/api';
 import type { Product, ProductQueryParams } from '../services/api';
 import { useDebounce } from '../hooks/useDebounce';
 import { Search, Package, Edit2, Save, X, Plus } from 'lucide-react';
-import { Navigation } from '../components/Navigation';
+import { PageContainer, ContentSection, Card } from '../components/layout';
+import { Pagination, TableSkeleton } from '../components/ui';
 
 export function ProductsList() {
   const navigate = useNavigate();
@@ -100,42 +101,45 @@ export function ProductsList() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-100">
-      <Navigation />
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <div className="mb-6 flex justify-between items-center">
+    <PageContainer>
+      <ContentSection>
+        {/* Header */}
+        <Card className="border-b border-neutral-200 rounded-none">
+          <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">Product Catalog</h1>
-              <p className="text-gray-600">Browse and select products for orders</p>
+              <h1 className="text-3xl font-bold text-neutral-900">Product Catalog</h1>
+              <p className="mt-1 text-sm text-neutral-600">
+                Browse and select products for orders
+              </p>
             </div>
             <button
               onClick={() => navigate('/products/new')}
-              className="flex items-center gap-2 bg-teal-600 text-white px-4 py-2 rounded-md hover:bg-teal-700"
+              className="flex items-center gap-2 px-4 py-2 bg-primary-800 text-white rounded-lg hover:bg-primary-700 transition-colors"
             >
-              <Plus size={20} />
+              <Plus className="w-5 h-5" />
               Add Product
             </button>
           </div>
+        </Card>
 
-      {/* Filters */}
-      <div className="bg-white rounded-lg shadow p-4 mb-6">
+        {/* Filters */}
+        <Card className="mt-6 border border-neutral-200">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400" size={20} />
             <input
               type="text"
               placeholder="Search products..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 border border-neutral-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
           </div>
 
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500"
+            className="px-4 py-2 border border-neutral-300 rounded-md focus:ring-2 focus:ring-primary-500"
           >
             <option value="ALL">All Categories</option>
             {categories.map((cat) => (
@@ -143,85 +147,69 @@ export function ProductsList() {
             ))}
           </select>
         </div>
-      </div>
+        </Card>
 
-      {/* Error State */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-6">
-          {error}
-        </div>
-      )}
+        {/* Error */}
+        {error && (
+          <div className="mt-4 bg-danger-50 border border-danger-200 text-danger-700 px-4 py-3 rounded-lg">
+            {error}
+          </div>
+        )}
 
-      {/* Products Table */}
-      {loading ? (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+        {/* Products Table */}
+        <div className="mt-6 bg-white rounded-lg border border-neutral-200 overflow-hidden">
+          {loading ? (
+            <TableSkeleton
+              rows={5}
+              columns={7}
+              headers={['Product Name', 'SKU', 'Description', 'Category', 'Price', 'Stock', 'Actions']}
+            />
+          ) : products.length === 0 ? (
+            <div className="p-8 text-center text-neutral-600">
+              <Package className="mx-auto text-neutral-400 mb-4" size={48} />
+              <p className="text-lg font-medium">No products found</p>
+              <p className="text-sm mt-1">Add your first product to get started</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-neutral-200">
+            <thead className="bg-neutral-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">SKU</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stock</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Product Name</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">SKU</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Description</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Category</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Price</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Stock</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Actions</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {[...Array(5)].map((_, i) => (
-                <tr key={i} className="animate-pulse">
-                  <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-32"></div></td>
-                  <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-20"></div></td>
-                  <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-48"></div></td>
-                  <td className="px-6 py-4"><div className="h-6 bg-gray-200 rounded w-20"></div></td>
-                  <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-16"></div></td>
-                  <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-12"></div></td>
-                  <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-8"></div></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : products.length > 0 ? (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">SKU</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stock</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white divide-y divide-neutral-200">
               {products.map((product) => (
-                <tr key={product.id} className="hover:bg-gray-50">
+                <tr key={product.id} className="hover:bg-neutral-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     {editingId === product.id ? (
                       <input
                         type="text"
                         value={editForm.name || ''}
                         onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                        className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-teal-500"
+                        className="w-full px-2 py-1 border border-neutral-300 rounded focus:ring-2 focus:ring-primary-500"
                       />
                     ) : (
-                      <div className="text-sm font-medium text-gray-900">{product.name}</div>
+                      <div className="text-sm font-medium text-neutral-900">{product.name}</div>
                     )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.sku}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{product.sku}</td>
                   <td className="px-6 py-4">
                     {editingId === product.id ? (
                       <input
                         type="text"
                         value={editForm.description || ''}
                         onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                        className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-teal-500"
+                        className="w-full px-2 py-1 border border-neutral-300 rounded focus:ring-2 focus:ring-primary-500"
                       />
                     ) : (
-                      <div className="text-sm text-gray-600 max-w-xs truncate">{product.description}</div>
+                      <div className="text-sm text-neutral-600 max-w-xs truncate">{product.description}</div>
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -229,14 +217,14 @@ export function ProductsList() {
                       <select
                         value={editForm.category || ''}
                         onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
-                        className="px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-teal-500"
+                        className="px-2 py-1 border border-neutral-300 rounded focus:ring-2 focus:ring-primary-500"
                       >
                         {categories.map((cat) => (
                           <option key={cat} value={cat}>{cat}</option>
                         ))}
                       </select>
                     ) : (
-                      <span className="inline-block bg-teal-100 text-teal-800 text-xs px-2 py-1 rounded">
+                      <span className="inline-block bg-primary-100 text-primary-800 text-xs px-2 py-1 rounded">
                         {product.category}
                       </span>
                     )}
@@ -248,10 +236,10 @@ export function ProductsList() {
                         step="0.01"
                         value={editForm.price || ''}
                         onChange={(e) => setEditForm({ ...editForm, price: parseFloat(e.target.value) })}
-                        className="w-24 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-teal-500"
+                        className="w-24 px-2 py-1 border border-neutral-300 rounded focus:ring-2 focus:ring-primary-500"
                       />
                     ) : (
-                      <div className="text-sm font-semibold text-gray-900">₹{product.price}</div>
+                      <div className="text-sm font-semibold text-neutral-900">₹{product.price}</div>
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -260,10 +248,10 @@ export function ProductsList() {
                         type="number"
                         value={editForm.stock || ''}
                         onChange={(e) => setEditForm({ ...editForm, stock: parseInt(e.target.value) })}
-                        className="w-20 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-teal-500"
+                        className="w-20 px-2 py-1 border border-neutral-300 rounded focus:ring-2 focus:ring-primary-500"
                       />
                     ) : (
-                      <span className={`text-sm font-bold ${product.stock > 100 ? 'text-green-600' : product.stock > 20 ? 'text-yellow-600' : 'text-red-600'}`}>
+                      <span className={`text-sm font-bold ${product.stock > 100 ? 'text-success-600' : product.stock > 20 ? 'text-warn-600' : 'text-danger-600'}`}>
                         {product.stock}
                       </span>
                     )}
@@ -273,14 +261,14 @@ export function ProductsList() {
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleSave(product.id)}
-                          className="text-green-600 hover:text-green-900"
+                          className="text-success-600 hover:text-success-900"
                           title="Save"
                         >
                           <Save size={18} />
                         </button>
                         <button
                           onClick={handleCancel}
-                          className="text-red-600 hover:text-red-900"
+                          className="text-danger-600 hover:text-danger-500"
                           title="Cancel"
                         >
                           <X size={18} />
@@ -289,7 +277,7 @@ export function ProductsList() {
                     ) : (
                       <button
                         onClick={() => handleEdit(product)}
-                        className="text-teal-600 hover:text-teal-900"
+                        className="text-primary-600 hover:text-primary-900"
                         title="Edit"
                       >
                         <Edit2 size={18} />
@@ -301,45 +289,16 @@ export function ProductsList() {
             </tbody>
           </table>
         </div>
-      ) : (
-        <div className="text-center py-12 bg-white rounded-lg shadow">
-          <Package className="mx-auto text-gray-400 mb-4" size={48} />
-          <p className="text-gray-500">No products found</p>
+          )}
         </div>
-      )}
 
-      {/* Old Empty State - REMOVE */}
-      {false && (
-        <div className="text-center py-12 bg-white rounded-lg shadow">
-          <Package className="mx-auto text-gray-400 mb-4" size={48} />
-          <p className="text-gray-500">No products found</p>
-        </div>
-      )}
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-2 mt-6">
-          <button
-            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-            disabled={currentPage === 1}
-            className="px-4 py-2 border border-gray-300 rounded-md disabled:opacity-50"
-          >
-            Previous
-          </button>
-          <span className="text-gray-600">
-            Page {currentPage} of {totalPages}
-          </span>
-          <button
-            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-            disabled={currentPage === totalPages}
-            className="px-4 py-2 border border-gray-300 rounded-md disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
-      )}
-        </div>
-      </main>
-    </div>
+        {/* Pagination */}
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+      </ContentSection>
+    </PageContainer>
   );
 }

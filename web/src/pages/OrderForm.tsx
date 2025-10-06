@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import type { Contact, Product } from '../services/api';
 import { Save, ArrowLeft, Plus, Trash2 } from 'lucide-react';
-import { Navigation } from '../components/Navigation';
+import { PageContainer, ContentSection, Card } from '../components/layout';
 
 interface OrderItem {
   productId: string;
@@ -137,45 +137,45 @@ export function OrderForm() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-100">
-      <Navigation />
-      <main className="max-w-6xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <div className="mb-6 flex justify-between items-center">
+    <PageContainer>
+      <ContentSection maxWidth="5xl">
+        <Card className="mb-6">
+          <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">Create New Order</h1>
-              <p className="text-gray-600">Add products and create an order for a contact</p>
+              <h1 className="text-2xl font-bold text-neutral-900 mb-2">Create New Order</h1>
+              <p className="text-neutral-600">Add products and create an order for a contact</p>
             </div>
             <button
               onClick={() => navigate('/orders')}
-              className="flex items-center gap-2 px-4 py-2 text-gray-700 bg-white rounded-md hover:bg-gray-50 border border-gray-300"
+              className="flex items-center gap-2 px-4 py-2 text-neutral-700 bg-white rounded-md hover:bg-neutral-50 border border-neutral-300"
             >
               <ArrowLeft size={20} />
               Back to Orders
             </button>
           </div>
+        </Card>
 
-          {error && (
-            <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
-              {error}
-            </div>
-          )}
+        {error && (
+          <div className="mb-6 bg-danger-50 border border-danger-200 text-danger-700 px-4 py-3 rounded-md">
+            {error}
+          </div>
+        )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Contact Selection */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Select Contact</h2>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Contact Selection */}
+          <Card>
+              <h2 className="text-lg font-semibold text-neutral-900 mb-4">Select Contact</h2>
               <input
                 type="text"
                 placeholder="Search contacts..."
                 value={contactSearch}
                 onChange={(e) => setContactSearch(e.target.value)}
-                className="w-full px-4 py-2 mb-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                className="w-full px-4 py-2 mb-3 border border-neutral-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
               <select
                 value={contactId}
                 onChange={(e) => setContactId(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-neutral-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 required
               >
                 <option value="">Choose a contact...</option>
@@ -186,18 +186,18 @@ export function OrderForm() {
                 ))}
               </select>
               {contacts.length === 0 && contactSearch && (
-                <p className="mt-2 text-sm text-gray-500">No contacts found matching "{contactSearch}"</p>
+                <p className="mt-2 text-sm text-neutral-500">No contacts found matching "{contactSearch}"</p>
               )}
-            </div>
+            </Card>
 
             {/* Order Items */}
-            <div className="bg-white rounded-lg shadow p-6">
+            <Card>
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-semibold text-gray-900">Order Items</h2>
+                <h2 className="text-lg font-semibold text-neutral-900">Order Items</h2>
                 <button
                   type="button"
                   onClick={addItem}
-                  className="flex items-center gap-2 bg-teal-600 text-white px-4 py-2 rounded-md hover:bg-teal-700"
+                  className="flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-500"
                 >
                   <Plus size={18} />
                   Add Product
@@ -209,21 +209,21 @@ export function OrderForm() {
                 placeholder="Search products..."
                 value={productSearch}
                 onChange={(e) => setProductSearch(e.target.value)}
-                className="w-full px-4 py-2 mb-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                className="w-full px-4 py-2 mb-4 border border-neutral-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
 
               {items.length === 0 ? (
-                <p className="text-gray-500 text-center py-8">No products added yet. Click "Add Product" to begin.</p>
+                <p className="text-neutral-500 text-center py-8">No products added yet. Click "Add Product" to begin.</p>
               ) : (
                 <div className="space-y-4">
                   {items.map((item, index) => (
-                    <div key={index} className="grid grid-cols-12 gap-4 items-start p-4 border border-gray-200 rounded-md">
+                    <div key={index} className="grid grid-cols-12 gap-4 items-start p-4 border border-neutral-200 rounded-md">
                       <div className="col-span-5">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Product</label>
+                        <label className="block text-sm font-medium text-neutral-700 mb-1">Product</label>
                         <select
                           value={item.productId}
                           onChange={(e) => updateItem(index, 'productId', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500"
+                          className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:ring-2 focus:ring-primary-500"
                           required
                         >
                           <option value="">Select product...</option>
@@ -235,30 +235,30 @@ export function OrderForm() {
                         </select>
                       </div>
                       <div className="col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+                        <label className="block text-sm font-medium text-neutral-700 mb-1">Quantity</label>
                         <input
                           type="number"
                           min="1"
                           value={item.quantity}
                           onChange={(e) => updateItem(index, 'quantity', parseInt(e.target.value))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500"
+                          className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:ring-2 focus:ring-primary-500"
                           required
                         />
                       </div>
                       <div className="col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Price (₹)</label>
+                        <label className="block text-sm font-medium text-neutral-700 mb-1">Price (₹)</label>
                         <input
                           type="number"
                           step="0.01"
                           value={item.price}
                           onChange={(e) => updateItem(index, 'price', parseFloat(e.target.value))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500"
+                          className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:ring-2 focus:ring-primary-500"
                           required
                         />
                       </div>
                       <div className="col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Subtotal</label>
-                        <div className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-md font-semibold text-gray-900">
+                        <label className="block text-sm font-medium text-neutral-700 mb-1">Subtotal</label>
+                        <div className="px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-md font-semibold text-neutral-900">
                           ₹{(item.quantity * item.price).toLocaleString()}
                         </div>
                       </div>
@@ -266,7 +266,7 @@ export function OrderForm() {
                         <button
                           type="button"
                           onClick={() => removeItem(index)}
-                          className="text-red-600 hover:text-red-900 p-2"
+                          className="text-danger-600 hover:text-danger-500 p-2"
                           title="Remove item"
                         >
                           <Trash2 size={18} />
@@ -278,34 +278,34 @@ export function OrderForm() {
               )}
 
               {items.length > 0 && (
-                <div className="mt-6 pt-4 border-t border-gray-200">
+                <div className="mt-6 pt-4 border-t border-neutral-200">
                   <div className="flex justify-between items-center">
-                    <span className="text-lg font-semibold text-gray-900">Total Amount:</span>
-                    <span className="text-2xl font-bold text-teal-600">₹{calculateTotal().toLocaleString()}</span>
+                    <span className="text-lg font-semibold text-neutral-900">Total Amount:</span>
+                    <span className="text-2xl font-bold text-primary-600">₹{calculateTotal().toLocaleString()}</span>
                   </div>
                 </div>
               )}
-            </div>
+            </Card>
 
             {/* Additional Info */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Additional Information</h2>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+            <Card>
+              <h2 className="text-lg font-semibold text-neutral-900 mb-4">Additional Information</h2>
+              <label className="block text-sm font-medium text-neutral-700 mb-2">Notes</label>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={3}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-neutral-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 placeholder="Add any special instructions or notes..."
               />
-            </div>
+            </Card>
 
             {/* Submit */}
             <div className="flex gap-4">
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 flex items-center justify-center gap-2 bg-teal-600 text-white px-6 py-3 rounded-md hover:bg-teal-700 disabled:opacity-50 font-semibold"
+                className="flex-1 flex items-center justify-center gap-2 bg-primary-600 text-white px-6 py-3 rounded-md hover:bg-primary-500 disabled:opacity-50 font-semibold"
               >
                 <Save size={20} />
                 {loading ? 'Creating Order...' : 'Create Order'}
@@ -313,14 +313,13 @@ export function OrderForm() {
               <button
                 type="button"
                 onClick={() => navigate('/orders')}
-                className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 font-semibold"
+                className="flex-1 px-6 py-3 border border-neutral-300 text-neutral-700 rounded-md hover:bg-neutral-50 font-semibold"
               >
                 Cancel
               </button>
             </div>
           </form>
-        </div>
-      </main>
-    </div>
+      </ContentSection>
+    </PageContainer>
   );
 }

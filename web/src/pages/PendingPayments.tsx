@@ -1,23 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { Navigation } from '../components/Navigation';
-
-interface PendingOrder {
-  id: string;
-  orderNumber: string;
-  contact: { name: string; phone?: string };
-  totalAmount: number;
-  totalPaid: number;
-  pendingAmount: number;
-  daysPending: number;
-  createdAt: string;
-}
+import { api } from '../services/api';
+import type { PendingOrder } from '../services/api';
+import { PageContainer, ContentSection, Card } from '../components/layout';
+import { StatCard, StatusBadge, TableSkeleton } from '../components/ui';
+import { formatCurrency, getPriorityColor } from '../utils';
 
 export default function PendingPayments() {
   const [pendingOrders, setPendingOrders] = useState<PendingOrder[]>([]);
   const [loading, setLoading] = useState(true);
-  const { token } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,12 +17,10 @@ export default function PendingPayments() {
 
   const fetchPendingPayments = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://crm-api.raunakbohra.com'}/api/payments/pending`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await response.json();
-      if (data.success) {
-        setPendingOrders(data.data.pendingOrders);
+      setLoading(true);
+      const response = await api.getPendingPayments();
+      if (response.success && response.data) {
+        setPendingOrders(response.data.pendingOrders);
       }
     } catch (error) {
       console.error('Failed to fetch pending payments:', error);
@@ -47,181 +36,156 @@ export default function PendingPayments() {
     }
 
     alert(
-      `Reminder would be sent to ${order.contact.name} (${order.contact.phone})\n\nPending: ₹${order.pendingAmount.toLocaleString('en-IN')}\n\n(SMS/WhatsApp integration to be implemented)`
+      `Reminder would be sent to ${order.contact.name} (${order.contact.phone})\n\nPending: ${formatCurrency(order.pendingAmount)}\n\n(SMS/WhatsApp integration to be implemented)`
     );
   };
 
-  const getPriorityBadge = (days: number) => {
-    if (days > 30) {
-      return (
-        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
-          HIGH
-        </span>
-      );
-    } else if (days > 15) {
-      return (
-        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-amber-100 text-amber-800">
-          MEDIUM
-        </span>
-      );
-    }
-    return (
-      <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-        LOW
-      </span>
-    );
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
 
   const totalPendingAmount = pendingOrders.reduce((sum, o) => sum + o.pendingAmount, 0);
   const overdueCount = pendingOrders.filter((o) => o.daysPending > 30).length;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navigation />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Pending Payments</h1>
-          <button
-            onClick={() => navigate('/payments')}
-            className="bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 font-semibold"
-          >
-            View All Payments
-          </button>
-        </div>
-
-        {/* Summary Card */}
-        <div className="bg-white p-6 rounded-lg shadow mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <PageContainer>
+      <ContentSection>
+        {/* Header */}
+        <Card className="border-b border-neutral-200 rounded-none">
+          <div className="flex justify-between items-center">
             <div>
-              <p className="text-sm text-gray-600">Total Pending Orders</p>
-              <p className="text-3xl font-bold text-red-600">{pendingOrders.length}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Total Pending Amount</p>
-              <p className="text-3xl font-bold text-amber-600">
-                {formatCurrency(totalPendingAmount)}
+              <h1 className="text-3xl font-bold text-neutral-900">Pending Payments</h1>
+              <p className="mt-1 text-sm text-neutral-600">
+                Track and follow up on pending payments
               </p>
             </div>
-            <div>
-              <p className="text-sm text-gray-600">Overdue (&gt;30 days)</p>
-              <p className="text-3xl font-bold text-red-600">{overdueCount}</p>
-            </div>
+            <button
+              onClick={() => navigate('/payments')}
+              className="px-4 py-2 bg-primary-800 text-white rounded-lg hover:bg-primary-700 transition-colors"
+            >
+              View All Payments
+            </button>
           </div>
-        </div>
+
+          {/* Stats */}
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <StatCard
+              title="Total Pending Orders"
+              value={pendingOrders.length}
+              valueColor="text-danger-600"
+              className="bg-neutral-50 shadow-none"
+            />
+            <StatCard
+              title="Total Pending Amount"
+              value={formatCurrency(totalPendingAmount)}
+              valueColor="text-warn-600"
+              className="bg-neutral-50 shadow-none"
+            />
+            <StatCard
+              title="Overdue (>30 days)"
+              value={overdueCount}
+              valueColor="text-danger-600"
+              className="bg-neutral-50 shadow-none"
+            />
+          </div>
+        </Card>
 
         {/* Pending Orders Table */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Order #
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Contact
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Total
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Paid
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Pending
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Days
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Priority
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {loading ? (
-                  [...Array(5)].map((_, i) => (
-                    <tr key={i} className="animate-pulse">
-                      <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-24"></div></td>
-                      <td className="px-6 py-4">
-                        <div className="h-4 bg-gray-200 rounded w-32 mb-2"></div>
-                        <div className="h-3 bg-gray-200 rounded w-24"></div>
-                      </td>
-                      <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-20"></div></td>
-                      <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-20"></div></td>
-                      <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-20"></div></td>
-                      <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-16"></div></td>
-                      <td className="px-6 py-4"><div className="h-6 bg-gray-200 rounded-full w-16"></div></td>
-                      <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-32"></div></td>
-                    </tr>
-                  ))
-                ) : pendingOrders.map((order) => (
-                  <tr key={order.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {order.orderNumber}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <div>
-                        <p className="font-medium">{order.contact.name}</p>
-                        {order.contact.phone && (
-                          <p className="text-xs text-gray-400">{order.contact.phone}</p>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatCurrency(order.totalAmount)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600">
-                      {formatCurrency(order.totalPaid)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-red-600">
-                      {formatCurrency(order.pendingAmount)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {order.daysPending} days
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {getPriorityBadge(order.daysPending)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                      <button
-                        onClick={() => navigate(`/payments/new/${order.id}`)}
-                        className="text-teal-600 hover:text-teal-900"
-                      >
-                        Record Payment
-                      </button>
-                      <button
-                        onClick={() => sendReminder(order)}
-                        className="text-amber-600 hover:text-amber-900"
-                      >
-                        Send Reminder
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {!loading && pendingOrders.length === 0 && (
-            <div className="text-center py-12 text-gray-500">
+        <div className="mt-6 bg-white rounded-lg border border-neutral-200 overflow-hidden">
+          {loading ? (
+            <TableSkeleton
+              rows={5}
+              columns={8}
+              headers={['Order #', 'Contact', 'Total', 'Paid', 'Pending', 'Days', 'Priority', 'Actions']}
+            />
+          ) : pendingOrders.length === 0 ? (
+            <div className="p-8 text-center text-neutral-600">
               <p className="text-lg font-medium">No pending payments</p>
               <p className="text-sm mt-1">All orders are fully paid!</p>
             </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-neutral-200">
+                <thead className="bg-neutral-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                      Order #
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                      Contact
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                      Total
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                      Paid
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                      Pending
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                      Days
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                      Priority
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-neutral-200">
+                  {pendingOrders.map((order) => (
+                    <tr key={order.id} className="hover:bg-neutral-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-900">
+                        {order.orderNumber}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">
+                        <div>
+                          <p className="font-medium">{order.contact.name}</p>
+                          {order.contact.phone && (
+                            <p className="text-xs text-neutral-400">{order.contact.phone}</p>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">
+                        {formatCurrency(order.totalAmount)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-success-600">
+                        {formatCurrency(order.totalPaid)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-danger-600">
+                        {formatCurrency(order.pendingAmount)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">
+                        {order.daysPending} days
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <StatusBadge
+                          label={getPriorityColor(order.daysPending).label}
+                          className={getPriorityColor(order.daysPending).color}
+                          formatLabel={false}
+                        />
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                        <button
+                          onClick={() => navigate(`/payments/new/${order.id}`)}
+                          className="text-primary-600 hover:text-primary-700"
+                        >
+                          Record Payment
+                        </button>
+                        <button
+                          onClick={() => sendReminder(order)}
+                          className="text-warn-600 hover:text-warn-700"
+                        >
+                          Send Reminder
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
-      </div>
-    </div>
+      </ContentSection>
+    </PageContainer>
   );
 }

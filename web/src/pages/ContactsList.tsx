@@ -4,7 +4,8 @@ import { api } from '../services/api';
 import type { Contact, ContactStats, ContactQueryParams } from '../services/api';
 import { useDebounce } from '../hooks/useDebounce';
 import { Pencil, Trash2, Plus, Search, Filter } from 'lucide-react';
-import { Navigation } from '../components/Navigation';
+import { PageContainer, ContentSection, Card } from '../components/layout';
+import { StatCard, StatusBadge, Pagination, TableSkeleton } from '../components/ui';
 
 export function ContactsList() {
   const navigate = useNavigate();
@@ -94,13 +95,10 @@ export function ContactsList() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-100">
-      <Navigation />
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          {/* Header */}
-          <div className="bg-white border-b border-neutral-200">
-            <div className="px-4 sm:px-6 lg:px-8 py-6">
+    <PageContainer>
+      <ContentSection>
+        {/* Header */}
+        <Card className="border-b border-neutral-200 rounded-none">
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-3xl font-bold text-neutral-900">Contacts</h1>
@@ -120,26 +118,30 @@ export function ContactsList() {
           {/* Stats */}
           {stats && (
             <div className="mt-6 grid grid-cols-3 gap-4">
-              <div className="bg-neutral-50 p-4 rounded-lg">
-                <p className="text-sm text-neutral-600">Total Contacts</p>
-                <p className="text-2xl font-bold text-neutral-900">{stats.total}</p>
-              </div>
-              <div className="bg-neutral-50 p-4 rounded-lg">
-                <p className="text-sm text-neutral-600">Distribution</p>
-                <p className="text-2xl font-bold text-primary-800">{stats.distribution}</p>
-              </div>
-              <div className="bg-neutral-50 p-4 rounded-lg">
-                <p className="text-sm text-neutral-600">Medical</p>
-                <p className="text-2xl font-bold text-accent-600">{stats.medical}</p>
-              </div>
+              <StatCard
+                title="Total Contacts"
+                value={stats.total}
+                valueColor="text-neutral-900"
+                className="bg-neutral-50 shadow-none"
+              />
+              <StatCard
+                title="Distribution"
+                value={stats.distribution}
+                valueColor="text-primary-800"
+                className="bg-neutral-50 shadow-none"
+              />
+              <StatCard
+                title="Medical"
+                value={stats.medical}
+                valueColor="text-success-600"
+                className="bg-neutral-50 shadow-none"
+              />
             </div>
           )}
-            </div>
-          </div>
+        </Card>
 
-          {/* Filters */}
-          <div className="px-4 sm:px-6 lg:px-8 py-6">
-        <div className="bg-white rounded-lg border border-neutral-200 p-4">
+        {/* Filters */}
+        <Card className="mt-6 border border-neutral-200">
           <div className="flex items-center gap-2 mb-4">
             <Filter className="w-5 h-5 text-neutral-600" />
             <h2 className="text-lg font-semibold text-neutral-900">Filters</h2>
@@ -186,46 +188,23 @@ export function ContactsList() {
               Reset Filters
             </button>
           </div>
-            </div>
+        </Card>
 
-            {/* Error */}
+        {/* Error */}
         {error && (
-          <div className="mt-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+          <div className="mt-4 bg-danger-50 border border-danger-200 text-danger-700 px-4 py-3 rounded-lg">
             {error}
           </div>
         )}
 
-            {/* Contacts Table */}
-            <div className="mt-6 bg-white rounded-lg border border-neutral-200 overflow-hidden">
+        {/* Contacts Table */}
+        <div className="mt-6 bg-white rounded-lg border border-neutral-200 overflow-hidden">
           {loading ? (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-neutral-200">
-                <thead className="bg-neutral-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Name</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Category</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Type</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Contact</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Location</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-neutral-500 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-neutral-200">
-                  {[...Array(5)].map((_, i) => (
-                    <tr key={i} className="animate-pulse">
-                      <td className="px-6 py-4"><div className="h-4 bg-neutral-200 rounded w-32"></div></td>
-                      <td className="px-6 py-4"><div className="h-4 bg-neutral-200 rounded w-20"></div></td>
-                      <td className="px-6 py-4"><div className="h-4 bg-neutral-200 rounded w-24"></div></td>
-                      <td className="px-6 py-4"><div className="h-4 bg-neutral-200 rounded w-28"></div></td>
-                      <td className="px-6 py-4"><div className="h-4 bg-neutral-200 rounded w-36"></div></td>
-                      <td className="px-6 py-4"><div className="h-4 bg-neutral-200 rounded w-16"></div></td>
-                      <td className="px-6 py-4"><div className="h-4 bg-neutral-200 rounded w-12 ml-auto"></div></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <TableSkeleton
+              rows={5}
+              columns={7}
+              headers={['Name', 'Category', 'Type', 'Contact', 'Location', 'Status', 'Actions']}
+            />
           ) : contacts.length === 0 ? (
             <div className="p-8 text-center text-neutral-600">
               No contacts found. Click "Add Contact" to create one.
@@ -268,13 +247,11 @@ export function ContactsList() {
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                          contact.contactCategory === 'DISTRIBUTION'
-                            ? 'bg-primary-100 text-primary-800'
-                            : 'bg-accent-100 text-accent-600'
-                        }`}>
-                          {contact.contactCategory}
-                        </span>
+                        <StatusBadge
+                          label={contact.contactCategory}
+                          variant={contact.contactCategory === 'DISTRIBUTION' ? 'primary' : 'success'}
+                          formatLabel={false}
+                        />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-900">
                         {contact.contactType}
@@ -287,13 +264,11 @@ export function ContactsList() {
                         {contact.city && contact.state ? `${contact.city}, ${contact.state}` : '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                          contact.isActive
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-neutral-100 text-neutral-800'
-                        }`}>
-                          {contact.isActive ? 'Active' : 'Inactive'}
-                        </span>
+                        <StatusBadge
+                          label={contact.isActive ? 'Active' : 'Inactive'}
+                          variant={contact.isActive ? 'success' : 'neutral'}
+                          formatLabel={false}
+                        />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <button
@@ -304,7 +279,7 @@ export function ContactsList() {
                         </button>
                         <button
                           onClick={() => handleDelete(contact.id, contact.name)}
-                          className="text-red-600 hover:text-red-700"
+                          className="text-danger-600 hover:text-danger-500"
                         >
                           <Trash2 className="w-4 h-4 inline" />
                         </button>
@@ -315,33 +290,15 @@ export function ContactsList() {
               </table>
             </div>
           )}
-            </div>
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-          <div className="mt-6 flex justify-center gap-2">
-            <button
-              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              className="px-4 py-2 border border-neutral-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-neutral-50"
-            >
-              Previous
-            </button>
-            <span className="px-4 py-2 text-neutral-700">
-              Page {currentPage} of {totalPages}
-            </span>
-            <button
-              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 border border-neutral-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-neutral-50"
-            >
-              Next
-            </button>
-          </div>
-            )}
-          </div>
         </div>
-      </main>
-    </div>
+
+        {/* Pagination */}
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+      </ContentSection>
+    </PageContainer>
   );
 }

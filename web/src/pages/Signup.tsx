@@ -61,7 +61,7 @@ export default function Signup() {
           <h1 className="text-3xl font-bold text-center text-primary-800">
             Field Force CRM
           </h1>
-          <p className="mt-2 text-center text-accent-500">
+          <p className="mt-2 text-center text-neutral-600">
             Create your account
           </p>
         </div>
@@ -167,7 +167,7 @@ export default function Signup() {
             {loading ? 'Creating account...' : 'Sign up'}
           </button>
 
-          <p className="text-center text-sm text-accent-500">
+          <p className="text-center text-sm text-neutral-600">
             Already have an account?{' '}
             <Link to="/login" className="text-primary-600 hover:text-primary-700 font-medium">
               Sign in

@@ -16,7 +16,9 @@ import {
   Tag,
   AlertCircle
 } from 'lucide-react';
-import { Navigation } from '../components/Navigation';
+import { PageContainer, ContentSection, Card } from '../components/layout';
+import { StatusBadge, LoadingSpinner } from '../components/ui';
+import { formatDateTimeFull, getVisitStatusColor, getVisitOutcomeColor, formatStatusLabel } from '../utils';
 
 export function VisitDetails() {
   const navigate = useNavigate();
@@ -66,91 +68,41 @@ export function VisitDetails() {
     }
   };
 
-  const formatDateTime = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const getStatusColor = (status: string) => {
-    const colors: Record<string, string> = {
-      PLANNED: 'bg-blue-100 text-blue-800 border-blue-200',
-      IN_PROGRESS: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      COMPLETED: 'bg-green-100 text-green-800 border-green-200',
-      CANCELLED: 'bg-red-100 text-red-800 border-red-200',
-      POSTPONED: 'bg-orange-100 text-orange-800 border-orange-200',
-      NO_SHOW: 'bg-neutral-100 text-neutral-800 border-neutral-200',
-    };
-    return colors[status] || 'bg-neutral-100 text-neutral-800 border-neutral-200';
-  };
-
-  const getOutcomeColor = (outcome: string) => {
-    const colors: Record<string, string> = {
-      SUCCESSFUL: 'bg-green-100 text-green-800 border-green-200',
-      PARTIAL: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      UNSUCCESSFUL: 'bg-red-100 text-red-800 border-red-200',
-      FOLLOW_UP_NEEDED: 'bg-orange-100 text-orange-800 border-orange-200',
-      ORDER_PLACED: 'bg-green-100 text-green-800 border-green-200',
-      SAMPLE_GIVEN: 'bg-purple-100 text-purple-800 border-purple-200',
-      INFORMATION_ONLY: 'bg-blue-100 text-blue-800 border-blue-200',
-    };
-    return colors[outcome] || 'bg-neutral-100 text-neutral-800 border-neutral-200';
-  };
-
   if (loading) {
     return (
-      <div className="min-h-screen bg-neutral-100">
-        <Navigation />
-        <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-          <div className="px-4 py-6 sm:px-0">
-            <div className="flex items-center justify-center">
-              <div className="text-center">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
-                <p className="mt-2 text-neutral-600">Loading visit...</p>
-              </div>
-            </div>
-          </div>
-        </main>
-      </div>
+      <PageContainer>
+        <ContentSection>
+          <LoadingSpinner message="Loading visit..." />
+        </ContentSection>
+      </PageContainer>
     );
   }
 
   if (error || !visit) {
     return (
-      <div className="min-h-screen bg-neutral-100">
-        <Navigation />
-        <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-          <div className="px-4 py-6 sm:px-0">
-            <div className="max-w-4xl mx-auto">
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-                {error || 'Visit not found'}
-              </div>
-              <button
-                onClick={() => navigate('/visits')}
-                className="mt-4 text-primary-600 hover:text-primary-700"
-              >
-                ← Back to Visits
-              </button>
+      <PageContainer>
+        <ContentSection maxWidth="4xl">
+          <Card>
+            <div className="bg-danger-50 border border-danger-200 text-danger-700 px-4 py-3 rounded-lg">
+              {error || 'Visit not found'}
             </div>
-          </div>
-        </main>
-      </div>
+            <button
+              onClick={() => navigate('/visits')}
+              className="mt-4 text-primary-600 hover:text-primary-700"
+            >
+              ← Back to Visits
+            </button>
+          </Card>
+        </ContentSection>
+      </PageContainer>
     );
   }
 
   return (
-    <div className="min-h-screen bg-neutral-100">
-      <Navigation />
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <div className="max-w-5xl mx-auto">
+    <PageContainer>
+      <ContentSection maxWidth="5xl">
         {/* Header */}
-        <div className="mb-6">
+        <Card className="mb-6">
           <button
             onClick={() => navigate('/visits')}
             className="flex items-center gap-2 text-neutral-600 hover:text-neutral-900 mb-4"
@@ -170,39 +122,49 @@ export function VisitDetails() {
             <div className="flex gap-2">
               <button
                 onClick={() => navigate(`/visits/${visit.id}/edit`)}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-primary-800 text-white rounded-lg hover:bg-primary-700 transition-colors"
               >
                 <Pencil className="w-4 h-4" />
                 Edit
               </button>
               <button
                 onClick={handleDelete}
-                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-danger-600 text-white rounded-lg hover:bg-danger-700 transition-colors"
               >
                 <Trash2 className="w-4 h-4" />
                 Delete
               </button>
             </div>
           </div>
-        </div>
+        </Card>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Status & Outcome */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
+            <Card>
               <div className="flex gap-3 flex-wrap">
-                <span className={`px-3 py-1.5 rounded-lg border ${getStatusColor(visit.status)}`}>
-                  <strong>Status:</strong> {visit.status.replace(/_/g, ' ')}
-                </span>
-                <span className={`px-3 py-1.5 rounded-lg border ${getOutcomeColor(visit.outcome)}`}>
-                  <strong>Outcome:</strong> {visit.outcome.replace(/_/g, ' ')}
-                </span>
+                <div className="flex items-center gap-2">
+                  <strong className="text-neutral-900">Status:</strong>
+                  <StatusBadge
+                    label={visit.status}
+                    className={`${getVisitStatusColor(visit.status)} border`}
+                    formatLabel
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <strong className="text-neutral-900">Outcome:</strong>
+                  <StatusBadge
+                    label={visit.outcome}
+                    className={`${getVisitOutcomeColor(visit.outcome)} border`}
+                    formatLabel
+                  />
+                </div>
               </div>
-            </div>
+            </Card>
 
             {/* Visit Information */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
+            <Card>
               <h2 className="text-lg font-semibold text-neutral-900 mb-4">Visit Information</h2>
 
               <div className="space-y-4">
@@ -210,7 +172,7 @@ export function VisitDetails() {
                   <Calendar className="w-5 h-5 text-neutral-400 mt-0.5" />
                   <div>
                     <p className="text-sm text-neutral-600">Date & Time</p>
-                    <p className="text-neutral-900">{formatDateTime(visit.visitDate)}</p>
+                    <p className="text-neutral-900">{formatDateTimeFull(visit.visitDate)}</p>
                   </div>
                 </div>
 
@@ -218,7 +180,7 @@ export function VisitDetails() {
                   <Tag className="w-5 h-5 text-neutral-400 mt-0.5" />
                   <div>
                     <p className="text-sm text-neutral-600">Visit Type</p>
-                    <p className="text-neutral-900">{visit.visitType.replace(/_/g, ' ')}</p>
+                    <p className="text-neutral-900">{formatStatusLabel(visit.visitType)}</p>
                   </div>
                 </div>
 
@@ -247,11 +209,11 @@ export function VisitDetails() {
                   </div>
                 )}
               </div>
-            </div>
+            </Card>
 
             {/* Purpose & Notes */}
             {(visit.purpose || visit.notes) && (
-              <div className="bg-white rounded-lg shadow-sm p-6">
+              <Card>
                 <h2 className="text-lg font-semibold text-neutral-900 mb-4">Details</h2>
 
                 {visit.purpose && (
@@ -267,12 +229,12 @@ export function VisitDetails() {
                     <p className="text-neutral-900 whitespace-pre-wrap">{visit.notes}</p>
                   </div>
                 )}
-              </div>
+              </Card>
             )}
 
             {/* Products */}
             {visit.products && visit.products.length > 0 && (
-              <div className="bg-white rounded-lg shadow-sm p-6">
+              <Card>
                 <h2 className="text-lg font-semibold text-neutral-900 mb-4">Products Discussed</h2>
                 <div className="flex flex-wrap gap-2">
                   {visit.products.map((product, index) => (
@@ -284,29 +246,29 @@ export function VisitDetails() {
                     </span>
                   ))}
                 </div>
-              </div>
+              </Card>
             )}
 
             {/* Follow-up */}
             {visit.followUpRequired && (
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-6">
+              <Card className="bg-warn-50 border-warn-200">
                 <div className="flex items-start gap-3">
-                  <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5" />
+                  <AlertCircle className="w-5 h-5 text-warn-600 mt-0.5" />
                   <div className="flex-1">
-                    <h3 className="font-semibold text-amber-900 mb-2">Follow-up Required</h3>
+                    <h3 className="font-semibold text-warn-900 mb-2">Follow-up Required</h3>
 
                     {visit.nextVisitDate && (
-                      <p className="text-sm text-amber-800 mb-2">
-                        <strong>Next Visit:</strong> {formatDateTime(visit.nextVisitDate)}
+                      <p className="text-sm text-warn-800 mb-2">
+                        <strong>Next Visit:</strong> {formatDateTimeFull(visit.nextVisitDate)}
                       </p>
                     )}
 
                     {visit.followUpNotes && (
-                      <p className="text-sm text-amber-800">{visit.followUpNotes}</p>
+                      <p className="text-sm text-warn-800">{visit.followUpNotes}</p>
                     )}
                   </div>
                 </div>
-              </div>
+              </Card>
             )}
           </div>
 
@@ -314,7 +276,7 @@ export function VisitDetails() {
           <div className="space-y-6">
             {/* Contact Information */}
             {visit.contact && (
-              <div className="bg-white rounded-lg shadow-sm p-6">
+              <Card>
                 <h2 className="text-lg font-semibold text-neutral-900 mb-4">Contact</h2>
 
                 <div className="space-y-3">
@@ -371,12 +333,12 @@ export function VisitDetails() {
                     View Contact Details
                   </button>
                 </div>
-              </div>
+              </Card>
             )}
 
             {/* Field Rep */}
             {visit.fieldRep && (
-              <div className="bg-white rounded-lg shadow-sm p-6">
+              <Card>
                 <h2 className="text-lg font-semibold text-neutral-900 mb-4">Field Representative</h2>
 
                 <div className="space-y-3">
@@ -388,13 +350,11 @@ export function VisitDetails() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </Card>
             )}
           </div>
         </div>
-          </div>
-        </div>
-      </main>
-    </div>
+      </ContentSection>
+    </PageContainer>
   );
 }

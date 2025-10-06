@@ -4,7 +4,9 @@ import { api } from '../services/api';
 import type { Visit, VisitStats, VisitQueryParams } from '../services/api';
 import { useDebounce } from '../hooks/useDebounce';
 import { Pencil, Trash2, Plus, Search, MapPin, Calendar, Eye } from 'lucide-react';
-import { Navigation } from '../components/Navigation';
+import { PageContainer, ContentSection, Card } from '../components/layout';
+import { StatCard, StatusBadge, Pagination, TableSkeleton } from '../components/ui';
+import { formatDateTime, getVisitStatusColor, getVisitOutcomeColor, formatStatusLabel } from '../utils';
 
 export function VisitsList() {
   const navigate = useNavigate();
@@ -98,49 +100,11 @@ export function VisitsList() {
     setCurrentPage(1);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const getStatusColor = (status: string) => {
-    const colors: Record<string, string> = {
-      PLANNED: 'bg-blue-100 text-blue-800',
-      IN_PROGRESS: 'bg-yellow-100 text-yellow-800',
-      COMPLETED: 'bg-green-100 text-green-800',
-      CANCELLED: 'bg-red-100 text-red-800',
-      POSTPONED: 'bg-orange-100 text-orange-800',
-      NO_SHOW: 'bg-neutral-100 text-neutral-800',
-    };
-    return colors[status] || 'bg-neutral-100 text-neutral-800';
-  };
-
-  const getOutcomeColor = (outcome: string) => {
-    const colors: Record<string, string> = {
-      SUCCESSFUL: 'bg-green-100 text-green-800',
-      PARTIAL: 'bg-yellow-100 text-yellow-800',
-      UNSUCCESSFUL: 'bg-red-100 text-red-800',
-      FOLLOW_UP_NEEDED: 'bg-orange-100 text-orange-800',
-      ORDER_PLACED: 'bg-green-100 text-green-800',
-      SAMPLE_GIVEN: 'bg-purple-100 text-purple-800',
-      INFORMATION_ONLY: 'bg-blue-100 text-blue-800',
-    };
-    return colors[outcome] || 'bg-neutral-100 text-neutral-800';
-  };
-
   return (
-    <div className="min-h-screen bg-neutral-100">
-      <Navigation />
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          {/* Header */}
-          <div className="bg-white border-b border-neutral-200">
-            <div className="px-4 sm:px-6 lg:px-8 py-6">
+    <PageContainer>
+      <ContentSection>
+        {/* Header */}
+        <Card className="border-b border-neutral-200 rounded-none">
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-3xl font-bold text-neutral-900">Visits</h1>
@@ -153,41 +117,48 @@ export function VisitsList() {
               className="flex items-center gap-2 px-4 py-2 bg-primary-800 text-white rounded-lg hover:bg-primary-700 transition-colors"
             >
               <Plus className="w-5 h-5" />
-              Add Visit
+              New Visit
             </button>
           </div>
 
           {/* Stats */}
           {stats && (
-            <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-neutral-50 p-4 rounded-lg">
-                <p className="text-sm text-neutral-600">Total Visits</p>
-                <p className="text-2xl font-bold text-neutral-900">{stats.totalVisits}</p>
-              </div>
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <p className="text-sm text-blue-600">Planned</p>
-                <p className="text-2xl font-bold text-blue-900">{stats.plannedVisits}</p>
-              </div>
-              <div className="bg-green-50 p-4 rounded-lg">
-                <p className="text-sm text-green-600">Completed</p>
-                <p className="text-2xl font-bold text-green-900">{stats.completedVisits}</p>
-              </div>
-              <div className="bg-amber-50 p-4 rounded-lg">
-                <p className="text-sm text-amber-600">This Month</p>
-                <p className="text-2xl font-bold text-amber-900">{stats.monthVisits}</p>
-              </div>
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+              <StatCard
+                title="Total Visits"
+                value={stats.totalVisits}
+                valueColor="text-neutral-900"
+                className="bg-neutral-50 shadow-none"
+              />
+              <StatCard
+                title="Completed"
+                value={stats.completedVisits}
+                valueColor="text-success-600"
+                className="bg-neutral-50 shadow-none"
+              />
+              <StatCard
+                title="Planned"
+                value={stats.plannedVisits}
+                valueColor="text-primary-600"
+                className="bg-neutral-50 shadow-none"
+              />
+              <StatCard
+                title="This Month"
+                value={stats.monthVisits}
+                valueColor="text-primary-800"
+                className="bg-neutral-50 shadow-none"
+              />
             </div>
           )}
-        </div>
-      </div>
+        </Card>
 
-          {/* Filters */}
-          <div className="bg-white border-b border-neutral-200">
-            <div className="px-4 sm:px-6 lg:px-8 py-4">
-          <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
-            {/* Search */}
-            <div className="md:col-span-2 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 w-5 h-5" />
+        {/* Filters */}
+        <Card className="mt-6 border border-neutral-200">
+          <h2 className="text-lg font-semibold text-neutral-900 mb-4">Filters</h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-400" />
               <input
                 type="text"
                 placeholder="Search visits..."
@@ -197,11 +168,10 @@ export function VisitsList() {
               />
             </div>
 
-            {/* Status Filter */}
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500"
             >
               <option value="ALL">All Status</option>
               <option value="PLANNED">Planned</option>
@@ -212,27 +182,10 @@ export function VisitsList() {
               <option value="NO_SHOW">No Show</option>
             </select>
 
-            {/* Type Filter */}
-            <select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              className="px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            >
-              <option value="ALL">All Types</option>
-              <option value="FIELD_VISIT">Field Visit</option>
-              <option value="FOLLOW_UP">Follow Up</option>
-              <option value="EMERGENCY">Emergency</option>
-              <option value="PLANNED">Planned</option>
-              <option value="COLD_CALL">Cold Call</option>
-              <option value="VIRTUAL">Virtual</option>
-              <option value="EVENT">Event</option>
-            </select>
-
-            {/* Outcome Filter */}
             <select
               value={outcomeFilter}
               onChange={(e) => setOutcomeFilter(e.target.value)}
-              className="px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500"
             >
               <option value="ALL">All Outcomes</option>
               <option value="SUCCESSFUL">Successful</option>
@@ -243,111 +196,72 @@ export function VisitsList() {
               <option value="SAMPLE_GIVEN">Sample Given</option>
               <option value="INFORMATION_ONLY">Information Only</option>
             </select>
-
-            {/* Reset Button */}
-            <button
-              onClick={resetFilters}
-              className="px-4 py-2 text-neutral-600 hover:text-neutral-900 border border-neutral-300 rounded-lg hover:bg-neutral-50 transition-colors"
-            >
-              Reset
-            </button>
           </div>
 
-          {/* Date Range */}
-          <div className="mt-4 flex gap-4 items-center">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-neutral-400" />
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              />
-            </div>
-            <span className="text-neutral-600">to</span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+              placeholder="Start Date"
+            />
+
             <input
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              className="px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+              placeholder="End Date"
             />
-          </div>
-        </div>
-      </div>
 
-          {/* Visits List */}
-          <div className="px-4 sm:px-6 lg:px-8 py-6">
+            <button
+              onClick={resetFilters}
+              className="px-4 py-2 border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 transition-colors"
+            >
+              Reset Filters
+            </button>
+          </div>
+        </Card>
+
+        {/* Error */}
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+          <div className="mt-4 bg-danger-50 border border-danger-200 text-danger-700 px-4 py-3 rounded-lg">
             {error}
           </div>
         )}
 
-        {loading ? (
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <table className="min-w-full divide-y divide-neutral-200">
-              <thead className="bg-neutral-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Contact</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Date & Time</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Type</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Outcome</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Location</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-neutral-500 uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-neutral-200">
-                {[...Array(5)].map((_, i) => (
-                  <tr key={i} className="animate-pulse">
-                    <td className="px-6 py-4">
-                      <div className="h-4 bg-neutral-200 rounded w-32 mb-2"></div>
-                      <div className="h-3 bg-neutral-200 rounded w-24"></div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="h-4 bg-neutral-200 rounded w-28 mb-2"></div>
-                      <div className="h-3 bg-neutral-200 rounded w-16"></div>
-                    </td>
-                    <td className="px-6 py-4"><div className="h-4 bg-neutral-200 rounded w-24"></div></td>
-                    <td className="px-6 py-4"><div className="h-6 bg-neutral-200 rounded-full w-20"></div></td>
-                    <td className="px-6 py-4"><div className="h-6 bg-neutral-200 rounded-full w-24"></div></td>
-                    <td className="px-6 py-4"><div className="h-4 bg-neutral-200 rounded w-28"></div></td>
-                    <td className="px-6 py-4"><div className="h-4 bg-neutral-200 rounded w-20 ml-auto"></div></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : visits.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-neutral-600">No visits found</p>
-            <button
-              onClick={() => navigate('/visits/new')}
-              className="mt-4 text-primary-600 hover:text-primary-700"
-            >
-              Add your first visit
-            </button>
-          </div>
-        ) : (
-          <>
-            <div className="bg-white rounded-lg shadow overflow-hidden">
+        {/* Visits Table */}
+        <div className="mt-6 bg-white rounded-lg border border-neutral-200 overflow-hidden">
+          {loading ? (
+            <TableSkeleton
+              rows={5}
+              columns={7}
+              headers={['Date', 'Contact', 'Status', 'Outcome', 'Type', 'Location', 'Actions']}
+            />
+          ) : visits.length === 0 ? (
+            <div className="p-8 text-center text-neutral-600">
+              No visits found. Click "New Visit" to create one.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-neutral-200">
                 <thead className="bg-neutral-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                      Date
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
                       Contact
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Date & Time
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Type
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
                       Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
                       Outcome
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                      Type
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
                       Location
@@ -361,104 +275,83 @@ export function VisitsList() {
                   {visits.map((visit) => (
                     <tr key={visit.id} className="hover:bg-neutral-50">
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm font-medium text-neutral-900">
-                            {visit.contact?.name || 'Unknown Contact'}
-                          </div>
-                          <div className="text-sm text-neutral-500">
-                            {visit.contact?.designation} {visit.contact?.specialty && `• ${visit.contact.specialty}`}
-                          </div>
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-neutral-400" />
+                          <span className="text-sm text-neutral-900">
+                            {formatDateTime(visit.visitDate)}
+                          </span>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-neutral-900">{formatDate(visit.visitDate)}</div>
-                        {visit.duration && (
-                          <div className="text-sm text-neutral-500">{visit.duration} min</div>
-                        )}
+                        <div className="text-sm font-medium text-neutral-900">
+                          {visit.contact?.name || 'N/A'}
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-neutral-900">
-                          {visit.visitType.replace(/_/g, ' ')}
-                        </span>
+                        <StatusBadge
+                          label={visit.status}
+                          className={getVisitStatusColor(visit.status)}
+                          formatLabel
+                        />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(visit.status)}`}>
-                          {visit.status.replace(/_/g, ' ')}
-                        </span>
+                        <StatusBadge
+                          label={visit.outcome}
+                          className={getVisitOutcomeColor(visit.outcome)}
+                          formatLabel
+                        />
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getOutcomeColor(visit.outcome)}`}>
-                          {visit.outcome.replace(/_/g, ' ')}
-                        </span>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-900">
+                        {formatStatusLabel(visit.visitType)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         {visit.locationName ? (
-                          <div className="flex items-center text-sm text-neutral-900">
-                            <MapPin className="w-4 h-4 mr-1 text-neutral-400" />
-                            {visit.locationName}
+                          <div className="flex items-center gap-2">
+                            <MapPin className="w-4 h-4 text-neutral-400" />
+                            <span className="text-sm text-neutral-900">{visit.locationName}</span>
                           </div>
                         ) : (
-                          <span className="text-sm text-neutral-400">-</span>
+                          <span className="text-sm text-neutral-500">-</span>
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div className="flex justify-end gap-2">
-                          <button
-                            onClick={() => navigate(`/visits/${visit.id}`)}
-                            className="text-primary-600 hover:text-primary-900"
-                            title="View details"
-                          >
-                            <Eye className="w-5 h-5" />
-                          </button>
-                          <button
-                            onClick={() => navigate(`/visits/${visit.id}/edit`)}
-                            className="text-blue-600 hover:text-blue-900"
-                            title="Edit visit"
-                          >
-                            <Pencil className="w-5 h-5" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(visit.id, visit.contact?.name || 'this contact')}
-                            className="text-red-600 hover:text-red-900"
-                            title="Delete visit"
-                          >
-                            <Trash2 className="w-5 h-5" />
-                          </button>
-                        </div>
+                        <button
+                          onClick={() => navigate(`/visits/${visit.id}`)}
+                          className="text-primary-600 hover:text-primary-700 mr-3"
+                          title="View Details"
+                        >
+                          <Eye className="w-4 h-4 inline" />
+                        </button>
+                        <button
+                          onClick={() => navigate(`/visits/${visit.id}/edit`)}
+                          className="text-primary-800 hover:text-primary-700 mr-3"
+                          title="Edit"
+                        >
+                          <Pencil className="w-4 h-4 inline" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(visit.id, visit.contact?.name || 'this visit')}
+                          className="text-danger-600 hover:text-danger-500"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-4 h-4 inline" />
+                        </button>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="mt-6 flex justify-center gap-2">
-                <button
-                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  className="px-4 py-2 border border-neutral-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-neutral-50"
-                >
-                  Previous
-                </button>
-                <span className="px-4 py-2 text-neutral-600">
-                  Page {currentPage} of {totalPages}
-                </span>
-                <button
-                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages}
-                  className="px-4 py-2 border border-neutral-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-neutral-50"
-                >
-                  Next
-                </button>
-              </div>
-            )}
-          </>
-        )}
-          </div>
+          )}
         </div>
-      </main>
-    </div>
+
+        {/* Pagination */}
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+      </ContentSection>
+    </PageContainer>
   );
 }

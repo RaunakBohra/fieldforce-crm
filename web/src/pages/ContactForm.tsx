@@ -4,29 +4,7 @@ import { api } from '../services/api';
 import type { CreateContactData } from '../services/api';
 import { ArrowLeft, Save } from 'lucide-react';
 import { Navigation } from '../components/Navigation';
-
-const DISTRIBUTION_TYPES = [
-  { value: 'SUPER_ADMIN', label: 'Super Admin' },
-  { value: 'SUB_SUPER', label: 'Sub Super (Regional)' },
-  { value: 'WHOLESALER', label: 'Wholesaler' },
-  { value: 'RETAILER', label: 'Retailer' },
-];
-
-const MEDICAL_TYPES = [
-  { value: 'DOCTOR', label: 'Doctor' },
-  { value: 'HOSPITAL', label: 'Hospital' },
-  { value: 'CLINIC', label: 'Clinic' },
-  { value: 'PHARMACIST', label: 'Pharmacist' },
-];
-
-const VISIT_FREQUENCIES = [
-  { value: 'DAILY', label: 'Daily' },
-  { value: 'WEEKLY', label: 'Weekly' },
-  { value: 'BIWEEKLY', label: 'Bi-weekly' },
-  { value: 'MONTHLY', label: 'Monthly' },
-  { value: 'QUARTERLY', label: 'Quarterly' },
-  { value: 'CUSTOM', label: 'Custom' },
-];
+import { DISTRIBUTION_TYPES, MEDICAL_TYPES, VISIT_FREQUENCIES } from '../constants';
 
 export function ContactForm() {
   const navigate = useNavigate();
@@ -142,7 +120,7 @@ export function ContactForm() {
         <form onSubmit={handleSubmit} className="bg-white rounded-lg border border-neutral-200 p-6">
           {/* Error */}
           {error && (
-            <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+            <div className="mb-6 bg-danger-50 border border-danger-200 text-danger-700 px-4 py-3 rounded-lg">
               {error}
             </div>
           )}

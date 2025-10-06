@@ -33,7 +33,7 @@ export default function Login() {
           <h1 className="text-3xl font-bold text-center text-primary-800">
             Field Force CRM
           </h1>
-          <p className="mt-2 text-center text-accent-500">
+          <p className="mt-2 text-center text-neutral-600">
             Sign in to your account
           </p>
         </div>
@@ -90,7 +90,7 @@ export default function Login() {
             {loading ? 'Signing in...' : 'Sign in'}
           </button>
 
-          <p className="text-center text-sm text-accent-500">
+          <p className="text-center text-sm text-neutral-600">
             Don't have an account?{' '}
             <Link to="/signup" className="text-primary-600 hover:text-primary-700 font-medium">
               Sign up

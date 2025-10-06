@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { api } from '../services/api';
 import type { CreateVisitData, Contact } from '../services/api';
 import { MapPin, Navigation as NavigationIcon, Loader2 } from 'lucide-react';
-import { Navigation } from '../components/Navigation';
+import { PageContainer, ContentSection, Card } from '../components/layout';
 
 export function VisitForm() {
   const navigate = useNavigate();
@@ -163,18 +163,15 @@ export function VisitForm() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-100">
-      <Navigation />
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <div className="max-w-4xl mx-auto">
-            <div className="bg-white rounded-lg shadow-sm p-6">
+    <PageContainer>
+      <ContentSection maxWidth="4xl">
+        <Card>
           <h1 className="text-2xl font-bold text-neutral-900 mb-6">
             {isEditing ? 'Edit Visit' : 'New Visit'}
           </h1>
 
           {error && (
-            <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+            <div className="mb-6 bg-danger-50 border border-danger-200 text-danger-700 px-4 py-3 rounded-lg">
               {error}
             </div>
           )}
@@ -310,7 +307,7 @@ export function VisitForm() {
                   type="button"
                   onClick={captureLocation}
                   disabled={fetchingLocation}
-                  className="flex items-center gap-2 px-3 py-1.5 text-sm bg-primary-600 text-white rounded-md hover:bg-primary-700 disabled:opacity-50"
+                  className="flex items-center gap-2 px-3 py-1.5 text-sm bg-primary-600 text-white rounded-md hover:bg-primary-500 disabled:opacity-50"
                 >
                   {fetchingLocation ? (
                     <>
@@ -443,7 +440,7 @@ export function VisitForm() {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="flex-1 px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {loading ? 'Saving...' : isEditing ? 'Update Visit' : 'Create Visit'}
               </button>
@@ -456,10 +453,8 @@ export function VisitForm() {
               </button>
             </div>
           </form>
-            </div>
-          </div>
-        </div>
-      </main>
-    </div>
+        </Card>
+      </ContentSection>
+    </PageContainer>
   );
 }

@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api } from '../services/api';
-import type { User } from '../services/api';
 import { PageContainer, ContentSection, Card } from '../components/layout';
 import { UserPlus, Save, X } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -52,7 +51,7 @@ export function UserForm() {
           password: '',
           confirmPassword: '',
           phone: user.phone || '',
-          role: user.role,
+          role: user.role as 'ADMIN' | 'MANAGER' | 'FIELD_REP',
         });
       } else {
         setError(response.error || 'Failed to fetch user');

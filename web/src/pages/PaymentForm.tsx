@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api } from '../services/api';
 import type { Order } from '../services/api';
-import { Navigation } from '../components/Navigation';
+import { PageContainer, ContentSection, Card } from '../components/layout';
 
 export default function PaymentForm() {
   const { orderId } = useParams();
@@ -78,45 +78,45 @@ export default function PaymentForm() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navigation />
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-6">Record Payment</h1>
+    <PageContainer>
+      <ContentSection maxWidth="2xl">
+        <h1 className="text-3xl font-bold text-neutral-900 mb-6">Record Payment</h1>
 
         {order && (
-          <div className="bg-white p-6 rounded-lg shadow mb-6">
+          <Card className="mb-6">
             <h2 className="text-xl font-semibold mb-2">Order: {order.orderNumber}</h2>
-            {order.contact && <p className="text-gray-600">Contact: {order.contact.name}</p>}
-            <p className="text-gray-600">
+            {order.contact && <p className="text-neutral-600">Contact: {order.contact.name}</p>}
+            <p className="text-neutral-600">
               Total: ₹{order.totalAmount.toLocaleString('en-IN')}
             </p>
-            <p className="text-gray-600">
+            <p className="text-neutral-600">
               Status:{' '}
               <span
                 className={`font-semibold ${
                   order.paymentStatus === 'PAID'
-                    ? 'text-green-600'
+                    ? 'text-success-600'
                     : order.paymentStatus === 'PARTIAL'
-                    ? 'text-amber-600'
-                    : 'text-red-600'
+                    ? 'text-warn-600'
+                    : 'text-danger-600'
                 }`}
               >
                 {order.paymentStatus || 'UNPAID'}
               </span>
             </p>
-          </div>
+          </Card>
         )}
 
-        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow">
+        <Card>
+          <form onSubmit={handleSubmit}>
           {error && (
-            <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
+            <div className="mb-4 p-3 bg-danger-100 text-danger-700 rounded-lg">
               {error}
             </div>
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-neutral-700 mb-2">
                 Amount (₹) *
               </label>
               <input
@@ -124,19 +124,19 @@ export default function PaymentForm() {
                 step="0.01"
                 value={formData.amount}
                 onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-neutral-700 mb-2">
                 Payment Mode *
               </label>
               <select
                 value={formData.paymentMode}
                 onChange={(e) => setFormData({ ...formData, paymentMode: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                 required
               >
                 <option value="CASH">Cash</option>
@@ -149,20 +149,20 @@ export default function PaymentForm() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-neutral-700 mb-2">
                 Payment Date *
               </label>
               <input
                 type="date"
                 value={formData.paymentDate}
                 onChange={(e) => setFormData({ ...formData, paymentDate: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-neutral-700 mb-2">
                 Reference Number
               </label>
               <input
@@ -170,18 +170,18 @@ export default function PaymentForm() {
                 value={formData.referenceNumber}
                 onChange={(e) => setFormData({ ...formData, referenceNumber: e.target.value })}
                 placeholder="Transaction ID / Cheque No"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-neutral-700 mb-2">
                 Notes
               </label>
               <textarea
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                 rows={3}
                 placeholder="Add any notes about this payment..."
               />
@@ -192,20 +192,21 @@ export default function PaymentForm() {
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 bg-teal-600 text-white py-2 px-4 rounded-lg hover:bg-teal-700 disabled:opacity-50 font-semibold"
+              className="flex-1 bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-500 disabled:opacity-50 font-semibold"
             >
               {loading ? 'Recording Payment...' : 'Record Payment'}
             </button>
             <button
               type="button"
               onClick={() => navigate('/payments')}
-              className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 font-semibold"
+              className="flex-1 bg-neutral-300 text-neutral-700 py-2 px-4 rounded-lg hover:bg-neutral-400 font-semibold"
             >
               Cancel
             </button>
           </div>
-        </form>
-      </div>
-    </div>
+          </form>
+        </Card>
+      </ContentSection>
+    </PageContainer>
   );
 }
