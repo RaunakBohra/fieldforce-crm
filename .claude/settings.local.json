@@ -50,7 +50,8 @@
       "Bash(npm run build:*)",
       "Bash(npx tsc:*)",
       "Read(//Users/raunakbohra/Desktop/**)",
-      "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_EK1XpFYRye6M@ep-ancient-art-a1aag2jx-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require\" npx prisma migrate dev --name add_composite_indexes)"
+      "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_EK1XpFYRye6M@ep-ancient-art-a1aag2jx-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require\" npx prisma migrate dev --name add_composite_indexes)",
+      "Bash(openssl rand:*)"
     ],
     "deny": [],
     "ask": []

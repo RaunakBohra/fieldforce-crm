@@ -1,6 +1,5 @@
 import { Context, Next } from 'hono';
 import { Bindings } from '../index';
-import { createHmac, randomBytes } from 'crypto';
 
 /**
  * CSRF Protection Middleware
@@ -17,27 +16,55 @@ const CSRF_HEADER_NAME = 'x-csrf-token';
 const CSRF_TOKEN_LENGTH = 32;
 
 /**
+ * Generate random bytes using Web Crypto API
+ */
+function generateRandomBytes(length: number): string {
+  const bytes = new Uint8Array(length);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes)
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+/**
+ * Generate HMAC-SHA256 signature using Web Crypto API
+ */
+async function createHmacSignature(data: string, secret: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const keyData = encoder.encode(secret);
+  const messageData = encoder.encode(data);
+
+  const key = await crypto.subtle.importKey(
+    'raw',
+    keyData,
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+
+  const signature = await crypto.subtle.sign('HMAC', key, messageData);
+  const hashArray = Array.from(new Uint8Array(signature));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+/**
  * Generate a cryptographically secure CSRF token
  */
-function generateCsrfToken(secret: string): string {
-  const randomToken = randomBytes(CSRF_TOKEN_LENGTH).toString('hex');
-  const hmac = createHmac('sha256', secret);
-  hmac.update(randomToken);
-  const signature = hmac.digest('hex');
+async function generateCsrfToken(secret: string): Promise<string> {
+  const randomToken = generateRandomBytes(CSRF_TOKEN_LENGTH);
+  const signature = await createHmacSignature(randomToken, secret);
   return `${randomToken}.${signature}`;
 }
 
 /**
  * Verify CSRF token authenticity
  */
-function verifyCsrfToken(token: string, secret: string): boolean {
+async function verifyCsrfToken(token: string, secret: string): Promise<boolean> {
   const parts = token.split('.');
   if (parts.length !== 2) return false;
 
   const [randomToken, signature] = parts;
-  const hmac = createHmac('sha256', secret);
-  hmac.update(randomToken);
-  const expectedSignature = hmac.digest('hex');
+  const expectedSignature = await createHmacSignature(randomToken, secret);
 
   return signature === expectedSignature;
 }
@@ -56,7 +83,7 @@ export async function csrfProtection(
 
   // Safe methods: just set the token cookie
   if (['GET', 'HEAD', 'OPTIONS'].includes(method)) {
-    const token = generateCsrfToken(secret);
+    const token = await generateCsrfToken(secret);
 
     // Set CSRF token in cookie (HttpOnly=false so JS can read it)
     c.header('Set-Cookie',
@@ -98,7 +125,8 @@ export async function csrfProtection(
     }
 
     // Token must be valid (HMAC verification)
-    if (!verifyCsrfToken(headerToken, secret)) {
+    const isValid = await verifyCsrfToken(headerToken, secret);
+    if (!isValid) {
       return c.json(
         {
           success: false,
@@ -124,7 +152,7 @@ export async function csrfProtection(
  */
 export async function getCsrfToken(c: Context<{ Bindings: Bindings }>) {
   const secret = c.env.JWT_SECRET;
-  const token = generateCsrfToken(secret);
+  const token = await generateCsrfToken(secret);
 
   // Set cookie
   c.header('Set-Cookie',

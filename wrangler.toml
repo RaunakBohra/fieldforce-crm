@@ -28,12 +28,12 @@ AWS_SES_SMTP_PORT = "587"
 # Cloudflare KV Namespace (Cache - FREE tier available)
 [[kv_namespaces]]
 binding = "KV"
-id = "YOUR_KV_NAMESPACE_ID"  # Create via: wrangler kv:namespace create "KV"
+id = "07ea4a2def1d4fd1826f37551207ad46"
 
 # Cloudflare R2 Bucket (Storage - FREE: 10GB/month)
 [[r2_buckets]]
 binding = "BUCKET"
-bucket_name = "fieldforce-crm-storage"  # Create via: wrangler r2 bucket create fieldforce-crm-storage
+bucket_name = "fieldforce-crm-storage"
 
 # Note: Cloudflare Queues require PAID Workers plan
 # For free tier, use Durable Objects or process jobs immediately
