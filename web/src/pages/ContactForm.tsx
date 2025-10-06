@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { api, CreateContactData, Contact } from '../services/api';
+import { api } from '../services/api';
+import type { CreateContactData, Contact } from '../services/api';
 import { ArrowLeft, Save } from 'lucide-react';
 
 const DISTRIBUTION_TYPES = [

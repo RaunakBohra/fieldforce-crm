@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api, Contact, ContactStats } from '../services/api';
+import { api } from '../services/api';
+import type { Contact, ContactStats } from '../services/api';
 import { Pencil, Trash2, Plus, Search, Filter } from 'lucide-react';
 
 export function ContactsList() {

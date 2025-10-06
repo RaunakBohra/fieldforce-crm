@@ -297,5 +297,6 @@ class ApiService {
   }
 }
 
-export const api = new ApiService();
-export type { User, Contact, ContactStats, ContactListResponse, CreateContactData, ContactQueryParams };
+const api = new ApiService();
+
+export { api };
