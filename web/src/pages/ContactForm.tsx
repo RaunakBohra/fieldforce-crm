@@ -13,6 +13,7 @@ export function ContactForm() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [territories, setTerritories] = useState<Array<{ id: string; name: string; code: string; type: string }>>([]);
   const [formData, setFormData] = useState<CreateContactData>({
     contactCategory: 'MEDICAL',
     name: '',
@@ -22,10 +23,22 @@ export function ContactForm() {
   });
 
   useEffect(() => {
+    fetchTerritories();
     if (isEditMode && id) {
       fetchContact(id);
     }
   }, [id, isEditMode]);
+
+  const fetchTerritories = async () => {
+    try {
+      const response = await api.getTerritories();
+      if (response.success && response.data) {
+        setTerritories(response.data.territories);
+      }
+    } catch (err) {
+      console.error('Failed to fetch territories:', err);
+    }
+  };
 
   const fetchContact = async (contactId: string) => {
     try {
@@ -372,13 +385,21 @@ export function ContactForm() {
                   <label className="block text-sm font-medium text-neutral-700 mb-1">
                     Territory
                   </label>
-                  <input
-                    type="text"
-                    value={formData.territory || ''}
-                    onChange={(e) => handleChange('territory', e.target.value)}
-                    placeholder="e.g., Nepal, Punjab, etc."
+                  <select
+                    value={formData.territoryId || ''}
+                    onChange={(e) => handleChange('territoryId', e.target.value || undefined)}
                     className="input-field"
-                  />
+                  >
+                    <option value="">Select territory (optional)</option>
+                    {territories.map(territory => (
+                      <option key={territory.id} value={territory.id}>
+                        {territory.name} ({territory.code}) - {territory.type}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-neutral-500 mt-1">
+                    Assign contact to a geographic territory for reporting
+                  </p>
                 </div>
 
                 <div>
