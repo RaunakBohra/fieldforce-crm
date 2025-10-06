@@ -24,6 +24,8 @@ const Analytics = lazy(() => import('./pages/Analytics'));
 const Reports = lazy(() => import('./pages/Reports'));
 const UsersList = lazy(() => import('./pages/UsersList').then(m => ({ default: m.UsersList })));
 const UserForm = lazy(() => import('./pages/UserForm').then(m => ({ default: m.UserForm })));
+const TerritoriesList = lazy(() => import('./pages/TerritoriesList').then(m => ({ default: m.TerritoriesList })));
+const TerritoryForm = lazy(() => import('./pages/TerritoryForm').then(m => ({ default: m.TerritoryForm })));
 
 function PrivateRoute({ children }: { children: ReactElement }) {
   const { user, loading } = useAuth();
@@ -226,6 +228,30 @@ function App() {
               element={
                 <PrivateRoute>
                   <UserForm />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/territories"
+              element={
+                <PrivateRoute>
+                  <TerritoriesList />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/territories/new"
+              element={
+                <PrivateRoute>
+                  <TerritoryForm />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/territories/:id/edit"
+              element={
+                <PrivateRoute>
+                  <TerritoryForm />
                 </PrivateRoute>
               }
             />

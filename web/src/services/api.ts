@@ -26,7 +26,7 @@ export interface User {
   email: string;
   name: string;
   phone: string | null;
-  role: string;
+  role: 'ADMIN' | 'MANAGER' | 'FIELD_REP';
 }
 
 export interface AuthResponse {
@@ -244,6 +244,89 @@ export interface ProductQueryParams {
   limit?: number;
   category?: string;
   search?: string;
+  isActive?: boolean;
+}
+
+// Territory Types
+export interface Territory {
+  id: string;
+  name: string;
+  code: string;
+  description?: string;
+  type: 'COUNTRY' | 'STATE' | 'CITY' | 'DISTRICT' | 'ZONE';
+  country: string;
+  state?: string;
+  city?: string;
+  pincode?: string;
+  parentId?: string;
+  parent?: {
+    id: string;
+    name: string;
+    code: string;
+    type: string;
+  };
+  children?: {
+    id: string;
+    name: string;
+    code: string;
+    type: string;
+    isActive: boolean;
+  }[];
+  users?: User[];
+  _count?: {
+    users: number;
+    children: number;
+  };
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TerritoryListResponse {
+  territories: Territory[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export interface TerritoryQueryParams {
+  page?: number;
+  limit?: number;
+  country?: string;
+  state?: string;
+  city?: string;
+  type?: string;
+  parentId?: string;
+  isActive?: string;
+  search?: string;
+}
+
+export interface CreateTerritoryData {
+  name: string;
+  code: string;
+  description?: string;
+  type: 'COUNTRY' | 'STATE' | 'CITY' | 'DISTRICT' | 'ZONE';
+  country: string;
+  state?: string;
+  city?: string;
+  pincode?: string;
+  parentId?: string;
+  isActive?: boolean;
+}
+
+export interface UpdateTerritoryData {
+  name?: string;
+  code?: string;
+  description?: string;
+  type?: 'COUNTRY' | 'STATE' | 'CITY' | 'DISTRICT' | 'ZONE';
+  country?: string;
+  state?: string;
+  city?: string;
+  pincode?: string;
+  parentId?: string;
   isActive?: boolean;
 }
 
@@ -1484,6 +1567,134 @@ class ApiService {
       }
 
       return this.handleResponse<any>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  // ============================================================================
+  // Territory Management
+  // ============================================================================
+
+  async getTerritories(params?: TerritoryQueryParams): Promise<ApiResponse<TerritoryListResponse>> {
+    try {
+      const queryString = params ? '?' + new URLSearchParams(
+        Object.entries(params)
+          .filter(([, value]) => value !== undefined)
+          .map(([key, value]) => [key, String(value)])
+      ).toString() : '';
+
+      const response = await fetch(`${API_URL}/api/territories${queryString}`, {
+        headers: await this.getHeaders(true),
+        credentials: 'include',
+      });
+
+      return this.handleResponse<TerritoryListResponse>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  async getTerritory(id: string): Promise<ApiResponse<{ territory: Territory }>> {
+    try {
+      const response = await fetch(`${API_URL}/api/territories/${id}`, {
+        headers: await this.getHeaders(true),
+        credentials: 'include',
+      });
+
+      return this.handleResponse<{ territory: Territory }>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  async createTerritory(data: CreateTerritoryData): Promise<ApiResponse<{ territory: Territory }>> {
+    try {
+      const response = await fetch(`${API_URL}/api/territories`, {
+        method: 'POST',
+        headers: await this.getHeaders(true),
+        credentials: 'include',
+        body: JSON.stringify(data),
+      });
+
+      return this.handleResponse<{ territory: Territory }>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  async updateTerritory(id: string, data: UpdateTerritoryData): Promise<ApiResponse<{ territory: Territory }>> {
+    try {
+      const response = await fetch(`${API_URL}/api/territories/${id}`, {
+        method: 'PUT',
+        headers: await this.getHeaders(true),
+        credentials: 'include',
+        body: JSON.stringify(data),
+      });
+
+      return this.handleResponse<{ territory: Territory }>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  async deleteTerritory(id: string): Promise<ApiResponse<{ message: string }>> {
+    try {
+      const response = await fetch(`${API_URL}/api/territories/${id}`, {
+        method: 'DELETE',
+        headers: await this.getHeaders(true),
+        credentials: 'include',
+      });
+
+      return this.handleResponse<{ message: string }>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  async getTerritoryUsers(territoryId: string): Promise<ApiResponse<{ territory: any; users: User[] }>> {
+    try {
+      const response = await fetch(`${API_URL}/api/territories/${territoryId}/users`, {
+        headers: await this.getHeaders(true),
+        credentials: 'include',
+      });
+
+      return this.handleResponse<{ territory: any; users: User[] }>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  async assignUserToTerritory(territoryId: string, userId: string): Promise<ApiResponse<{ user: User }>> {
+    try {
+      const response = await fetch(`${API_URL}/api/territories/${territoryId}/users/${userId}`, {
+        method: 'PUT',
+        headers: await this.getHeaders(true),
+        credentials: 'include',
+      });
+
+      return this.handleResponse<{ user: User }>(response);
     } catch (error) {
       if (error instanceof TypeError && error.message.includes('fetch')) {
         throw new Error('Network error: Unable to connect to server');

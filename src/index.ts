@@ -14,6 +14,7 @@ import dashboardRoutes from './routes/dashboard';
 import analyticsRoutes from './routes/analytics';
 import userRoutes from './routes/users';
 import reportRoutes from './routes/reports';
+import territoryRoutes from './routes/territories';
 import { authMiddleware } from './middleware/auth';
 
 /**
@@ -107,6 +108,7 @@ app.use('/api/visits/*', csrfProtection);
 app.use('/api/orders/*', csrfProtection);
 app.use('/api/products/*', csrfProtection);
 app.use('/api/payments/*', csrfProtection);
+app.use('/api/territories/*', csrfProtection);
 // Add other protected routes here as needed
 
 /**
@@ -184,6 +186,9 @@ app.route('/api/users', userRoutes);
 
 // Reports routes (protected)
 app.route('/api/reports', reportRoutes);
+
+// Territory management routes (protected, admin/manager only)
+app.route('/api/territories', territoryRoutes);
 
 // Protected route example
 app.get('/api/protected', authMiddleware, (c) => {

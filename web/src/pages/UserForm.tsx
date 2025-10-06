@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { api } from '../services/api';
+import { api, type Territory } from '../services/api';
 import { PageContainer, ContentSection, Card } from '../components/layout';
 import { UserPlus, Save, X } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -14,6 +14,7 @@ export function UserForm() {
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [territories, setTerritories] = useState<Territory[]>([]);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -22,6 +23,7 @@ export function UserForm() {
     confirmPassword: '',
     phone: '',
     role: 'FIELD_REP' as 'ADMIN' | 'MANAGER' | 'FIELD_REP',
+    territoryId: '',
   });
 
   // Redirect if not admin
@@ -31,12 +33,28 @@ export function UserForm() {
     }
   }, [currentUser, navigate]);
 
+  // Fetch territories for assignment
+  useEffect(() => {
+    fetchTerritories();
+  }, []);
+
   // Fetch user data in edit mode
   useEffect(() => {
     if (isEditMode && id) {
       fetchUser();
     }
   }, [isEditMode, id]);
+
+  const fetchTerritories = async () => {
+    try {
+      const response = await api.getTerritories({ limit: 100, isActive: 'true' });
+      if (response.success && response.data) {
+        setTerritories(response.data.territories);
+      }
+    } catch (error) {
+      console.error('Failed to fetch territories:', error);
+    }
+  };
 
   const fetchUser = async () => {
     try {
@@ -52,6 +70,7 @@ export function UserForm() {
           confirmPassword: '',
           phone: user.phone || '',
           role: user.role as 'ADMIN' | 'MANAGER' | 'FIELD_REP',
+          territoryId: user.territoryId || '',
         });
       } else {
         setError(response.error || 'Failed to fetch user');
@@ -96,6 +115,7 @@ export function UserForm() {
         email: formData.email,
         phone: formData.phone || undefined,
         role: formData.role,
+        territoryId: formData.territoryId || undefined,
       };
 
       // Only include password if provided
@@ -245,6 +265,30 @@ export function UserForm() {
                   {formData.role === 'ADMIN' && 'Full system access with user management capabilities'}
                   {formData.role === 'MANAGER' && 'Can view all data and manage team members'}
                   {formData.role === 'FIELD_REP' && 'Can manage own contacts, visits, and orders'}
+                </p>
+              </div>
+
+              {/* Territory */}
+              <div>
+                <label htmlFor="territoryId" className="block text-sm font-medium text-neutral-700 mb-1">
+                  Territory
+                </label>
+                <select
+                  id="territoryId"
+                  name="territoryId"
+                  value={formData.territoryId}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                >
+                  <option value="">No Territory Assigned</option>
+                  {territories.map(territory => (
+                    <option key={territory.id} value={territory.id}>
+                      {territory.name} ({territory.code}) - {territory.type}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-sm text-neutral-500">
+                  Assign user to a geographic territory for data filtering and reporting
                 </p>
               </div>
 
