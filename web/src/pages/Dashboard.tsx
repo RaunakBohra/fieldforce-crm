@@ -2,16 +2,18 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
-import type { ContactStats } from '../services/api';
-import { Users, MapPin, ShoppingCart } from 'lucide-react';
+import type { ContactStats, VisitStats } from '../services/api';
+import { Users, ShoppingCart, CheckCircle2 } from 'lucide-react';
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [contactStats, setContactStats] = useState<ContactStats | null>(null);
+  const [visitStats, setVisitStats] = useState<VisitStats | null>(null);
 
   useEffect(() => {
     fetchContactStats();
+    fetchVisitStats();
   }, []);
 
   const fetchContactStats = async () => {
@@ -22,6 +24,17 @@ export default function Dashboard() {
       }
     } catch (error) {
       console.error('Failed to fetch contact stats:', error);
+    }
+  };
+
+  const fetchVisitStats = async () => {
+    try {
+      const response = await api.getVisitStats();
+      if (response.success && response.data) {
+        setVisitStats(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch visit stats:', error);
     }
   };
 
@@ -49,6 +62,12 @@ export default function Dashboard() {
                   className="hover:bg-primary-700 px-3 py-2 rounded-lg transition-colors"
                 >
                   Contacts
+                </button>
+                <button
+                  onClick={() => navigate('/visits')}
+                  className="hover:bg-primary-700 px-3 py-2 rounded-lg transition-colors"
+                >
+                  Visits
                 </button>
               </nav>
             </div>
@@ -101,14 +120,26 @@ export default function Dashboard() {
               )}
             </button>
 
-            <div className="bg-white rounded-lg shadow p-6" role="article">
+            <button
+              onClick={() => navigate('/visits')}
+              className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow text-left"
+              role="article"
+            >
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-lg font-semibold text-neutral-900">Visits</h3>
-                <MapPin className="w-6 h-6 text-primary-800" />
+                <CheckCircle2 className="w-6 h-6 text-teal-600" />
               </div>
-              <p className="text-3xl font-bold text-primary-600" aria-label="Visit count">0</p>
-              <p className="text-sm text-accent-500 mt-1">Coming in Day 3</p>
-            </div>
+              <p className="text-3xl font-bold text-teal-600" aria-label="Visit count">
+                {visitStats?.completedVisits ?? 0}
+              </p>
+              {visitStats && (
+                <div className="mt-2 text-sm text-accent-500">
+                  <span>{visitStats.plannedVisits} Planned</span>
+                  <span className="mx-2">•</span>
+                  <span>{visitStats.monthVisits} This Month</span>
+                </div>
+              )}
+            </button>
 
             <div className="bg-white rounded-lg shadow p-6" role="article">
               <div className="flex items-center justify-between mb-2">

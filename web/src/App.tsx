@@ -7,7 +7,10 @@ import Dashboard from './pages/Dashboard';
 import ThemePreview from './pages/ThemePreview';
 import { ContactsList } from './pages/ContactsList';
 import { ContactForm } from './pages/ContactForm';
-import type { ReactElement } from 'react';
+import { VisitsList } from './pages/VisitsList';
+import { VisitForm } from './pages/VisitForm';
+import { VisitDetails } from './pages/VisitDetails';
+import { type ReactElement } from 'react';
 
 function PrivateRoute({ children }: { children: ReactElement }) {
   const { user, loading } = useAuth();
@@ -61,6 +64,38 @@ function App() {
               element={
                 <PrivateRoute>
                   <ContactForm />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/visits"
+              element={
+                <PrivateRoute>
+                  <VisitsList />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/visits/new"
+              element={
+                <PrivateRoute>
+                  <VisitForm />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/visits/:id"
+              element={
+                <PrivateRoute>
+                  <VisitDetails />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/visits/:id/edit"
+              element={
+                <PrivateRoute>
+                  <VisitForm />
                 </PrivateRoute>
               }
             />

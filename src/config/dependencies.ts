@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { getPrisma } from '../utils/db';
 import { AuthService } from '../services/authService';
 import { ContactService } from '../services/contactService';
+import { VisitService } from '../services/visitService';
 import { Bindings } from '../index';
 import { IEmailService } from '../core/ports/IEmailService';
 import { ICacheService } from '../core/ports/ICacheService';
@@ -24,6 +25,7 @@ export interface Dependencies {
   prisma: PrismaClient;
   authService: AuthService;
   contactService: ContactService;
+  visitService: VisitService;
   email: IEmailService;
   cache: ICacheService;
   storage: IStorageService;
@@ -76,6 +78,8 @@ export function createDependencies(env: Bindings): Dependencies {
 
   const contactService = new ContactService(prisma);
 
+  const visitService = new VisitService(prisma);
+
   // Optional: AWS SQS Queue Service (free tier: 1M requests/month)
   // Note: SQS disabled for now due to Cloudflare Workers global scope restrictions
   // AWS SDK initialization causes "Disallowed operation in global scope" error
@@ -86,6 +90,7 @@ export function createDependencies(env: Bindings): Dependencies {
     prisma,
     authService,
     contactService,
+    visitService,
     email,
     cache,
     storage,

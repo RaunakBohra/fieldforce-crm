@@ -6,6 +6,7 @@ import { csrfProtection } from './middleware/csrf';
 import { logger } from './utils/logger';
 import authRoutes from './routes/auth';
 import contactRoutes from './routes/contacts';
+import visitRoutes from './routes/visits';
 import { authMiddleware } from './middleware/auth';
 
 /**
@@ -115,6 +116,9 @@ app.route('/api/auth', authRoutes);
 
 // Contact management routes (protected)
 app.route('/api/contacts', contactRoutes);
+
+// Visit management routes (protected)
+app.route('/api/visits', visitRoutes);
 
 // Protected route example
 app.get('/api/protected', authMiddleware, (c) => {

@@ -28,6 +28,7 @@ model User {
 
   // Relations
   contacts  Contact[] // Contacts assigned to this user
+  visits    Visit[]   // Visits conducted by this user
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -102,6 +103,9 @@ model Contact {
   companyId       String?
   company         Company?     @relation(fields: [companyId], references: [id])
 
+  // Relations
+  visits          Visit[]      // Visits to this contact
+
   // Additional Information
   notes           String?      // Special notes about the contact
   tags            String[]     @default([])
@@ -148,8 +152,94 @@ enum VisitFrequency {
 }
 
 // ============================================================================
-// DAY 3-5: Additional models will be added via migrations
-// - Visits (GPS tracking)
+// DAY 3: Visits & Activities
+// ============================================================================
+
+model Visit {
+  id              String       @id @default(cuid())
+
+  // Basic Information
+  visitDate       DateTime     @default(now())
+  visitType       VisitType    @default(FIELD_VISIT)
+  status          VisitStatus  @default(COMPLETED)
+  duration        Int?         // Duration in minutes
+
+  // Contact & User
+  contactId       String
+  contact         Contact      @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  fieldRepId      String
+  fieldRep        User         @relation(fields: [fieldRepId], references: [id])
+
+  // GPS Location
+  latitude        Float?
+  longitude       Float?
+  locationName    String?      // e.g., "Hospital Name" or "Clinic Address"
+
+  // Visit Details
+  purpose         String?      // Purpose of visit
+  notes           String?      // Visit notes
+  outcome         VisitOutcome @default(SUCCESSFUL)
+  nextVisitDate   DateTime?    // Planned next visit
+
+  // Products Discussed/Demonstrated
+  products        String[]     @default([])  // Array of product names
+
+  // Samples & Marketing Materials
+  samplesGiven    Json?        // { "productName": quantity }
+  marketingMaterials Json?     // Array of materials distributed
+
+  // Follow-up
+  followUpRequired Boolean     @default(false)
+  followUpNotes   String?
+
+  // Attachments (stored in R2)
+  attachments     String[]     @default([])  // Array of R2 object keys
+  photos          String[]     @default([])  // Photos from visit
+
+  // Metadata
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  // Indexes for common queries
+  @@index([contactId, visitDate])
+  @@index([fieldRepId, visitDate])
+  @@index([visitDate])
+  @@index([status])
+  @@index([fieldRepId, status, visitDate])  // Field rep's visits filtered by status
+  @@index([contactId, status])              // Contact's visit history
+}
+
+enum VisitType {
+  FIELD_VISIT      // Regular field visit
+  FOLLOW_UP        // Follow-up visit
+  EMERGENCY        // Emergency/urgent visit
+  PLANNED          // Pre-scheduled visit
+  COLD_CALL        // Unplanned visit
+  VIRTUAL          // Virtual/phone call
+  EVENT            // Event/conference meeting
+}
+
+enum VisitStatus {
+  PLANNED          // Visit is scheduled
+  IN_PROGRESS      // Visit is ongoing
+  COMPLETED        // Visit completed
+  CANCELLED        // Visit cancelled
+  POSTPONED        // Visit postponed
+  NO_SHOW          // Contact not available
+}
+
+enum VisitOutcome {
+  SUCCESSFUL       // Successful visit
+  PARTIAL          // Partially successful
+  UNSUCCESSFUL     // Unsuccessful visit
+  FOLLOW_UP_NEEDED // Needs follow-up
+  ORDER_PLACED     // Order placed
+  SAMPLE_GIVEN     // Samples provided
+  INFORMATION_ONLY // Information sharing only
+}
+
+// ============================================================================
+// DAY 4-5: Additional models will be added via migrations
 // - Orders (product orders)
 // - Payments (payment tracking)
 // ============================================================================
