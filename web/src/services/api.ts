@@ -125,6 +125,8 @@ export interface Visit {
   visitType: 'FIELD_VISIT' | 'FOLLOW_UP' | 'EMERGENCY' | 'PLANNED' | 'COLD_CALL' | 'VIRTUAL' | 'EVENT';
   status: 'PLANNED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED' | 'POSTPONED' | 'NO_SHOW';
   duration?: number;
+  checkInTime?: string;
+  checkOutTime?: string;
   contactId: string;
   contact?: {
     id: string;

@@ -125,13 +125,15 @@ export function VisitDetails() {
             </div>
 
             <div className="flex gap-3">
-              <button
-                onClick={() => navigate(`/visits/${visit.id}/edit`)}
-                className="btn-primary"
-              >
-                <Pencil className="w-4 h-4" />
-                <span>Edit</span>
-              </button>
+              {visit.status === 'IN_PROGRESS' && (
+                <button
+                  onClick={() => navigate(`/visits/${visit.id}/edit`)}
+                  className="btn-primary"
+                >
+                  <Pencil className="w-4 h-4" />
+                  <span>Check Out</span>
+                </button>
+              )}
               <button
                 onClick={handleDelete}
                 className="btn-danger"
@@ -173,28 +175,32 @@ export function VisitDetails() {
               <h2 className="text-lg font-semibold text-neutral-900 mb-4">Visit Information</h2>
 
               <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <Calendar className="w-5 h-5 text-neutral-400 mt-0.5" />
-                  <div>
-                    <p className="text-sm text-neutral-600">Date & Time</p>
-                    <p className="text-neutral-900">{formatDateTimeFull(visit.visitDate)}</p>
+                {visit.checkInTime && (
+                  <div className="flex items-start gap-3">
+                    <Calendar className="w-5 h-5 text-success-600 mt-0.5" />
+                    <div>
+                      <p className="text-sm text-neutral-600">Check-In Time</p>
+                      <p className="text-neutral-900">{formatDateTimeFull(visit.checkInTime)}</p>
+                    </div>
                   </div>
-                </div>
+                )}
 
-                <div className="flex items-start gap-3">
-                  <Tag className="w-5 h-5 text-neutral-400 mt-0.5" />
-                  <div>
-                    <p className="text-sm text-neutral-600">Visit Type</p>
-                    <p className="text-neutral-900">{formatStatusLabel(visit.visitType)}</p>
+                {visit.checkOutTime && (
+                  <div className="flex items-start gap-3">
+                    <Calendar className="w-5 h-5 text-danger-600 mt-0.5" />
+                    <div>
+                      <p className="text-sm text-neutral-600">Check-Out Time</p>
+                      <p className="text-neutral-900">{formatDateTimeFull(visit.checkOutTime)}</p>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {visit.duration && (
                   <div className="flex items-start gap-3">
-                    <Clock className="w-5 h-5 text-neutral-400 mt-0.5" />
+                    <Clock className="w-5 h-5 text-primary-600 mt-0.5" />
                     <div>
                       <p className="text-sm text-neutral-600">Duration</p>
-                      <p className="text-neutral-900">{visit.duration} minutes</p>
+                      <p className="text-neutral-900 font-semibold">{visit.duration} minutes</p>
                     </div>
                   </div>
                 )}

@@ -18,7 +18,6 @@ export function VisitsList() {
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
-  const [typeFilter, setTypeFilter] = useState('ALL');
   const [outcomeFilter, setOutcomeFilter] = useState('ALL');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -34,7 +33,7 @@ export function VisitsList() {
   useEffect(() => {
     fetchVisits();
     fetchStats();
-  }, [currentPage, statusFilter, typeFilter, outcomeFilter, startDate, endDate, debouncedSearch]);
+  }, [currentPage, statusFilter, outcomeFilter, startDate, endDate, debouncedSearch]);
 
   const fetchVisits = async () => {
     try {
@@ -45,7 +44,6 @@ export function VisitsList() {
       };
 
       if (statusFilter !== 'ALL') params.status = statusFilter;
-      if (typeFilter !== 'ALL') params.visitType = typeFilter;
       if (outcomeFilter !== 'ALL') params.outcome = outcomeFilter;
       if (startDate) params.startDate = new Date(startDate).toISOString();
       if (endDate) params.endDate = new Date(endDate).toISOString();
@@ -93,7 +91,6 @@ export function VisitsList() {
   const resetFilters = () => {
     setSearchTerm('');
     setStatusFilter('ALL');
-    setTypeFilter('ALL');
     setOutcomeFilter('ALL');
     setStartDate('');
     setEndDate('');
@@ -256,19 +253,19 @@ export function VisitsList() {
                 <thead className="bg-neutral-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Date
+                      Contact
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Contact
+                      Check-In
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                      Duration
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
                       Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
                       Outcome
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Type
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
                       Location
@@ -282,17 +279,33 @@ export function VisitsList() {
                   {visits.map((visit) => (
                     <tr key={visit.id} className="hover:bg-neutral-50">
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-neutral-400" />
-                          <span className="text-sm text-neutral-900">
-                            {formatDateTime(visit.visitDate)}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-neutral-900">
                           {visit.contact?.name || 'N/A'}
                         </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {visit.checkInTime ? (
+                          <div className="flex items-center gap-2">
+                            <Calendar className="w-4 h-4 text-neutral-400" />
+                            <span className="text-sm text-neutral-900">
+                              {formatDateTime(visit.checkInTime)}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-sm text-neutral-500">-</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {visit.status === 'IN_PROGRESS' ? (
+                          <span className="text-sm font-medium text-primary-600">In Progress</span>
+                        ) : visit.duration ? (
+                          <div className="flex items-center gap-2">
+                            <Clock className="w-4 h-4 text-neutral-400" />
+                            <span className="text-sm text-neutral-900">{visit.duration} min</span>
+                          </div>
+                        ) : (
+                          <span className="text-sm text-neutral-500">-</span>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <StatusBadge
@@ -307,9 +320,6 @@ export function VisitsList() {
                           className={getVisitOutcomeColor(visit.outcome)}
                           formatLabel
                         />
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-900">
-                        {formatStatusLabel(visit.visitType)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         {visit.locationName ? (
@@ -329,13 +339,15 @@ export function VisitsList() {
                         >
                           <Eye className="w-4 h-4 inline" />
                         </button>
-                        <button
-                          onClick={() => navigate(`/visits/${visit.id}/edit`)}
-                          className="text-primary-800 hover:text-primary-700 mr-3"
-                          title="Edit"
-                        >
-                          <Pencil className="w-4 h-4 inline" />
-                        </button>
+                        {visit.status === 'IN_PROGRESS' && (
+                          <button
+                            onClick={() => navigate(`/visits/${visit.id}/edit`)}
+                            className="text-primary-800 hover:text-primary-700 mr-3"
+                            title="Check Out"
+                          >
+                            <Pencil className="w-4 h-4 inline" />
+                          </button>
+                        )}
                         <button
                           onClick={() => handleDelete(visit.id, visit.contact?.name || 'this visit')}
                           className="text-danger-600 hover:text-danger-500"
