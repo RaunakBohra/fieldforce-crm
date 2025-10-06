@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { List } from 'react-window';
 import { api } from '../services/api';
 import type { Contact, ContactStats, ContactQueryParams } from '../services/api';
 import { useDebounce } from '../hooks/useDebounce';
@@ -13,6 +14,7 @@ export function ContactsList() {
   const [stats, setStats] = useState<ContactStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const listRef = useRef<any>(null);
 
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -27,7 +29,8 @@ export function ContactsList() {
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const limit = 20;
+  const limit = 100; // Increased for virtual scrolling
+  const [useVirtualScrolling, setUseVirtualScrolling] = useState(false);
 
   useEffect(() => {
     fetchContacts();
@@ -51,6 +54,8 @@ export function ContactsList() {
       if (response.success && response.data) {
         setContacts(response.data.contacts);
         setTotalPages(Math.ceil(response.data.total / limit));
+        // Enable virtual scrolling if we have more than 50 items
+        setUseVirtualScrolling(response.data.contacts.length > 50);
       }
     } catch (err) {
       const error = err as Error;
@@ -92,6 +97,63 @@ export function ContactsList() {
     setTypeFilter('ALL');
     setCityFilter('');
     setCurrentPage(1);
+  };
+
+  // ContactRow component for virtual scrolling
+  const ContactRow = ({ index, style, ariaAttributes }: any) => {
+    const contact = contacts[index];
+    if (!contact) return null;
+
+    return (
+      <div style={style} className="border-b border-neutral-200 hover:bg-neutral-50" {...ariaAttributes}>
+        <div className="grid grid-cols-7 gap-4 px-6 py-4">
+          <div className="col-span-1">
+            <div className="text-sm font-medium text-neutral-900">{contact.name}</div>
+            {contact.designation && (
+              <div className="text-sm text-neutral-500">{contact.designation}</div>
+            )}
+          </div>
+          <div className="col-span-1 flex items-center">
+            <StatusBadge
+              label={contact.contactCategory}
+              variant={contact.contactCategory === 'DISTRIBUTION' ? 'primary' : 'success'}
+              formatLabel={false}
+            />
+          </div>
+          <div className="col-span-1 flex items-center text-sm text-neutral-900">
+            {contact.contactType}
+          </div>
+          <div className="col-span-1 flex flex-col justify-center">
+            <div className="text-sm text-neutral-900">{contact.phone || '-'}</div>
+            <div className="text-sm text-neutral-500">{contact.email || '-'}</div>
+          </div>
+          <div className="col-span-1 flex items-center text-sm text-neutral-900">
+            {contact.city && contact.state ? `${contact.city}, ${contact.state}` : '-'}
+          </div>
+          <div className="col-span-1 flex items-center">
+            <StatusBadge
+              label={contact.isActive ? 'Active' : 'Inactive'}
+              variant={contact.isActive ? 'success' : 'neutral'}
+              formatLabel={false}
+            />
+          </div>
+          <div className="col-span-1 flex items-center justify-end gap-4">
+            <button
+              onClick={() => navigate(`/contacts/${contact.id}/edit`)}
+              className="text-primary-800 hover:text-primary-700"
+            >
+              <Pencil className="w-4 h-4 inline" />
+            </button>
+            <button
+              onClick={() => handleDelete(contact.id, contact.name)}
+              className="text-danger-600 hover:text-danger-500"
+            >
+              <Trash2 className="w-4 h-4 inline" />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -214,83 +276,34 @@ export function ContactsList() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-neutral-200">
-                <thead className="bg-neutral-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Name
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Category
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Type
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Contact
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Location
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-neutral-200">
-                  {contacts.map((contact) => (
-                    <tr key={contact.id} className="hover:bg-neutral-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-neutral-900">{contact.name}</div>
-                        {contact.designation && (
-                          <div className="text-sm text-neutral-500">{contact.designation}</div>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <StatusBadge
-                          label={contact.contactCategory}
-                          variant={contact.contactCategory === 'DISTRIBUTION' ? 'primary' : 'success'}
-                          formatLabel={false}
-                        />
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-900">
-                        {contact.contactType}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-neutral-900">{contact.phone || '-'}</div>
-                        <div className="text-sm text-neutral-500">{contact.email || '-'}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-900">
-                        {contact.city && contact.state ? `${contact.city}, ${contact.state}` : '-'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <StatusBadge
-                          label={contact.isActive ? 'Active' : 'Inactive'}
-                          variant={contact.isActive ? 'success' : 'neutral'}
-                          formatLabel={false}
-                        />
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button
-                          onClick={() => navigate(`/contacts/${contact.id}/edit`)}
-                          className="text-primary-800 hover:text-primary-700 mr-4"
-                        >
-                          <Pencil className="w-4 h-4 inline" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(contact.id, contact.name)}
-                          className="text-danger-600 hover:text-danger-500"
-                        >
-                          <Trash2 className="w-4 h-4 inline" />
-                        </button>
-                      </td>
-                    </tr>
+              {/* Table Header */}
+              <div className="grid grid-cols-7 gap-4 px-6 py-3 bg-neutral-50 border-b border-neutral-200">
+                <div className="col-span-1 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Name</div>
+                <div className="col-span-1 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Category</div>
+                <div className="col-span-1 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Type</div>
+                <div className="col-span-1 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Contact</div>
+                <div className="col-span-1 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Location</div>
+                <div className="col-span-1 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Status</div>
+                <div className="col-span-1 text-right text-xs font-medium text-neutral-500 uppercase tracking-wider">Actions</div>
+              </div>
+
+              {/* Table Body - Virtual Scrolling or Regular */}
+              {useVirtualScrolling ? (
+                <List
+                  listRef={listRef}
+                  defaultHeight={600}
+                  rowCount={contacts.length}
+                  rowHeight={80}
+                  rowComponent={ContactRow}
+                  rowProps={{}}
+                />
+              ) : (
+                <div className="bg-white">
+                  {contacts.map((contact, index) => (
+                    <ContactRow key={contact.id} index={index} style={{}} />
                   ))}
-                </tbody>
-              </table>
+                </div>
+              )}
             </div>
           )}
         </div>

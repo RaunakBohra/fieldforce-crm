@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { List } from 'react-window';
 import { api } from '../services/api';
 import type { Visit, VisitStats, VisitQueryParams } from '../services/api';
 import { useDebounce } from '../hooks/useDebounce';
@@ -14,6 +15,8 @@ export function VisitsList() {
   const [stats, setStats] = useState<VisitStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const listRef = useRef<any>(null);
+  const [useVirtualScrolling, setUseVirtualScrolling] = useState(false);
 
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -28,7 +31,7 @@ export function VisitsList() {
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const limit = 20;
+  const limit = 100; // Increased for virtual scrolling
 
   useEffect(() => {
     fetchVisits();
@@ -53,6 +56,8 @@ export function VisitsList() {
       if (response.success && response.data) {
         setVisits(response.data.visits);
         setTotalPages(response.data.totalPages);
+        // Enable virtual scrolling if we have more than 50 items
+        setUseVirtualScrolling(response.data.visits.length > 50);
       }
     } catch (err) {
       const error = err as Error;
@@ -95,6 +100,97 @@ export function VisitsList() {
     setStartDate('');
     setEndDate('');
     setCurrentPage(1);
+  };
+
+  // VisitRow component for virtual scrolling
+  const VisitRow = ({ index, style, ariaAttributes }: any) => {
+    const visit = visits[index];
+    if (!visit) return null;
+
+    return (
+      <div style={style} className="border-b border-neutral-200 hover:bg-neutral-50" {...ariaAttributes}>
+        <div className="grid grid-cols-7 gap-4 px-6 py-4">
+          <div className="col-span-1 flex items-center">
+            <div className="text-sm font-medium text-neutral-900">
+              {visit.contact?.name || 'N/A'}
+            </div>
+          </div>
+          <div className="col-span-1 flex items-center">
+            {visit.checkInTime ? (
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-neutral-400" />
+                <span className="text-sm text-neutral-900">
+                  {formatDateTime(visit.checkInTime)}
+                </span>
+              </div>
+            ) : (
+              <span className="text-sm text-neutral-500">-</span>
+            )}
+          </div>
+          <div className="col-span-1 flex items-center">
+            {visit.status === 'IN_PROGRESS' ? (
+              <span className="text-sm font-medium text-primary-600">In Progress</span>
+            ) : visit.duration ? (
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-neutral-400" />
+                <span className="text-sm text-neutral-900">{visit.duration} min</span>
+              </div>
+            ) : (
+              <span className="text-sm text-neutral-500">-</span>
+            )}
+          </div>
+          <div className="col-span-1 flex items-center">
+            <StatusBadge
+              label={visit.status}
+              className={getVisitStatusColor(visit.status)}
+              formatLabel
+            />
+          </div>
+          <div className="col-span-1 flex items-center">
+            <StatusBadge
+              label={visit.outcome}
+              className={getVisitOutcomeColor(visit.outcome)}
+              formatLabel
+            />
+          </div>
+          <div className="col-span-1 flex items-center">
+            {visit.locationName ? (
+              <div className="flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-neutral-400" />
+                <span className="text-sm text-neutral-900">{visit.locationName}</span>
+              </div>
+            ) : (
+              <span className="text-sm text-neutral-500">-</span>
+            )}
+          </div>
+          <div className="col-span-1 flex items-center justify-end gap-4">
+            <button
+              onClick={() => navigate(`/visits/${visit.id}`)}
+              className="text-primary-600 hover:text-primary-700"
+              title="View Details"
+            >
+              <Eye className="w-4 h-4 inline" />
+            </button>
+            {visit.status === 'IN_PROGRESS' && (
+              <button
+                onClick={() => navigate(`/visits/${visit.id}/edit`)}
+                className="text-primary-800 hover:text-primary-700"
+                title="Check Out"
+              >
+                <Pencil className="w-4 h-4 inline" />
+              </button>
+            )}
+            <button
+              onClick={() => handleDelete(visit.id, visit.contact?.name || 'this visit')}
+              className="text-danger-600 hover:text-danger-500"
+              title="Delete"
+            >
+              <Trash2 className="w-4 h-4 inline" />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -249,117 +345,34 @@ export function VisitsList() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-neutral-200">
-                <thead className="bg-neutral-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Contact
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Check-In
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Duration
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Outcome
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Location
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-neutral-200">
-                  {visits.map((visit) => (
-                    <tr key={visit.id} className="hover:bg-neutral-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-neutral-900">
-                          {visit.contact?.name || 'N/A'}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {visit.checkInTime ? (
-                          <div className="flex items-center gap-2">
-                            <Calendar className="w-4 h-4 text-neutral-400" />
-                            <span className="text-sm text-neutral-900">
-                              {formatDateTime(visit.checkInTime)}
-                            </span>
-                          </div>
-                        ) : (
-                          <span className="text-sm text-neutral-500">-</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {visit.status === 'IN_PROGRESS' ? (
-                          <span className="text-sm font-medium text-primary-600">In Progress</span>
-                        ) : visit.duration ? (
-                          <div className="flex items-center gap-2">
-                            <Clock className="w-4 h-4 text-neutral-400" />
-                            <span className="text-sm text-neutral-900">{visit.duration} min</span>
-                          </div>
-                        ) : (
-                          <span className="text-sm text-neutral-500">-</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <StatusBadge
-                          label={visit.status}
-                          className={getVisitStatusColor(visit.status)}
-                          formatLabel
-                        />
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <StatusBadge
-                          label={visit.outcome}
-                          className={getVisitOutcomeColor(visit.outcome)}
-                          formatLabel
-                        />
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {visit.locationName ? (
-                          <div className="flex items-center gap-2">
-                            <MapPin className="w-4 h-4 text-neutral-400" />
-                            <span className="text-sm text-neutral-900">{visit.locationName}</span>
-                          </div>
-                        ) : (
-                          <span className="text-sm text-neutral-500">-</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button
-                          onClick={() => navigate(`/visits/${visit.id}`)}
-                          className="text-primary-600 hover:text-primary-700 mr-3"
-                          title="View Details"
-                        >
-                          <Eye className="w-4 h-4 inline" />
-                        </button>
-                        {visit.status === 'IN_PROGRESS' && (
-                          <button
-                            onClick={() => navigate(`/visits/${visit.id}/edit`)}
-                            className="text-primary-800 hover:text-primary-700 mr-3"
-                            title="Check Out"
-                          >
-                            <Pencil className="w-4 h-4 inline" />
-                          </button>
-                        )}
-                        <button
-                          onClick={() => handleDelete(visit.id, visit.contact?.name || 'this visit')}
-                          className="text-danger-600 hover:text-danger-500"
-                          title="Delete"
-                        >
-                          <Trash2 className="w-4 h-4 inline" />
-                        </button>
-                      </td>
-                    </tr>
+              {/* Table Header */}
+              <div className="grid grid-cols-7 gap-4 px-6 py-3 bg-neutral-50 border-b border-neutral-200">
+                <div className="col-span-1 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Contact</div>
+                <div className="col-span-1 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Check-In</div>
+                <div className="col-span-1 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Duration</div>
+                <div className="col-span-1 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Status</div>
+                <div className="col-span-1 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Outcome</div>
+                <div className="col-span-1 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Location</div>
+                <div className="col-span-1 text-right text-xs font-medium text-neutral-500 uppercase tracking-wider">Actions</div>
+              </div>
+
+              {/* Table Body - Virtual Scrolling or Regular */}
+              {useVirtualScrolling ? (
+                <List
+                  listRef={listRef}
+                  defaultHeight={600}
+                  rowCount={visits.length}
+                  rowHeight={80}
+                  rowComponent={VisitRow}
+                  rowProps={{}}
+                />
+              ) : (
+                <div className="bg-white">
+                  {visits.map((visit, index) => (
+                    <VisitRow key={visit.id} index={index} style={{}} />
                   ))}
-                </tbody>
-              </table>
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { List } from 'react-window';
 import { api } from '../services/api';
 import type { PaymentStats, PaymentQueryParams } from '../services/api';
 import { Search, Filter, DollarSign, Plus } from 'lucide-react';
@@ -34,6 +35,8 @@ export default function PaymentsList() {
     maxAmount: '',
   });
   const navigate = useNavigate();
+  const listRef = useRef<any>(null);
+  const [useVirtualScrolling, setUseVirtualScrolling] = useState(false);
 
   // Debounce search to reduce API calls
   const debouncedSearch = useDebounce(searchTerm, 500);
@@ -41,7 +44,7 @@ export default function PaymentsList() {
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const limit = 20;
+  const limit = 100; // Increased for virtual scrolling
 
   useEffect(() => {
     fetchPayments();
@@ -67,6 +70,8 @@ export default function PaymentsList() {
       if (response.success && response.data) {
         setPayments(response.data.payments);
         setTotalPages(response.data.pagination.totalPages);
+        // Enable virtual scrolling if we have more than 50 items
+        setUseVirtualScrolling(response.data.payments.length > 50);
       }
     } catch (error) {
       console.error('Failed to fetch payments:', error);
@@ -103,6 +108,44 @@ export default function PaymentsList() {
   };
 
   const hasActiveFilters = searchTerm || filter.paymentMode || filter.startDate || filter.endDate || filter.minAmount || filter.maxAmount;
+
+  // PaymentRow component for virtual scrolling
+  const PaymentRow = ({ index, style, ariaAttributes }: any) => {
+    const payment = payments[index];
+    if (!payment) return null;
+
+    return (
+      <div style={style} className="border-b border-neutral-200 hover:bg-neutral-50" {...ariaAttributes}>
+        <div className="grid grid-cols-7 gap-4 px-6 py-4">
+          <div className="col-span-1 flex items-center">
+            <div className="text-sm font-medium text-neutral-900">{payment.paymentNumber}</div>
+          </div>
+          <div className="col-span-1 flex items-center text-sm text-neutral-500">
+            {payment.order?.orderNumber || '-'}
+          </div>
+          <div className="col-span-1 flex items-center text-sm text-neutral-500">
+            {payment.order?.contact.name || '-'}
+          </div>
+          <div className="col-span-1 flex items-center text-sm font-semibold text-success-600">
+            {formatCurrency(payment.amount)}
+          </div>
+          <div className="col-span-1 flex items-center">
+            <StatusBadge
+              label={payment.paymentMode}
+              variant="primary"
+              formatLabel={false}
+            />
+          </div>
+          <div className="col-span-1 flex items-center text-sm text-neutral-500">
+            {payment.referenceNumber || '-'}
+          </div>
+          <div className="col-span-1 flex items-center text-sm text-neutral-500">
+            {formatDate(payment.paymentDate)}
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <PageContainer>
@@ -299,64 +342,34 @@ export default function PaymentsList() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-neutral-200">
-                <thead className="bg-neutral-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Payment #
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Order
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Contact
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Amount
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Mode
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Reference
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Date
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-neutral-200">
-                  {payments.map((payment) => (
-                    <tr key={payment.id} className="hover:bg-neutral-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-900">
-                        {payment.paymentNumber}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">
-                        {payment.order?.orderNumber || '-'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">
-                        {payment.order?.contact.name || '-'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-success-600">
-                        {formatCurrency(payment.amount)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <StatusBadge
-                          label={payment.paymentMode}
-                          variant="primary"
-                          formatLabel={false}
-                        />
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">
-                        {payment.referenceNumber || '-'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">
-                        {formatDate(payment.paymentDate)}
-                      </td>
-                    </tr>
+              {/* Table Header */}
+              <div className="grid grid-cols-7 gap-4 px-6 py-3 bg-neutral-50 border-b border-neutral-200">
+                <div className="col-span-1 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Payment #</div>
+                <div className="col-span-1 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Order</div>
+                <div className="col-span-1 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Contact</div>
+                <div className="col-span-1 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Amount</div>
+                <div className="col-span-1 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Mode</div>
+                <div className="col-span-1 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Reference</div>
+                <div className="col-span-1 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Date</div>
+              </div>
+
+              {/* Table Body - Virtual Scrolling or Regular */}
+              {useVirtualScrolling ? (
+                <List
+                  listRef={listRef}
+                  defaultHeight={600}
+                  rowCount={payments.length}
+                  rowHeight={80}
+                  rowComponent={PaymentRow}
+                  rowProps={{}}
+                />
+              ) : (
+                <div className="bg-white">
+                  {payments.map((payment, index) => (
+                    <PaymentRow key={payment.id} index={index} style={{}} />
                   ))}
-                </tbody>
-              </table>
+                </div>
+              )}
             </div>
           )}
         </div>

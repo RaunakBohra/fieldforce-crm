@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { List } from 'react-window';
 import { api } from '../services/api';
 import type { Order, OrderStats } from '../services/api';
 import { ShoppingCart, Eye, XCircle, Plus } from 'lucide-react';
@@ -14,11 +15,13 @@ export function OrdersList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
+  const listRef = useRef<any>(null);
+  const [useVirtualScrolling, setUseVirtualScrolling] = useState(false);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const limit = 20;
+  const limit = 100; // Increased for virtual scrolling
 
   useEffect(() => {
     fetchOrders();
@@ -43,6 +46,8 @@ export function OrdersList() {
       if (response.success && response.data) {
         setOrders(response.data.orders);
         setTotalPages(response.data.pagination.totalPages);
+        // Enable virtual scrolling if we have more than 50 items
+        setUseVirtualScrolling(response.data.orders.length > 50);
       }
     } catch (err) {
       const error = err as Error;
@@ -76,6 +81,76 @@ export function OrdersList() {
       const error = err as Error;
       alert(error.message || 'Failed to cancel order');
     }
+  };
+
+  // OrderRow component for virtual scrolling
+  const OrderRow = ({ index, style, ariaAttributes }: any) => {
+    const order = orders[index];
+    if (!order) return null;
+
+    return (
+      <div style={style} className="border-b border-neutral-200 hover:bg-neutral-50" {...ariaAttributes}>
+        <div className="grid grid-cols-8 gap-4 px-6 py-4">
+          <div className="col-span-1 flex items-center">
+            <div className="text-sm font-medium text-neutral-900">{order.orderNumber}</div>
+          </div>
+          <div className="col-span-1 flex flex-col justify-center">
+            <div className="text-sm font-medium text-neutral-900">{order.contact?.name}</div>
+            <div className="text-sm text-neutral-500">{order.contact?.contactType}</div>
+          </div>
+          <div className="col-span-1 flex items-center text-sm text-neutral-900">
+            {order.items.length}
+          </div>
+          <div className="col-span-1 flex items-center text-sm font-semibold text-neutral-900">
+            {formatCurrency(Number(order.totalAmount))}
+          </div>
+          <div className="col-span-1 flex items-center">
+            <StatusBadge
+              label={order.status}
+              className={getOrderStatusColor(order.status)}
+              formatLabel
+            />
+          </div>
+          <div className="col-span-1 flex items-center">
+            <StatusBadge
+              label={(order as any).paymentStatus || 'UNPAID'}
+              className={getPaymentStatusColor((order as any).paymentStatus || 'UNPAID')}
+              formatLabel
+            />
+          </div>
+          <div className="col-span-1 flex items-center text-sm text-neutral-500">
+            {formatDate(order.createdAt)}
+          </div>
+          <div className="col-span-1 flex items-center justify-end gap-2">
+            <button
+              onClick={() => navigate(`/orders/${order.id}`)}
+              className="text-primary-600 hover:text-primary-700"
+              title="View Details"
+            >
+              <Eye className="w-4 h-4 inline" />
+            </button>
+            {(order.status === 'PENDING' || order.status === 'APPROVED') && (
+              <button
+                onClick={() => handleCancelOrder(order.id, order.orderNumber)}
+                className="text-danger-600 hover:text-danger-500"
+                title="Cancel Order"
+              >
+                <XCircle className="w-4 h-4 inline" />
+              </button>
+            )}
+            {(order.status === 'APPROVED' || order.status === 'DELIVERED') && (order as any).paymentStatus !== 'PAID' && (
+              <button
+                onClick={() => navigate(`/payments/new/${order.id}`)}
+                className="text-success-600 hover:text-success-900 text-xs underline"
+                title="Record Payment"
+              >
+                Record Payment
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -180,101 +255,35 @@ export function OrdersList() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-neutral-200">
-                <thead className="bg-neutral-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Order #
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Customer
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Items
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Amount
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Payment
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Date
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-neutral-200">
-                  {orders.map((order) => (
-                    <tr key={order.id} className="hover:bg-neutral-50">
-                      <td className="px-6 py-4 whitespace-nowrap font-medium text-neutral-900">
-                        {order.orderNumber}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm font-medium text-neutral-900">{order.contact?.name}</div>
-                        <div className="text-sm text-neutral-500">{order.contact?.contactType}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-900">
-                        {order.items.length}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-neutral-900">
-                        {formatCurrency(Number(order.totalAmount))}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <StatusBadge
-                          label={order.status}
-                          className={getOrderStatusColor(order.status)}
-                          formatLabel
-                        />
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <StatusBadge
-                          label={(order as any).paymentStatus || 'UNPAID'}
-                          className={getPaymentStatusColor((order as any).paymentStatus || 'UNPAID')}
-                          formatLabel
-                        />
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">
-                        {formatDate(order.createdAt)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div className="flex justify-end gap-2">
-                          <button
-                            onClick={() => navigate(`/orders/${order.id}`)}
-                            className="text-primary-600 hover:text-primary-700"
-                            title="View Details"
-                          >
-                            <Eye className="w-4 h-4 inline" />
-                          </button>
-                          {(order.status === 'PENDING' || order.status === 'APPROVED') && (
-                            <button
-                              onClick={() => handleCancelOrder(order.id, order.orderNumber)}
-                              className="text-danger-600 hover:text-danger-500"
-                              title="Cancel Order"
-                            >
-                              <XCircle className="w-4 h-4 inline" />
-                            </button>
-                          )}
-                          {(order.status === 'APPROVED' || order.status === 'DELIVERED') && (order as any).paymentStatus !== 'PAID' && (
-                            <button
-                              onClick={() => navigate(`/payments/new/${order.id}`)}
-                              className="text-success-600 hover:text-success-900 text-xs underline"
-                              title="Record Payment"
-                            >
-                              Record Payment
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
+              {/* Table Header */}
+              <div className="grid grid-cols-8 gap-4 px-6 py-3 bg-neutral-50 border-b border-neutral-200">
+                <div className="col-span-1 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Order #</div>
+                <div className="col-span-1 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Customer</div>
+                <div className="col-span-1 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Items</div>
+                <div className="col-span-1 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Amount</div>
+                <div className="col-span-1 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Status</div>
+                <div className="col-span-1 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Payment</div>
+                <div className="col-span-1 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Date</div>
+                <div className="col-span-1 text-right text-xs font-medium text-neutral-500 uppercase tracking-wider">Actions</div>
+              </div>
+
+              {/* Table Body - Virtual Scrolling or Regular */}
+              {useVirtualScrolling ? (
+                <List
+                  listRef={listRef}
+                  defaultHeight={600}
+                  rowCount={orders.length}
+                  rowHeight={80}
+                  rowComponent={OrderRow}
+                  rowProps={{}}
+                />
+              ) : (
+                <div className="bg-white">
+                  {orders.map((order, index) => (
+                    <OrderRow key={order.id} index={index} style={{}} />
                   ))}
-                </tbody>
-              </table>
+                </div>
+              )}
             </div>
           )}
         </div>
