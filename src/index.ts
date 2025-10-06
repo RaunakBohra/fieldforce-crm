@@ -7,6 +7,8 @@ import { logger } from './utils/logger';
 import authRoutes from './routes/auth';
 import contactRoutes from './routes/contacts';
 import visitRoutes from './routes/visits';
+import productRoutes from './routes/products';
+import orderRoutes from './routes/orders';
 import { authMiddleware } from './middleware/auth';
 
 /**
@@ -77,6 +79,7 @@ app.use('/*', async (c, next) => {
 // Protects against Cross-Site Request Forgery attacks
 app.use('/api/contacts/*', csrfProtection);
 app.use('/api/visits/*', csrfProtection);
+app.use('/api/orders/*', csrfProtection);
 // Add other protected routes here as needed
 
 /**
@@ -133,6 +136,12 @@ app.route('/api/contacts', contactRoutes);
 
 // Visit management routes (protected)
 app.route('/api/visits', visitRoutes);
+
+// Product catalog routes (protected)
+app.route('/api/products', productRoutes);
+
+// Order management routes (protected)
+app.route('/api/orders', orderRoutes);
 
 // Protected route example
 app.get('/api/protected', authMiddleware, (c) => {

@@ -29,6 +29,7 @@ model User {
   // Relations
   contacts  Contact[] // Contacts assigned to this user
   visits    Visit[]   // Visits conducted by this user
+  orders    Order[]   // Orders created by this user
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -105,6 +106,7 @@ model Contact {
 
   // Relations
   visits          Visit[]      // Visits to this contact
+  orders          Order[]      // Orders from this contact
 
   // Additional Information
   notes           String?      // Special notes about the contact
@@ -239,7 +241,103 @@ enum VisitOutcome {
 }
 
 // ============================================================================
-// DAY 4-5: Additional models will be added via migrations
-// - Orders (product orders)
-// - Payments (payment tracking)
+// DAY 4: Order Management
+// ============================================================================
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  sku         String   @unique
+  description String?
+  category    String
+  price       Decimal  @db.Decimal(10, 2)
+  stock       Int      @default(0)
+  isActive    Boolean  @default(true)
+
+  // Relations
+  orderItems  OrderItem[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category])
+  @@index([isActive])
+  @@index([sku])
+}
+
+model Order {
+  id            String      @id @default(cuid())
+  orderNumber   String      @unique
+
+  // Customer (Contact)
+  contactId     String
+  contact       Contact     @relation(fields: [contactId], references: [id])
+
+  // Created by (Field Rep)
+  createdById   String
+  createdBy     User        @relation(fields: [createdById], references: [id])
+
+  // Order Details
+  totalAmount   Decimal     @db.Decimal(10, 2)
+  status        OrderStatus @default(PENDING)
+
+  // Delivery Information
+  deliveryAddress String?
+  deliveryCity    String?
+  deliveryState   String?
+  deliveryPincode String?
+  expectedDeliveryDate DateTime?
+  actualDeliveryDate   DateTime?
+
+  // Notes
+  notes         String?
+
+  // Relations
+  items         OrderItem[]
+
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([contactId])
+  @@index([createdById])
+  @@index([status])
+  @@index([orderNumber])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id          String   @id @default(cuid())
+
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id])
+
+  quantity    Int
+  unitPrice   Decimal  @db.Decimal(10, 2)
+  totalPrice  Decimal  @db.Decimal(10, 2)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+enum OrderStatus {
+  PENDING       // Order placed, awaiting approval
+  APPROVED      // Order approved
+  PROCESSING    // Order being processed
+  SHIPPED       // Order shipped
+  DELIVERED     // Order delivered
+  CANCELLED     // Order cancelled
+  REJECTED      // Order rejected
+}
+
+// Update Contact model to include orders
+// Note: This relation is added above in the Order model
+
+// ============================================================================
+// DAY 5: Payment Management (placeholder for future implementation)
 // ============================================================================

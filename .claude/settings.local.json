@@ -74,7 +74,8 @@
       "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjbWdlcnM2ZG4wMDAwMnlkOHRpZWJ2YmIzIiwiZW1haWwiOiJwcm9kdGVzdEBleGFtcGxlLmNvbSIsInJvbGUiOiJGSUVMRF9SRVAiLCJleHAiOjE3NjAzMzg5MDR9.2uwhneiPKQoBTDXzaKkPzHQSIFSJDkp9FY6N1E7mSp0\")",
       "Bash(chmod:*)",
       "Bash(/Users/raunakbohra/Desktop/medical-CRM/test-csrf.sh:*)",
-      "Bash(npm run test:e2e:*)"
+      "Bash(npm run test:e2e:*)",
+      "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_EK1XpFYRye6M@ep-ancient-art-a1aag2jx-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require\" npx tsx prisma/seed.ts)"
     ],
     "deny": [],
     "ask": []

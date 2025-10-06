@@ -215,6 +215,127 @@ export interface VisitQueryParams {
   search?: string;
 }
 
+// Product Types
+export interface Product {
+  id: string;
+  name: string;
+  sku: string;
+  description?: string;
+  category: string;
+  price: number;
+  stock: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProductListResponse {
+  products: Product[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export interface ProductQueryParams {
+  page?: number;
+  limit?: number;
+  category?: string;
+  search?: string;
+  isActive?: boolean;
+}
+
+// Order Types
+export interface OrderItem {
+  id: string;
+  productId: string;
+  product: Product;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+}
+
+export interface Order {
+  id: string;
+  orderNumber: string;
+  contactId: string;
+  contact?: {
+    id: string;
+    name: string;
+    phone?: string;
+    email?: string;
+    contactType: string;
+  };
+  createdById: string;
+  createdBy?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  totalAmount: number;
+  status: 'PENDING' | 'APPROVED' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'REJECTED';
+  deliveryAddress?: string;
+  deliveryCity?: string;
+  deliveryState?: string;
+  deliveryPincode?: string;
+  expectedDeliveryDate?: string;
+  actualDeliveryDate?: string;
+  notes?: string;
+  items: OrderItem[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface OrderStats {
+  totalOrders: number;
+  pendingOrders: number;
+  approvedOrders: number;
+  deliveredOrders: number;
+  totalRevenue: number;
+}
+
+export interface OrderListResponse {
+  orders: Order[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export interface CreateOrderData {
+  contactId: string;
+  items: Array<{
+    productId: string;
+    quantity: number;
+    unitPrice: number;
+  }>;
+  deliveryAddress?: string;
+  deliveryCity?: string;
+  deliveryState?: string;
+  deliveryPincode?: string;
+  expectedDeliveryDate?: string;
+  notes?: string;
+}
+
+export interface UpdateOrderStatusData {
+  status: 'PENDING' | 'APPROVED' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'REJECTED';
+  actualDeliveryDate?: string;
+  notes?: string;
+}
+
+export interface OrderQueryParams {
+  page?: number;
+  limit?: number;
+  status?: string;
+  contactId?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
 class ApiService {
   private async getHeaders(includeAuth: boolean = false, includeCsrf: boolean = false): Promise<HeadersInit> {
     const headers: HeadersInit = {
@@ -493,6 +614,160 @@ class ApiService {
   async deleteVisit(id: string): Promise<ApiResponse<void>> {
     try {
       const response = await fetch(`${API_URL}/api/visits/${id}`, {
+        method: 'DELETE',
+        headers: await this.getHeaders(true, true),
+      });
+
+      return this.handleResponse<void>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  // Product Management
+  async getProducts(params?: ProductQueryParams): Promise<ApiResponse<ProductListResponse>> {
+    try {
+      const queryString = params ? '?' + new URLSearchParams(
+        Object.entries(params)
+          .filter(([, value]) => value !== undefined)
+          .map(([key, value]) => [key, String(value)])
+      ).toString() : '';
+
+      const response = await fetch(`${API_URL}/api/products${queryString}`, {
+        headers: await this.getHeaders(true, false),
+      });
+
+      return this.handleResponse<ProductListResponse>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  async getProduct(id: string): Promise<ApiResponse<Product>> {
+    try {
+      const response = await fetch(`${API_URL}/api/products/${id}`, {
+        headers: await this.getHeaders(true, false),
+      });
+
+      return this.handleResponse<Product>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  async getProductCategories(): Promise<ApiResponse<string[]>> {
+    try {
+      const response = await fetch(`${API_URL}/api/products/categories/list`, {
+        headers: await this.getHeaders(true, false),
+      });
+
+      return this.handleResponse<string[]>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  // Order Management
+  async getOrders(params?: OrderQueryParams): Promise<ApiResponse<OrderListResponse>> {
+    try {
+      const queryString = params ? '?' + new URLSearchParams(
+        Object.entries(params)
+          .filter(([, value]) => value !== undefined)
+          .map(([key, value]) => [key, String(value)])
+      ).toString() : '';
+
+      const response = await fetch(`${API_URL}/api/orders${queryString}`, {
+        headers: await this.getHeaders(true, true),
+      });
+
+      return this.handleResponse<OrderListResponse>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  async getOrderStats(): Promise<ApiResponse<OrderStats>> {
+    try {
+      const response = await fetch(`${API_URL}/api/orders/stats`, {
+        headers: await this.getHeaders(true, true),
+      });
+
+      return this.handleResponse<OrderStats>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  async getOrder(id: string): Promise<ApiResponse<Order>> {
+    try {
+      const response = await fetch(`${API_URL}/api/orders/${id}`, {
+        headers: await this.getHeaders(true, true),
+      });
+
+      return this.handleResponse<Order>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  async createOrder(data: CreateOrderData): Promise<ApiResponse<Order>> {
+    try {
+      const response = await fetch(`${API_URL}/api/orders`, {
+        method: 'POST',
+        headers: await this.getHeaders(true, true),
+        body: JSON.stringify(data),
+      });
+
+      return this.handleResponse<Order>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  async updateOrderStatus(id: string, data: UpdateOrderStatusData): Promise<ApiResponse<Order>> {
+    try {
+      const response = await fetch(`${API_URL}/api/orders/${id}/status`, {
+        method: 'PUT',
+        headers: await this.getHeaders(true, true),
+        body: JSON.stringify(data),
+      });
+
+      return this.handleResponse<Order>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  async cancelOrder(id: string): Promise<ApiResponse<void>> {
+    try {
+      const response = await fetch(`${API_URL}/api/orders/${id}`, {
         method: 'DELETE',
         headers: await this.getHeaders(true, true),
       });
