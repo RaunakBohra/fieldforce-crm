@@ -300,7 +300,7 @@ class ApiService {
           .map(([key, value]) => [key, String(value)])
       ).toString() : '';
 
-      const response = await fetch(`${API_URL}/contacts${queryString}`, {
+      const response = await fetch(`${API_URL}/api/contacts${queryString}`, {
         headers: this.getHeaders(true),
       });
 
@@ -315,7 +315,7 @@ class ApiService {
 
   async getContactStats(): Promise<ApiResponse<ContactStats>> {
     try {
-      const response = await fetch(`${API_URL}/contacts/stats`, {
+      const response = await fetch(`${API_URL}/api/contacts/stats`, {
         headers: this.getHeaders(true),
       });
 
@@ -330,7 +330,7 @@ class ApiService {
 
   async getContact(id: string): Promise<ApiResponse<Contact>> {
     try {
-      const response = await fetch(`${API_URL}/contacts/${id}`, {
+      const response = await fetch(`${API_URL}/api/contacts/${id}`, {
         headers: this.getHeaders(true),
       });
 
@@ -345,7 +345,7 @@ class ApiService {
 
   async createContact(data: CreateContactData): Promise<ApiResponse<Contact>> {
     try {
-      const response = await fetch(`${API_URL}/contacts`, {
+      const response = await fetch(`${API_URL}/api/contacts`, {
         method: 'POST',
         headers: this.getHeaders(true),
         body: JSON.stringify(data),
@@ -362,7 +362,7 @@ class ApiService {
 
   async updateContact(id: string, data: Partial<CreateContactData>): Promise<ApiResponse<Contact>> {
     try {
-      const response = await fetch(`${API_URL}/contacts/${id}`, {
+      const response = await fetch(`${API_URL}/api/contacts/${id}`, {
         method: 'PUT',
         headers: this.getHeaders(true),
         body: JSON.stringify(data),
@@ -379,7 +379,7 @@ class ApiService {
 
   async deleteContact(id: string): Promise<ApiResponse<void>> {
     try {
-      const response = await fetch(`${API_URL}/contacts/${id}`, {
+      const response = await fetch(`${API_URL}/api/contacts/${id}`, {
         method: 'DELETE',
         headers: this.getHeaders(true),
       });
@@ -402,7 +402,7 @@ class ApiService {
           .map(([key, value]) => [key, String(value)])
       ).toString() : '';
 
-      const response = await fetch(`${API_URL}/visits${queryString}`, {
+      const response = await fetch(`${API_URL}/api/visits${queryString}`, {
         headers: this.getHeaders(true),
       });
 
@@ -417,7 +417,7 @@ class ApiService {
 
   async getVisitStats(): Promise<ApiResponse<VisitStats>> {
     try {
-      const response = await fetch(`${API_URL}/visits/stats`, {
+      const response = await fetch(`${API_URL}/api/visits/stats`, {
         headers: this.getHeaders(true),
       });
 
@@ -432,7 +432,7 @@ class ApiService {
 
   async getVisit(id: string): Promise<ApiResponse<Visit>> {
     try {
-      const response = await fetch(`${API_URL}/visits/${id}`, {
+      const response = await fetch(`${API_URL}/api/visits/${id}`, {
         headers: this.getHeaders(true),
       });
 
@@ -447,7 +447,7 @@ class ApiService {
 
   async createVisit(data: CreateVisitData): Promise<ApiResponse<Visit>> {
     try {
-      const response = await fetch(`${API_URL}/visits`, {
+      const response = await fetch(`${API_URL}/api/visits`, {
         method: 'POST',
         headers: this.getHeaders(true),
         body: JSON.stringify(data),
@@ -464,7 +464,7 @@ class ApiService {
 
   async updateVisit(id: string, data: Partial<CreateVisitData>): Promise<ApiResponse<Visit>> {
     try {
-      const response = await fetch(`${API_URL}/visits/${id}`, {
+      const response = await fetch(`${API_URL}/api/visits/${id}`, {
         method: 'PUT',
         headers: this.getHeaders(true),
         body: JSON.stringify(data),
@@ -481,7 +481,7 @@ class ApiService {
 
   async deleteVisit(id: string): Promise<ApiResponse<void>> {
     try {
-      const response = await fetch(`${API_URL}/visits/${id}`, {
+      const response = await fetch(`${API_URL}/api/visits/${id}`, {
         method: 'DELETE',
         headers: this.getHeaders(true),
       });
