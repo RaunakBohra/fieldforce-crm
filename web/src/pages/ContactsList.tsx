@@ -117,25 +117,23 @@ export function ContactsList() {
 
           {/* Stats */}
           {stats && (
-            <div className="mt-6 grid grid-cols-3 gap-4">
-              <StatCard
-                title="Total Contacts"
-                value={stats.total}
-                valueColor="text-neutral-900"
-                className="bg-neutral-50 shadow-none"
-              />
-              <StatCard
-                title="Distribution"
-                value={stats.distribution}
-                valueColor="text-primary-800"
-                className="bg-neutral-50 shadow-none"
-              />
-              <StatCard
-                title="Medical"
-                value={stats.medical}
-                valueColor="text-success-600"
-                className="bg-neutral-50 shadow-none"
-              />
+            <div className="mt-6">
+              <div className="overflow-x-auto">
+                <div className="grid grid-cols-3 gap-4 min-w-max">
+                  <div className="text-center">
+                    <div className="text-xs font-medium text-neutral-600 mb-2">Total Contacts</div>
+                    <div className="text-2xl font-bold text-neutral-900">{stats.total}</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xs font-medium text-neutral-600 mb-2">Distribution</div>
+                    <div className="text-2xl font-bold text-primary-800">{stats.distribution}</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xs font-medium text-neutral-600 mb-2">Medical</div>
+                    <div className="text-2xl font-bold text-success-600">{stats.medical}</div>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </Card>

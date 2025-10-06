@@ -101,37 +101,31 @@ export function OrdersList() {
 
           {/* Stats */}
           {stats && (
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-5 gap-4">
-              <StatCard
-                title="Total Orders"
-                value={stats.totalOrders}
-                valueColor="text-neutral-900"
-                className="bg-neutral-50 shadow-none"
-              />
-              <StatCard
-                title="Pending"
-                value={stats.pendingOrders}
-                valueColor="text-warn-600"
-                className="bg-neutral-50 shadow-none"
-              />
-              <StatCard
-                title="Approved"
-                value={stats.approvedOrders}
-                valueColor="text-primary-600"
-                className="bg-neutral-50 shadow-none"
-              />
-              <StatCard
-                title="Delivered"
-                value={stats.deliveredOrders}
-                valueColor="text-success-600"
-                className="bg-neutral-50 shadow-none"
-              />
-              <StatCard
-                title="Total Revenue"
-                value={formatCurrency(Number(stats.totalRevenue))}
-                valueColor="text-primary-600"
-                className="bg-neutral-50 shadow-none"
-              />
+            <div className="mt-6">
+              <div className="overflow-x-auto">
+                <div className="grid grid-cols-5 gap-4 min-w-max">
+                  <div className="text-center">
+                    <div className="text-xs font-medium text-neutral-600 mb-2">Total Orders</div>
+                    <div className="text-2xl font-bold text-neutral-900">{stats.totalOrders}</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xs font-medium text-neutral-600 mb-2">Pending</div>
+                    <div className="text-2xl font-bold text-warn-600">{stats.pendingOrders}</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xs font-medium text-neutral-600 mb-2">Approved</div>
+                    <div className="text-2xl font-bold text-primary-600">{stats.approvedOrders}</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xs font-medium text-neutral-600 mb-2">Delivered</div>
+                    <div className="text-2xl font-bold text-success-600">{stats.deliveredOrders}</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xs font-medium text-neutral-600 mb-2">Total Revenue</div>
+                    <div className="text-2xl font-bold text-primary-600">{formatCurrency(Number(stats.totalRevenue))}</div>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </Card>
