@@ -113,11 +113,20 @@ model Contact {
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 
+  // Single column indexes
   @@index([assignedToId])
   @@index([companyId])
   @@index([contactType])
   @@index([city])
   @@index([isActive])
+
+  // Composite indexes for common query patterns
+  @@index([companyId, isActive, contactType])       // List active contacts by company and type
+  @@index([assignedToId, isActive])                 // Field rep's active contacts
+  @@index([companyId, contactType, isActive])       // Contacts by type within company (duplicate for clarity)
+  @@index([city, contactType])                      // Geographic + type queries
+  @@index([nextVisitDate, assignedToId])            // Visit planning queries
+  @@index([isActive, createdAt])                    // Recent active contacts
 }
 
 enum ContactType {

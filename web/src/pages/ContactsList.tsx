@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import type { Contact, ContactStats, ContactQueryParams } from '../services/api';
+import { useDebounce } from '../hooks/useDebounce';
 import { Pencil, Trash2, Plus, Search, Filter } from 'lucide-react';
 
 export function ContactsList() {
@@ -17,6 +18,10 @@ export function ContactsList() {
   const [typeFilter, setTypeFilter] = useState('ALL');
   const [cityFilter, setCityFilter] = useState('');
 
+  // Debounce search inputs to reduce API calls
+  const debouncedSearch = useDebounce(searchTerm, 500);
+  const debouncedCity = useDebounce(cityFilter, 500);
+
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -25,7 +30,7 @@ export function ContactsList() {
   useEffect(() => {
     fetchContacts();
     fetchStats();
-  }, [currentPage, categoryFilter, typeFilter, cityFilter, searchTerm]);
+  }, [currentPage, categoryFilter, typeFilter, debouncedCity, debouncedSearch]);
 
   const fetchContacts = async () => {
     try {
@@ -37,8 +42,8 @@ export function ContactsList() {
 
       if (categoryFilter !== 'ALL') params.contactCategory = categoryFilter;
       if (typeFilter !== 'ALL') params.contactType = typeFilter;
-      if (cityFilter) params.city = cityFilter;
-      if (searchTerm) params.search = searchTerm;
+      if (debouncedCity) params.city = debouncedCity;
+      if (debouncedSearch) params.search = debouncedSearch;
 
       const response = await api.getContacts(params);
       if (response.success && response.data) {
