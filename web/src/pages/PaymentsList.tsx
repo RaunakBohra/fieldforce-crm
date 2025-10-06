@@ -109,9 +109,9 @@ export default function PaymentsList() {
       <ContentSection>
         {/* Header */}
         <Card className="border-b border-neutral-200 rounded-none">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold text-neutral-900">Payments</h1>
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+            <div className="flex-1">
+              <h1 className="text-2xl md:text-3xl font-bold text-neutral-900">Payments</h1>
               <p className="mt-1 text-sm text-neutral-600">
                 Track and manage payment records
               </p>
@@ -119,15 +119,15 @@ export default function PaymentsList() {
             <div className="flex gap-3">
               <button
                 onClick={() => navigate('/payments/pending')}
-                className="px-4 py-2 bg-warn-600 text-white rounded-lg hover:bg-warn-500 transition-colors"
+                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-warn-600 text-white rounded-lg hover:bg-warn-500 hover:shadow-md transition-all min-h-[44px] shadow-sm"
               >
-                View Pending
+                <span className="font-medium">View Pending</span>
               </button>
               <button
                 onClick={() => navigate('/payments/new')}
-                className="px-4 py-2 bg-primary-800 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-primary-800 text-white rounded-lg hover:bg-primary-700 hover:shadow-md transition-all min-h-[44px] shadow-sm"
               >
-                + Record Payment
+                <span className="font-medium">Record Payment</span>
               </button>
             </div>
           </div>
@@ -176,50 +176,39 @@ export default function PaymentsList() {
         )}
 
         {/* Filters */}
-        <Card className="mt-6 border border-neutral-200">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <Filter className="w-5 h-5 text-neutral-600" />
-              <h2 className="text-lg font-semibold text-neutral-900">Filters</h2>
-              {hasActiveFilters && (
-                <span className="px-2 py-1 text-xs font-semibold rounded-full bg-primary-100 text-primary-800">
-                  Active
-                </span>
-              )}
-            </div>
+        <Card className="mt-6 border border-neutral-200 shadow-sm">
+          <div className="flex items-center gap-2 mb-5">
+            <Filter className="w-5 h-5 text-primary-600" />
+            <h2 className="text-lg font-semibold text-neutral-900">Filters</h2>
             {hasActiveFilters && (
-              <button
-                onClick={resetFilters}
-                className="flex items-center gap-2 px-3 py-1.5 text-sm text-neutral-600 hover:text-neutral-900 border border-neutral-300 rounded-lg hover:bg-neutral-50"
-              >
-                <X className="w-4 h-4" />
-                Reset Filters
-              </button>
+              <span className="px-2 py-1 text-xs font-semibold rounded-full bg-primary-100 text-primary-800">
+                Active
+              </span>
             )}
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3 md:space-y-4">
             {/* Search */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" />
               <input
                 type="text"
                 placeholder="Search by contact name, order, payment, or reference number..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full pl-9 pr-4 py-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-all hover:border-neutral-400 text-sm min-h-[44px]"
               />
             </div>
 
             {/* Filter Row 1: Dates and Payment Mode */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-1">Start Date</label>
                 <input
                   type="date"
                   value={filter.startDate}
                   onChange={(e) => setFilter({ ...filter, startDate: e.target.value })}
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-4 py-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-all hover:border-neutral-400 text-sm min-h-[44px] bg-white"
                 />
               </div>
               <div>
@@ -228,7 +217,7 @@ export default function PaymentsList() {
                   type="date"
                   value={filter.endDate}
                   onChange={(e) => setFilter({ ...filter, endDate: e.target.value })}
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-4 py-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-all hover:border-neutral-400 text-sm min-h-[44px] bg-white"
                 />
               </div>
               <div>
@@ -236,7 +225,7 @@ export default function PaymentsList() {
                 <select
                   value={filter.paymentMode}
                   onChange={(e) => setFilter({ ...filter, paymentMode: e.target.value })}
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-4 py-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-all hover:border-neutral-400 text-sm min-h-[44px] bg-white"
                 >
                   <option value="">All Modes</option>
                   <option value="CASH">Cash</option>
@@ -249,8 +238,8 @@ export default function PaymentsList() {
               </div>
             </div>
 
-            {/* Filter Row 2: Amount Range */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Filter Row 2: Amount Range and Reset */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-1">Min Amount (₹)</label>
                 <input
@@ -260,7 +249,7 @@ export default function PaymentsList() {
                   value={filter.minAmount}
                   onChange={(e) => setFilter({ ...filter, minAmount: e.target.value })}
                   placeholder="e.g., 1000"
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-4 py-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-all hover:border-neutral-400 text-sm min-h-[44px]"
                 />
               </div>
               <div>
@@ -272,8 +261,17 @@ export default function PaymentsList() {
                   value={filter.maxAmount}
                   onChange={(e) => setFilter({ ...filter, maxAmount: e.target.value })}
                   placeholder="e.g., 100000"
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-4 py-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-all hover:border-neutral-400 text-sm min-h-[44px]"
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-1">&nbsp;</label>
+                <button
+                  onClick={resetFilters}
+                  className="w-full px-4 py-2.5 border-2 border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 hover:border-neutral-400 transition-all font-medium text-sm min-h-[44px]"
+                >
+                  Reset Filters
+                </button>
               </div>
             </div>
           </div>

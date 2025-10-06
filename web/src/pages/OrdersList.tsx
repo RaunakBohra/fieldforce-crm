@@ -83,19 +83,19 @@ export function OrdersList() {
       <ContentSection>
         {/* Header */}
         <Card className="border-b border-neutral-200 rounded-none">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold text-neutral-900">Orders</h1>
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+            <div className="flex-1">
+              <h1 className="text-2xl md:text-3xl font-bold text-neutral-900">Orders</h1>
               <p className="mt-1 text-sm text-neutral-600">
                 Manage customer orders
               </p>
             </div>
             <button
               onClick={() => navigate('/orders/new')}
-              className="flex items-center gap-2 px-4 py-2 bg-primary-800 text-white rounded-lg hover:bg-primary-700 transition-colors"
+              className="flex items-center justify-center gap-2 px-4 py-2.5 bg-primary-800 text-white rounded-lg hover:bg-primary-700 hover:shadow-md transition-all min-h-[44px] shadow-sm"
             >
-              <Plus className="w-5 h-5" />
-              Create Order
+              <Plus className="w-5 h-5 flex-shrink-0" />
+              <span className="font-medium">Create Order</span>
             </button>
           </div>
 
@@ -131,22 +131,24 @@ export function OrdersList() {
         </Card>
 
         {/* Filters */}
-        <Card className="mt-6 border border-neutral-200">
-          <h2 className="text-lg font-semibold text-neutral-900 mb-4">Filters</h2>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500"
-          >
-            <option value="ALL">All Status</option>
-            <option value="PENDING">Pending</option>
-            <option value="APPROVED">Approved</option>
-            <option value="PROCESSING">Processing</option>
-            <option value="SHIPPED">Shipped</option>
-            <option value="DELIVERED">Delivered</option>
-            <option value="CANCELLED">Cancelled</option>
-            <option value="REJECTED">Rejected</option>
-          </select>
+        <Card className="mt-6 border border-neutral-200 shadow-sm">
+          <h2 className="text-lg font-semibold text-neutral-900 mb-5">Filters</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-4 py-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-all hover:border-neutral-400 text-sm min-h-[44px] bg-white"
+            >
+              <option value="ALL">All Status</option>
+              <option value="PENDING">Pending</option>
+              <option value="APPROVED">Approved</option>
+              <option value="PROCESSING">Processing</option>
+              <option value="SHIPPED">Shipped</option>
+              <option value="DELIVERED">Delivered</option>
+              <option value="CANCELLED">Cancelled</option>
+              <option value="REJECTED">Rejected</option>
+            </select>
+          </div>
         </Card>
 
         {/* Error */}

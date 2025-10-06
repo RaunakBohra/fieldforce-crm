@@ -95,11 +95,11 @@ export function TerritoriesList() {
       <ContentSection>
         {/* Header */}
         <Card className="border-b border-neutral-200 rounded-none">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-3">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+            <div className="flex-1 flex items-center gap-3">
               <MapPin className="w-8 h-8 text-primary-600" />
               <div>
-                <h1 className="text-3xl font-bold text-neutral-900">Territory Management</h1>
+                <h1 className="text-2xl md:text-3xl font-bold text-neutral-900">Territory Management</h1>
                 <p className="mt-1 text-sm text-neutral-600">
                   Manage territories and geographic regions
                 </p>
@@ -108,34 +108,37 @@ export function TerritoriesList() {
             {currentUser?.role === 'ADMIN' && (
               <button
                 onClick={() => navigate('/territories/new')}
-                className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-500 transition-colors"
+                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 hover:shadow-md transition-all min-h-[44px] shadow-sm"
               >
-                <Plus className="w-4 h-4" />
-                Add Territory
+                <Plus className="w-5 h-5 flex-shrink-0" />
+                <span className="font-medium">Add Territory</span>
               </button>
             )}
           </div>
         </Card>
 
         {/* Filters */}
-        <Card className="mt-6">
-          <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-400" />
-                <input
-                  type="text"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search by name, code, or description..."
-                  className="w-full pl-10 pr-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
-              </div>
+        <Card className="mt-6 border border-neutral-200 shadow-sm">
+          <div className="flex items-center gap-2 mb-5">
+            <MapPin className="w-5 h-5 text-primary-600" />
+            <h2 className="text-lg font-semibold text-neutral-900">Filters</h2>
+          </div>
+
+          <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search by name, code, or description..."
+                className="w-full pl-9 pr-4 py-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-all hover:border-neutral-400 text-sm min-h-[44px]"
+              />
             </div>
             <select
               value={typeFilter}
               onChange={(e) => { setTypeFilter(e.target.value); setPage(1); }}
-              className="px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="px-4 py-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-all hover:border-neutral-400 text-sm min-h-[44px] bg-white"
             >
               <option value="">All Types</option>
               <option value="COUNTRY">Country</option>
@@ -147,7 +150,7 @@ export function TerritoriesList() {
             <select
               value={isActiveFilter}
               onChange={(e) => { setIsActiveFilter(e.target.value); setPage(1); }}
-              className="px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="px-4 py-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-all hover:border-neutral-400 text-sm min-h-[44px] bg-white"
             >
               <option value="">All Status</option>
               <option value="true">Active</option>
@@ -155,7 +158,7 @@ export function TerritoriesList() {
             </select>
             <button
               type="submit"
-              className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-500 transition-colors"
+              className="px-4 py-2.5 border-2 border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 hover:border-neutral-400 transition-all font-medium text-sm min-h-[44px]"
             >
               Search
             </button>

@@ -105,48 +105,64 @@ export function ProductsList() {
       <ContentSection>
         {/* Header */}
         <Card className="border-b border-neutral-200 rounded-none">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold text-neutral-900">Product Catalog</h1>
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+            <div className="flex-1">
+              <h1 className="text-2xl md:text-3xl font-bold text-neutral-900">Product Catalog</h1>
               <p className="mt-1 text-sm text-neutral-600">
                 Browse and select products for orders
               </p>
             </div>
             <button
               onClick={() => navigate('/products/new')}
-              className="flex items-center gap-2 px-4 py-2 bg-primary-800 text-white rounded-lg hover:bg-primary-700 transition-colors"
+              className="flex items-center justify-center gap-2 px-4 py-2.5 bg-primary-800 text-white rounded-lg hover:bg-primary-700 hover:shadow-md transition-all min-h-[44px] shadow-sm"
             >
-              <Plus className="w-5 h-5" />
-              Add Product
+              <Plus className="w-5 h-5 flex-shrink-0" />
+              <span className="font-medium">Add Product</span>
             </button>
           </div>
         </Card>
 
         {/* Filters */}
-        <Card className="mt-6 border border-neutral-200">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400" size={20} />
-            <input
-              type="text"
-              placeholder="Search products..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-neutral-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
+        <Card className="mt-6 border border-neutral-200 shadow-sm">
+          <div className="flex items-center gap-2 mb-5">
+            <Package className="w-5 h-5 text-primary-600" />
+            <h2 className="text-lg font-semibold text-neutral-900">Filters</h2>
           </div>
 
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className="px-4 py-2 border border-neutral-300 rounded-md focus:ring-2 focus:ring-primary-500"
-          >
-            <option value="ALL">All Categories</option>
-            {categories.map((cat) => (
-              <option key={cat} value={cat}>{cat}</option>
-            ))}
-          </select>
-        </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Search products..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-9 pr-4 py-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-all hover:border-neutral-400 text-sm min-h-[44px]"
+              />
+            </div>
+
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="px-4 py-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-all hover:border-neutral-400 text-sm min-h-[44px] bg-white"
+            >
+              <option value="ALL">All Categories</option>
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+
+            <button
+              onClick={() => {
+                setSearchTerm('');
+                setCategoryFilter('ALL');
+                setCurrentPage(1);
+              }}
+              className="px-4 py-2.5 border-2 border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 hover:border-neutral-400 transition-all font-medium text-sm min-h-[44px]"
+            >
+              Reset Filters
+            </button>
+          </div>
         </Card>
 
         {/* Error */}

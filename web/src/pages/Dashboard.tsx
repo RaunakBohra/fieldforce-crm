@@ -347,38 +347,46 @@ export default function Dashboard() {
         {/* Quick Actions */}
         <section className="mt-6">
           <h2 className="text-lg font-semibold text-neutral-900 mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
             <button
               onClick={() => navigate('/visits/new')}
-              className="p-4 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-left"
+              className="p-4 bg-primary-600 text-white rounded-lg hover:bg-primary-700 hover:shadow-lg transition-all text-left shadow-md min-h-[120px] flex flex-col"
             >
-              <MapPin className="w-6 h-6 mb-2" />
-              <p className="font-semibold">Schedule Visit</p>
-              <p className="text-sm text-primary-100">Plan a customer visit</p>
+              <MapPin className="w-6 h-6 mb-3 flex-shrink-0" />
+              <div className="flex-1">
+                <p className="font-semibold text-sm md:text-base mb-1">Schedule Visit</p>
+                <p className="text-xs text-primary-100">Plan a customer visit</p>
+              </div>
             </button>
             <button
               onClick={() => navigate('/orders/new')}
-              className="p-4 bg-warn-600 text-white rounded-lg hover:bg-warn-700 transition-colors text-left"
+              className="p-4 bg-warn-600 text-white rounded-lg hover:bg-warn-700 hover:shadow-lg transition-all text-left shadow-md min-h-[120px] flex flex-col"
             >
-              <ShoppingCart className="w-6 h-6 mb-2" />
-              <p className="font-semibold">Create Order</p>
-              <p className="text-sm text-warn-100">Place a new order</p>
+              <ShoppingCart className="w-6 h-6 mb-3 flex-shrink-0" />
+              <div className="flex-1">
+                <p className="font-semibold text-sm md:text-base mb-1">Create Order</p>
+                <p className="text-xs text-warn-100">Place a new order</p>
+              </div>
             </button>
             <button
               onClick={() => navigate('/payments')}
-              className="p-4 bg-success-600 text-white rounded-lg hover:bg-success-700 transition-colors text-left"
+              className="p-4 bg-success-600 text-white rounded-lg hover:bg-success-700 hover:shadow-lg transition-all text-left shadow-md min-h-[120px] flex flex-col"
             >
-              <CreditCard className="w-6 h-6 mb-2" />
-              <p className="font-semibold">Record Payment</p>
-              <p className="text-sm text-success-100">Add payment record</p>
+              <CreditCard className="w-6 h-6 mb-3 flex-shrink-0" />
+              <div className="flex-1">
+                <p className="font-semibold text-sm md:text-base mb-1">Record Payment</p>
+                <p className="text-xs text-success-100">Add payment record</p>
+              </div>
             </button>
             <button
               onClick={() => navigate('/contacts/new')}
-              className="p-4 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-left"
+              className="p-4 bg-primary-600 text-white rounded-lg hover:bg-primary-700 hover:shadow-lg transition-all text-left shadow-md min-h-[120px] flex flex-col"
             >
-              <Users className="w-6 h-6 mb-2" />
-              <p className="font-semibold">Add Contact</p>
-              <p className="text-sm text-primary-100">Create new contact</p>
+              <Users className="w-6 h-6 mb-3 flex-shrink-0" />
+              <div className="flex-1">
+                <p className="font-semibold text-sm md:text-base mb-1">Add Contact</p>
+                <p className="text-xs text-primary-100">Create new contact</p>
+              </div>
             </button>
           </div>
         </section>

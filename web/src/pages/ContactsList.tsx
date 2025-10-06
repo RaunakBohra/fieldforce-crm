@@ -99,19 +99,19 @@ export function ContactsList() {
       <ContentSection>
         {/* Header */}
         <Card className="border-b border-neutral-200 rounded-none">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold text-neutral-900">Contacts</h1>
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+            <div className="flex-1">
+              <h1 className="text-2xl md:text-3xl font-bold text-neutral-900">Contacts</h1>
               <p className="mt-1 text-sm text-neutral-600">
                 Manage your distribution and medical contacts
               </p>
             </div>
             <button
               onClick={() => navigate('/contacts/new')}
-              className="flex items-center gap-2 px-4 py-2 bg-primary-800 text-white rounded-lg hover:bg-primary-700 transition-colors"
+              className="flex items-center justify-center gap-2 px-4 py-2.5 bg-primary-800 text-white rounded-lg hover:bg-primary-700 hover:shadow-md transition-all min-h-[44px] shadow-sm"
             >
-              <Plus className="w-5 h-5" />
-              Add Contact
+              <Plus className="w-5 h-5 flex-shrink-0" />
+              <span className="font-medium">Add Contact</span>
             </button>
           </div>
 
@@ -139,22 +139,22 @@ export function ContactsList() {
         </Card>
 
         {/* Filters */}
-        <Card className="mt-6 border border-neutral-200">
-          <div className="flex items-center gap-2 mb-4">
-            <Filter className="w-5 h-5 text-neutral-600" />
+        <Card className="mt-6 border border-neutral-200 shadow-sm">
+          <div className="flex items-center gap-2 mb-5">
+            <Filter className="w-5 h-5 text-primary-600" />
             <h2 className="text-lg font-semibold text-neutral-900">Filters</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
             {/* Search */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" />
               <input
                 type="text"
                 placeholder="Search contacts..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-800 focus:border-transparent"
+                className="w-full pl-9 pr-4 py-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-all hover:border-neutral-400 text-sm min-h-[44px]"
               />
             </div>
 
@@ -162,7 +162,7 @@ export function ContactsList() {
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value as any)}
-              className="px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-800 focus:border-transparent"
+              className="px-4 py-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-all hover:border-neutral-400 text-sm min-h-[44px] bg-white"
             >
               <option value="ALL">All Categories</option>
               <option value="DISTRIBUTION">Distribution</option>
@@ -175,13 +175,13 @@ export function ContactsList() {
               placeholder="Filter by city..."
               value={cityFilter}
               onChange={(e) => setCityFilter(e.target.value)}
-              className="px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-800 focus:border-transparent"
+              className="px-4 py-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-all hover:border-neutral-400 text-sm min-h-[44px]"
             />
 
             {/* Reset */}
             <button
               onClick={resetFilters}
-              className="px-4 py-2 border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 transition-colors"
+              className="px-4 py-2.5 border-2 border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 hover:border-neutral-400 transition-all font-medium text-sm min-h-[44px]"
             >
               Reset Filters
             </button>
