@@ -52,8 +52,17 @@ app.use('/*', securityHeaders);
 app.use(
   '/*',
   cors({
-    origin: ['http://localhost:3000', 'http://localhost:5173'],
+    origin: [
+      'http://localhost:3000',
+      'http://localhost:5173',
+      'https://crm.raunakbohra.com',
+      'https://fieldforce-crm.pages.dev',
+    ],
     credentials: true,
+    allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowHeaders: ['Content-Type', 'Authorization'],
+    exposeHeaders: ['Content-Length', 'X-Request-Id'],
+    maxAge: 86400,
   })
 );
 
