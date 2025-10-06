@@ -347,4 +347,143 @@ analytics.get('/payment-modes', async (c) => {
   }
 });
 
+/**
+ * GET /api/analytics/territory-performance
+ * Get performance metrics grouped by territory
+ * Returns: territories with order count, revenue, visit count, contact count
+ * Query params: startDate, endDate (optional)
+ */
+analytics.get('/territory-performance', async (c) => {
+  const deps = c.get('deps');
+  const user = c.get('user');
+
+  try {
+    logger.info('Get territory performance request', getLogContext(c));
+
+    // Parse date range from query params
+    const startDateParam = c.req.query('startDate');
+    const endDateParam = c.req.query('endDate');
+
+    const endDate = endDateParam ? new Date(endDateParam) : new Date();
+    const startDate = startDateParam ? new Date(startDateParam) : new Date(endDate.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    // Get all active territories
+    const territories = await deps.prisma.territory.findMany({
+      where: {
+        isActive: true,
+      },
+      select: {
+        id: true,
+        name: true,
+        code: true,
+        type: true,
+      },
+      orderBy: {
+        name: 'asc',
+      },
+    });
+
+    // For each territory, get performance metrics
+    const performanceData = await Promise.all(
+      territories.map(async (territory) => {
+        // Count contacts in this territory
+        const contactCount = await deps.prisma.contact.count({
+          where: {
+            territoryId: territory.id,
+            isActive: true,
+          },
+        });
+
+        // Get orders from contacts in this territory
+        const orders = await deps.prisma.order.findMany({
+          where: {
+            contact: {
+              territoryId: territory.id,
+            },
+            createdAt: {
+              gte: startDate,
+              lte: endDate,
+            },
+          },
+          select: {
+            totalAmount: true,
+            status: true,
+          },
+        });
+
+        // Calculate order metrics
+        const orderCount = orders.length;
+        const totalRevenue = orders.reduce((sum, order) => sum + Number(order.totalAmount), 0);
+        const deliveredOrders = orders.filter(o => o.status === 'DELIVERED').length;
+
+        // Get visits to contacts in this territory
+        const visitCount = await deps.prisma.visit.count({
+          where: {
+            contact: {
+              territoryId: territory.id,
+            },
+            createdAt: {
+              gte: startDate,
+              lte: endDate,
+            },
+          },
+        });
+
+        return {
+          territoryId: territory.id,
+          territoryName: territory.name,
+          territoryCode: territory.code,
+          territoryType: territory.type,
+          contactCount,
+          orderCount,
+          deliveredOrders,
+          totalRevenue,
+          visitCount,
+        };
+      })
+    );
+
+    // Sort by total revenue (descending)
+    performanceData.sort((a, b) => b.totalRevenue - a.totalRevenue);
+
+    // Calculate totals
+    const totals = performanceData.reduce(
+      (acc, item) => ({
+        contacts: acc.contacts + item.contactCount,
+        orders: acc.orders + item.orderCount,
+        revenue: acc.revenue + item.totalRevenue,
+        visits: acc.visits + item.visitCount,
+      }),
+      { contacts: 0, orders: 0, revenue: 0, visits: 0 }
+    );
+
+    logger.info('Territory performance retrieved successfully', {
+      ...getLogContext(c),
+      territoryCount: performanceData.length,
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+    });
+
+    return c.json({
+      success: true,
+      data: {
+        territories: performanceData,
+        totals,
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+      },
+    });
+  } catch (error: any) {
+    logger.error('Get territory performance error', {
+      ...getLogContext(c),
+      error: error.message,
+      stack: error.stack,
+    });
+    return c.json({
+      success: false,
+      error: error.message || 'Failed to fetch territory performance',
+    }, 500);
+  }
+});
+
 export default analytics;
