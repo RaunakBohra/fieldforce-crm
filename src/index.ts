@@ -75,7 +75,10 @@ app.use('/*', async (c, next) => {
 
 // CSRF protection middleware (after dependency injection)
 // Protects against Cross-Site Request Forgery attacks
-app.use('/api/*', csrfProtection);
+// Note: Auth endpoints (/api/auth/*) are exempt as they're public and don't have CSRF tokens
+app.use('/api/contacts/*', csrfProtection);
+app.use('/api/visits/*', csrfProtection);
+// Add other protected routes here as needed
 
 /**
  * Public Routes
