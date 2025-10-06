@@ -59,6 +59,14 @@ export function Navigation() {
               >
                 Analytics
               </button>
+              {user?.role === 'ADMIN' && (
+                <button
+                  onClick={() => navigate('/users')}
+                  className="hover:bg-primary-700 px-3 py-2 rounded-lg transition-colors"
+                >
+                  Users
+                </button>
+              )}
             </nav>
           </div>
           <div className="flex items-center space-x-4">

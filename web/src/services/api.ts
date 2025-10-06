@@ -361,6 +361,195 @@ export interface CreatePaymentData {
   notes?: string;
 }
 
+export interface PaymentListResponse {
+  payments: (Payment & {
+    order?: {
+      orderNumber: string;
+      contact: { name: string };
+    };
+  })[];
+  pagination: {
+    totalPages: number;
+    currentPage: number;
+    totalCount: number;
+  };
+}
+
+export interface PaymentStats {
+  totalPayments: number;
+  totalAmount: number;
+  averagePayment: string;
+  paymentModes: Record<string, number>;
+  totalOutstanding: number;
+  outstandingCount: number;
+}
+
+export interface PaymentQueryParams {
+  page?: number;
+  limit?: number;
+  paymentMode?: string;
+  startDate?: string;
+  endDate?: string;
+  minAmount?: string;
+  maxAmount?: string;
+  search?: string;
+}
+
+export interface PendingOrder {
+  id: string;
+  orderNumber: string;
+  contact: { name: string; phone?: string };
+  totalAmount: number;
+  totalPaid: number;
+  pendingAmount: number;
+  daysPending: number;
+  createdAt: string;
+}
+
+export interface PendingPaymentsResponse {
+  pendingOrders: PendingOrder[];
+}
+
+// Dashboard Types
+export interface DashboardStats {
+  visits: {
+    today: number;
+    thisWeek: number;
+    thisMonth: number;
+  };
+  orders: {
+    total: number;
+    pending: number;
+    approved: number;
+    delivered: number;
+    cancelled: number;
+  };
+  revenue: {
+    total: number;
+    collected: number;
+    outstanding: number;
+  };
+  payments: {
+    total: number;
+    collected: number;
+    outstanding: number;
+  };
+}
+
+export interface DashboardActivity {
+  id: string;
+  type: 'visit' | 'order' | 'payment';
+  title: string;
+  status?: string;
+  amount?: number;
+  paymentMode?: string;
+  contactName?: string;
+  timestamp: string;
+}
+
+export interface DashboardActivitiesResponse {
+  activities: DashboardActivity[];
+}
+
+export interface TopPerformer {
+  userId: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+  } | null;
+  totalRevenue: number;
+  totalOrders: number;
+}
+
+export interface TopPerformersResponse {
+  performers: TopPerformer[];
+  period: string;
+  startDate: string;
+}
+
+// User Management Types
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  role: 'ADMIN' | 'MANAGER' | 'FIELD_REP';
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UserListResponse {
+  users: User[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export interface CreateUserData {
+  name: string;
+  email: string;
+  password: string;
+  phone?: string;
+  role: 'ADMIN' | 'MANAGER' | 'FIELD_REP';
+}
+
+export interface UpdateUserData {
+  name?: string;
+  email?: string;
+  password?: string;
+  phone?: string;
+  role?: 'ADMIN' | 'MANAGER' | 'FIELD_REP';
+  isActive?: boolean;
+}
+
+// Analytics Types
+export interface VisitTrend {
+  date: string;
+  total: number;
+  completed: number;
+  cancelled: number;
+}
+
+export interface VisitTrendsResponse {
+  trends: VisitTrend[];
+  startDate: string;
+  endDate: string;
+}
+
+export interface RevenueData {
+  date: string;
+  totalOrders: number;
+  deliveredOrders: number;
+  totalRevenue: number;
+  deliveredRevenue: number;
+}
+
+export interface RevenueDataResponse {
+  trends: RevenueData[];
+  startDate: string;
+  endDate: string;
+}
+
+export interface PaymentModeData {
+  mode: string;
+  total: number;
+  count: number;
+  percentage: number;
+}
+
+export interface PaymentModesResponse {
+  paymentModes: PaymentModeData[];
+  grandTotal: number;
+  startDate: string;
+  endDate: string;
+}
+
 class ApiService {
   private async getHeaders(includeAuth: boolean = false, includeCsrf: boolean = false): Promise<HeadersInit> {
     const headers: HeadersInit = {
@@ -879,6 +1068,291 @@ class ApiService {
       });
 
       return this.handleResponse<Payment>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  async getPayments(params?: PaymentQueryParams): Promise<ApiResponse<PaymentListResponse>> {
+    try {
+      const queryParams = new URLSearchParams();
+      if (params?.page) queryParams.append('page', params.page.toString());
+      if (params?.limit) queryParams.append('limit', params.limit.toString());
+      if (params?.paymentMode) queryParams.append('paymentMode', params.paymentMode);
+      if (params?.startDate) queryParams.append('startDate', params.startDate);
+      if (params?.endDate) queryParams.append('endDate', params.endDate);
+      if (params?.minAmount) queryParams.append('minAmount', params.minAmount);
+      if (params?.maxAmount) queryParams.append('maxAmount', params.maxAmount);
+      if (params?.search) queryParams.append('search', params.search);
+
+      const response = await fetch(`${API_URL}/api/payments?${queryParams}`, {
+        method: 'GET',
+        headers: await this.getHeaders(true),
+        credentials: 'include',
+      });
+
+      return this.handleResponse<PaymentListResponse>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  async getPaymentStats(params?: { startDate?: string; endDate?: string }): Promise<ApiResponse<PaymentStats>> {
+    try {
+      const queryParams = new URLSearchParams();
+      if (params?.startDate) queryParams.append('startDate', params.startDate);
+      if (params?.endDate) queryParams.append('endDate', params.endDate);
+
+      const response = await fetch(`${API_URL}/api/payments/stats?${queryParams}`, {
+        method: 'GET',
+        headers: await this.getHeaders(true),
+        credentials: 'include',
+      });
+
+      return this.handleResponse<PaymentStats>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  async getPendingPayments(): Promise<ApiResponse<PendingPaymentsResponse>> {
+    try {
+      const response = await fetch(`${API_URL}/api/payments/pending`, {
+        method: 'GET',
+        headers: await this.getHeaders(true),
+        credentials: 'include',
+      });
+
+      return this.handleResponse<PendingPaymentsResponse>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  // Dashboard Management
+  async getDashboardStats(): Promise<ApiResponse<DashboardStats>> {
+    try {
+      const response = await fetch(`${API_URL}/api/dashboard/stats`, {
+        method: 'GET',
+        headers: await this.getHeaders(true),
+        credentials: 'include',
+      });
+
+      return this.handleResponse<DashboardStats>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  async getRecentActivity(): Promise<ApiResponse<DashboardActivitiesResponse>> {
+    try {
+      const response = await fetch(`${API_URL}/api/dashboard/recent-activity`, {
+        method: 'GET',
+        headers: await this.getHeaders(true),
+        credentials: 'include',
+      });
+
+      return this.handleResponse<DashboardActivitiesResponse>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  async getTopPerformers(): Promise<ApiResponse<TopPerformersResponse>> {
+    try {
+      const response = await fetch(`${API_URL}/api/dashboard/top-performers`, {
+        method: 'GET',
+        headers: await this.getHeaders(true),
+        credentials: 'include',
+      });
+
+      return this.handleResponse<TopPerformersResponse>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  // Analytics Management
+  async getVisitTrends(startDate?: string, endDate?: string): Promise<ApiResponse<VisitTrendsResponse>> {
+    try {
+      const params = new URLSearchParams();
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+
+      const queryString = params.toString() ? `?${params.toString()}` : '';
+
+      const response = await fetch(`${API_URL}/api/analytics/visit-trends${queryString}`, {
+        method: 'GET',
+        headers: await this.getHeaders(true),
+        credentials: 'include',
+      });
+
+      return this.handleResponse<VisitTrendsResponse>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  async getOrdersRevenue(startDate?: string, endDate?: string): Promise<ApiResponse<RevenueDataResponse>> {
+    try {
+      const params = new URLSearchParams();
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+
+      const queryString = params.toString() ? `?${params.toString()}` : '';
+
+      const response = await fetch(`${API_URL}/api/analytics/orders-revenue${queryString}`, {
+        method: 'GET',
+        headers: await this.getHeaders(true),
+        credentials: 'include',
+      });
+
+      return this.handleResponse<RevenueDataResponse>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  async getPaymentModes(startDate?: string, endDate?: string): Promise<ApiResponse<PaymentModesResponse>> {
+    try {
+      const params = new URLSearchParams();
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+
+      const queryString = params.toString() ? `?${params.toString()}` : '';
+
+      const response = await fetch(`${API_URL}/api/analytics/payment-modes${queryString}`, {
+        method: 'GET',
+        headers: await this.getHeaders(true),
+        credentials: 'include',
+      });
+
+      return this.handleResponse<PaymentModesResponse>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  // User Management
+  async getUsers(params?: {
+    page?: number;
+    limit?: number;
+    role?: string;
+    search?: string;
+    status?: string;
+  }): Promise<ApiResponse<UserListResponse>> {
+    try {
+      const queryString = params ? '?' + new URLSearchParams(
+        Object.entries(params)
+          .filter(([, value]) => value !== undefined)
+          .map(([key, value]) => [key, String(value)])
+      ).toString() : '';
+
+      const response = await fetch(`${API_URL}/api/users${queryString}`, {
+        headers: await this.getHeaders(true),
+        credentials: 'include',
+      });
+
+      return this.handleResponse<UserListResponse>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  async getUser(id: string): Promise<ApiResponse<{ user: User }>> {
+    try {
+      const response = await fetch(`${API_URL}/api/users/${id}`, {
+        headers: await this.getHeaders(true),
+        credentials: 'include',
+      });
+
+      return this.handleResponse<{ user: User }>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  async createUser(data: CreateUserData): Promise<ApiResponse<{ user: User }>> {
+    try {
+      const response = await fetch(`${API_URL}/api/users`, {
+        method: 'POST',
+        headers: await this.getHeaders(true),
+        credentials: 'include',
+        body: JSON.stringify(data),
+      });
+
+      return this.handleResponse<{ user: User }>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  async updateUser(id: string, data: UpdateUserData): Promise<ApiResponse<{ user: User }>> {
+    try {
+      const response = await fetch(`${API_URL}/api/users/${id}`, {
+        method: 'PUT',
+        headers: await this.getHeaders(true),
+        credentials: 'include',
+        body: JSON.stringify(data),
+      });
+
+      return this.handleResponse<{ user: User }>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  async deactivateUser(id: string): Promise<ApiResponse<void>> {
+    try {
+      const response = await fetch(`${API_URL}/api/users/${id}`, {
+        method: 'DELETE',
+        headers: await this.getHeaders(true),
+        credentials: 'include',
+      });
+
+      return this.handleResponse<void>(response);
     } catch (error) {
       if (error instanceof TypeError && error.message.includes('fetch')) {
         throw new Error('Network error: Unable to connect to server');
