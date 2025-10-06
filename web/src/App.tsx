@@ -7,7 +7,7 @@ import Dashboard from './pages/Dashboard';
 import ThemePreview from './pages/ThemePreview';
 import { ContactsList } from './pages/ContactsList';
 import { ContactForm } from './pages/ContactForm';
-import { ReactElement } from 'react';
+import type { ReactElement } from 'react';
 
 function PrivateRoute({ children }: { children: ReactElement }) {
   const { user, loading } = useAuth();

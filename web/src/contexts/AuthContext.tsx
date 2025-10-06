@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
+import type { ReactNode } from 'react';
 import { api, type User } from '../services/api';
 
 interface AuthContextType {
@@ -41,24 +42,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     initAuth();
   }, []);
-
-  const loadUser = async () => {
-    try {
-      const response = await api.getCurrentUser();
-      if (response.success && response.data) {
-        setUser(response.data);
-      } else {
-        localStorage.removeItem('token');
-        setToken(null);
-      }
-    } catch (error) {
-      console.error('Failed to load user:', error);
-      localStorage.removeItem('token');
-      setToken(null);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const login = async (email: string, password: string) => {
     const response = await api.login({ email, password });

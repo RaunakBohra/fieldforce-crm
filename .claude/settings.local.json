@@ -51,7 +51,14 @@
       "Bash(npx tsc:*)",
       "Read(//Users/raunakbohra/Desktop/**)",
       "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_EK1XpFYRye6M@ep-ancient-art-a1aag2jx-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require\" npx prisma migrate dev --name add_composite_indexes)",
-      "Bash(openssl rand:*)"
+      "Bash(openssl rand:*)",
+      "Bash(npx wrangler pages deploy:*)",
+      "Bash(CLOUDFLARE_ACCOUNT_ID=610762493d34333f1a6d72a037b345cf npx wrangler pages deploy dist --project-name=fieldforce-crm)",
+      "Bash(CLOUDFLARE_ACCOUNT_ID=610762493d34333f1a6d72a037b345cf npx wrangler pages project create fieldforce-crm --production-branch=main)",
+      "Bash(CLOUDFLARE_ACCOUNT_ID=610762493d34333f1a6d72a037b345cf npx wrangler pages deploy dist --project-name=fieldforce-crm --commit-dirty=true)",
+      "Bash(CLOUDFLARE_ACCOUNT_ID=610762493d34333f1a6d72a037b345cf npx wrangler pages deploy web/dist --project-name=fieldforce-crm --commit-dirty=true)",
+      "Bash(CLOUDFLARE_ACCOUNT_ID=610762493d34333f1a6d72a037b345cf npx wrangler pages deploy /Users/raunakbohra/Desktop/medical-CRM/web/dist --project-name=fieldforce-crm --commit-dirty=true)",
+      "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_EK1XpFYRye6M@ep-ancient-art-a1aag2jx-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require\" npx prisma migrate deploy)"
     ],
     "deny": [],
     "ask": []
