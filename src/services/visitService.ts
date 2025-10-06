@@ -107,7 +107,7 @@ export class VisitService {
       // Update contact's lastVisitDate if visit is completed
       if (visit.status === 'COMPLETED') {
         await this.prisma.contact.update({
-          where: { id: contact.id },
+          where: { id: visit.contactId },
           data: { lastVisitDate: visit.visitDate },
         });
       }
@@ -115,7 +115,7 @@ export class VisitService {
       // Update contact's nextVisitDate if provided
       if (visit.nextVisitDate) {
         await this.prisma.contact.update({
-          where: { id: contact.id },
+          where: { id: visit.contactId },
           data: { nextVisitDate: visit.nextVisitDate },
         });
       }
