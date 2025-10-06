@@ -97,8 +97,8 @@ export function Navigation() {
                   onClick={() => navigate(item.path)}
                   className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all text-sm font-medium ${
                     active
-                      ? 'bg-primary-600 text-white'
-                      : 'hover:bg-primary-700 text-primary-50'
+                      ? 'bg-white text-primary-800 shadow-md'
+                      : 'text-white hover:bg-primary-700'
                   }`}
                 >
                   <Icon className="w-4 h-4" />
@@ -113,8 +113,8 @@ export function Navigation() {
                 onClick={() => setMoreOpen(!moreOpen)}
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all text-sm font-medium ${
                   isActive('/products') || isActive('/payments') || isActive('/analytics') || isActive('/reports') || isActive('/territories') || isActive('/users')
-                    ? 'bg-primary-600 text-white'
-                    : 'hover:bg-primary-700 text-primary-50'
+                    ? 'bg-white text-primary-800 shadow-md'
+                    : 'text-white hover:bg-primary-700'
                 }`}
               >
                 <MoreHorizontal className="w-4 h-4" />
@@ -226,8 +226,8 @@ export function Navigation() {
                         onClick={() => handleNavigate(item.path)}
                         className={`flex flex-col items-center gap-2 p-3 rounded-lg transition-all min-h-[80px] ${
                           active
-                            ? 'bg-primary-600 text-white'
-                            : 'bg-primary-700/50 hover:bg-primary-700 text-primary-50'
+                            ? 'bg-white text-primary-800 shadow-md'
+                            : 'bg-primary-700/50 hover:bg-primary-700 text-white'
                         }`}
                       >
                         <Icon className="w-5 h-5" />
@@ -248,8 +248,8 @@ export function Navigation() {
                     onClick={() => handleNavigate('/analytics')}
                     className={`flex flex-col items-center gap-2 p-3 rounded-lg transition-all min-h-[80px] ${
                       isActive('/analytics')
-                        ? 'bg-primary-600 text-white'
-                        : 'bg-primary-700/50 hover:bg-primary-700 text-primary-50'
+                        ? 'bg-white text-primary-800 shadow-md'
+                        : 'bg-primary-700/50 hover:bg-primary-700 text-white'
                     }`}
                   >
                     <TrendingUp className="w-5 h-5" />
@@ -259,8 +259,8 @@ export function Navigation() {
                     onClick={() => handleNavigate('/reports')}
                     className={`flex flex-col items-center gap-2 p-3 rounded-lg transition-all min-h-[80px] ${
                       isActive('/reports')
-                        ? 'bg-primary-600 text-white'
-                        : 'bg-primary-700/50 hover:bg-primary-700 text-primary-50'
+                        ? 'bg-white text-primary-800 shadow-md'
+                        : 'bg-primary-700/50 hover:bg-primary-700 text-white'
                     }`}
                   >
                     <FileText className="w-5 h-5" />
@@ -280,8 +280,8 @@ export function Navigation() {
                       onClick={() => handleNavigate('/territories')}
                       className={`flex flex-col items-center gap-2 p-3 rounded-lg transition-all min-h-[80px] ${
                         isActive('/territories')
-                          ? 'bg-primary-600 text-white'
-                          : 'bg-primary-700/50 hover:bg-primary-700 text-primary-50'
+                          ? 'bg-white text-primary-800 shadow-md'
+                          : 'bg-primary-700/50 hover:bg-primary-700 text-white'
                       }`}
                     >
                       <MapIcon className="w-5 h-5" />
@@ -292,8 +292,8 @@ export function Navigation() {
                         onClick={() => handleNavigate('/users')}
                         className={`flex flex-col items-center gap-2 p-3 rounded-lg transition-all min-h-[80px] ${
                           isActive('/users')
-                            ? 'bg-primary-600 text-white'
-                            : 'bg-primary-700/50 hover:bg-primary-700 text-primary-50'
+                            ? 'bg-white text-primary-800 shadow-md'
+                            : 'bg-primary-700/50 hover:bg-primary-700 text-white'
                         }`}
                       >
                         <Users className="w-5 h-5" />
