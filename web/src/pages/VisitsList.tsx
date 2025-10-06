@@ -125,7 +125,7 @@ export function VisitsList() {
       PARTIAL: 'bg-yellow-100 text-yellow-800',
       UNSUCCESSFUL: 'bg-red-100 text-red-800',
       FOLLOW_UP_NEEDED: 'bg-orange-100 text-orange-800',
-      ORDER_PLACED: 'bg-teal-100 text-teal-800',
+      ORDER_PLACED: 'bg-green-100 text-green-800',
       SAMPLE_GIVEN: 'bg-purple-100 text-purple-800',
       INFORMATION_ONLY: 'bg-blue-100 text-blue-800',
     };
@@ -146,7 +146,7 @@ export function VisitsList() {
             </div>
             <button
               onClick={() => navigate('/visits/new')}
-              className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-primary-800 text-white rounded-lg hover:bg-primary-700 transition-colors"
             >
               <Plus className="w-5 h-5" />
               Add Visit
@@ -189,7 +189,7 @@ export function VisitsList() {
                 placeholder="Search visits..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
             </div>
 
@@ -197,7 +197,7 @@ export function VisitsList() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              className="px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             >
               <option value="ALL">All Status</option>
               <option value="PLANNED">Planned</option>
@@ -212,7 +212,7 @@ export function VisitsList() {
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              className="px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              className="px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             >
               <option value="ALL">All Types</option>
               <option value="FIELD_VISIT">Field Visit</option>
@@ -228,7 +228,7 @@ export function VisitsList() {
             <select
               value={outcomeFilter}
               onChange={(e) => setOutcomeFilter(e.target.value)}
-              className="px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              className="px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             >
               <option value="ALL">All Outcomes</option>
               <option value="SUCCESSFUL">Successful</option>
@@ -257,7 +257,7 @@ export function VisitsList() {
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                className="px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
             </div>
             <span className="text-neutral-600">to</span>
@@ -275,7 +275,7 @@ export function VisitsList() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {loading ? (
           <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
             <p className="mt-2 text-neutral-600">Loading visits...</p>
           </div>
         ) : error ? (
@@ -287,7 +287,7 @@ export function VisitsList() {
             <p className="text-neutral-600">No visits found</p>
             <button
               onClick={() => navigate('/visits/new')}
-              className="mt-4 text-teal-600 hover:text-teal-700"
+              className="mt-4 text-primary-600 hover:text-primary-700"
             >
               Add your first visit
             </button>
@@ -369,7 +369,7 @@ export function VisitsList() {
                         <div className="flex justify-end gap-2">
                           <button
                             onClick={() => navigate(`/visits/${visit.id}`)}
-                            className="text-teal-600 hover:text-teal-900"
+                            className="text-primary-600 hover:text-primary-900"
                             title="View details"
                           >
                             <Eye className="w-5 h-5" />

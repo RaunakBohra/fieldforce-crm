@@ -127,9 +127,9 @@ export default function Dashboard() {
             >
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-lg font-semibold text-neutral-900">Visits</h3>
-                <CheckCircle2 className="w-6 h-6 text-teal-600" />
+                <CheckCircle2 className="w-6 h-6 text-green-600" />
               </div>
-              <p className="text-3xl font-bold text-teal-600" aria-label="Visit count">
+              <p className="text-3xl font-bold text-green-600" aria-label="Visit count">
                 {visitStats?.completedVisits ?? 0}
               </p>
               {visitStats && (

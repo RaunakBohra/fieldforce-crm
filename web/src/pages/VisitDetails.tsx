@@ -94,7 +94,7 @@ export function VisitDetails() {
       PARTIAL: 'bg-yellow-100 text-yellow-800 border-yellow-200',
       UNSUCCESSFUL: 'bg-red-100 text-red-800 border-red-200',
       FOLLOW_UP_NEEDED: 'bg-orange-100 text-orange-800 border-orange-200',
-      ORDER_PLACED: 'bg-teal-100 text-teal-800 border-teal-200',
+      ORDER_PLACED: 'bg-green-100 text-green-800 border-green-200',
       SAMPLE_GIVEN: 'bg-purple-100 text-purple-800 border-purple-200',
       INFORMATION_ONLY: 'bg-blue-100 text-blue-800 border-blue-200',
     };
@@ -121,7 +121,7 @@ export function VisitDetails() {
           </div>
           <button
             onClick={() => navigate('/visits')}
-            className="mt-4 text-teal-600 hover:text-teal-700"
+            className="mt-4 text-primary-600 hover:text-primary-700"
           >
             ← Back to Visits
           </button>
@@ -262,7 +262,7 @@ export function VisitDetails() {
                   {visit.products.map((product, index) => (
                     <span
                       key={index}
-                      className="px-3 py-1 bg-teal-50 text-teal-700 rounded-full text-sm"
+                      className="px-3 py-1 bg-primary-50 text-primary-700 rounded-full text-sm"
                     >
                       {product}
                     </span>
@@ -320,7 +320,7 @@ export function VisitDetails() {
                       <Phone className="w-5 h-5 text-neutral-400 mt-0.5" />
                       <a
                         href={`tel:${visit.contact.phone}`}
-                        className="text-neutral-900 hover:text-teal-600"
+                        className="text-neutral-900 hover:text-primary-600"
                       >
                         {visit.contact.phone}
                       </a>
@@ -332,7 +332,7 @@ export function VisitDetails() {
                       <Mail className="w-5 h-5 text-neutral-400 mt-0.5" />
                       <a
                         href={`mailto:${visit.contact.email}`}
-                        className="text-neutral-900 hover:text-teal-600"
+                        className="text-neutral-900 hover:text-primary-600"
                       >
                         {visit.contact.email}
                       </a>

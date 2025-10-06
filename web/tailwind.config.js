@@ -34,27 +34,6 @@ export default {
           700: '#374151',  // gray-700
           800: '#1f2937',  // gray-800
           900: '#111827',  // gray-900 - text primary
-        },
-        teal: {
-          50: '#f0fdfa',   // teal-50 - lightest teal
-          100: '#ccfbf1',  // teal-100
-          200: '#99f6e4',  // teal-200
-          300: '#5eead4',  // teal-300
-          400: '#2dd4bf',  // teal-400
-          500: '#14b8a6',  // teal-500
-          600: '#0d9488',  // teal-600 - primary teal
-          700: '#0f766e',  // teal-700
-          800: '#115e59',  // teal-800
-          900: '#134e4a',  // teal-900
-        },
-        amber: {
-          50: '#fffbeb',   // amber-50
-          100: '#fef3c7',  // amber-100
-          200: '#fde68a',  // amber-200
-          600: '#d97706',  // amber-600
-          700: '#b45309',  // amber-700
-          800: '#92400e',  // amber-800
-          900: '#78350f',  // amber-900
         }
       }
     },

@@ -176,7 +176,7 @@ export function VisitForm() {
                 required
                 value={formData.contactId}
                 onChange={(e) => setFormData({ ...formData, contactId: e.target.value })}
-                className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
                 <option value="">Select a contact</option>
                 {contacts.map((contact) => (
@@ -197,7 +197,7 @@ export function VisitForm() {
                   type="datetime-local"
                   value={formData.visitDate}
                   onChange={(e) => setFormData({ ...formData, visitDate: e.target.value })}
-                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
               </div>
 
@@ -213,7 +213,7 @@ export function VisitForm() {
                   value={formData.duration || ''}
                   onChange={(e) => setFormData({ ...formData, duration: e.target.value ? parseInt(e.target.value) : undefined })}
                   placeholder="e.g., 30"
-                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
               </div>
 
@@ -225,7 +225,7 @@ export function VisitForm() {
                 <select
                   value={formData.visitType}
                   onChange={(e) => setFormData({ ...formData, visitType: e.target.value as any })}
-                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 >
                   <option value="FIELD_VISIT">Field Visit</option>
                   <option value="FOLLOW_UP">Follow Up</option>
@@ -245,7 +245,7 @@ export function VisitForm() {
                 <select
                   value={formData.status}
                   onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 >
                   <option value="PLANNED">Planned</option>
                   <option value="IN_PROGRESS">In Progress</option>
@@ -264,7 +264,7 @@ export function VisitForm() {
                 <select
                   value={formData.outcome}
                   onChange={(e) => setFormData({ ...formData, outcome: e.target.value as any })}
-                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 >
                   <option value="SUCCESSFUL">Successful</option>
                   <option value="PARTIAL">Partial</option>
@@ -287,7 +287,7 @@ export function VisitForm() {
                   type="button"
                   onClick={captureLocation}
                   disabled={fetchingLocation}
-                  className="flex items-center gap-2 px-3 py-1.5 text-sm bg-teal-600 text-white rounded-md hover:bg-teal-700 disabled:opacity-50"
+                  className="flex items-center gap-2 px-3 py-1.5 text-sm bg-primary-600 text-white rounded-md hover:bg-primary-700 disabled:opacity-50"
                 >
                   {fetchingLocation ? (
                     <>
@@ -304,7 +304,7 @@ export function VisitForm() {
               </div>
 
               {formData.latitude && formData.longitude && (
-                <div className="flex items-center gap-2 text-sm text-teal-700 bg-teal-50 px-3 py-2 rounded">
+                <div className="flex items-center gap-2 text-sm text-primary-700 bg-primary-50 px-3 py-2 rounded">
                   <MapPin className="w-4 h-4" />
                   <span>
                     {formData.latitude.toFixed(6)}, {formData.longitude.toFixed(6)}
@@ -318,7 +318,7 @@ export function VisitForm() {
                   value={formData.locationName || ''}
                   onChange={(e) => setFormData({ ...formData, locationName: e.target.value })}
                   placeholder="Location name (e.g., Hospital Name, Clinic Address)"
-                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
               </div>
             </div>
@@ -334,7 +334,7 @@ export function VisitForm() {
                 onChange={(e) => setFormData({ ...formData, purpose: e.target.value })}
                 placeholder="Brief purpose of visit"
                 maxLength={500}
-                className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
             </div>
 
@@ -349,7 +349,7 @@ export function VisitForm() {
                 rows={4}
                 maxLength={2000}
                 placeholder="Detailed notes about the visit..."
-                className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
             </div>
 
@@ -363,7 +363,7 @@ export function VisitForm() {
                 value={productsInput}
                 onChange={(e) => setProductsInput(e.target.value)}
                 placeholder="Product 1, Product 2, Product 3"
-                className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
               <p className="mt-1 text-xs text-neutral-500">
                 Separate multiple products with commas
@@ -378,7 +378,7 @@ export function VisitForm() {
                   id="followUpRequired"
                   checked={formData.followUpRequired}
                   onChange={(e) => setFormData({ ...formData, followUpRequired: e.target.checked })}
-                  className="h-4 w-4 text-teal-600 focus:ring-teal-500 border-neutral-300 rounded"
+                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-neutral-300 rounded"
                 />
                 <label htmlFor="followUpRequired" className="ml-2 block text-sm font-medium text-neutral-700">
                   Follow-up Required
@@ -395,7 +395,7 @@ export function VisitForm() {
                       type="datetime-local"
                       value={formData.nextVisitDate || ''}
                       onChange={(e) => setFormData({ ...formData, nextVisitDate: e.target.value })}
-                      className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
                   </div>
                   <div>
@@ -408,7 +408,7 @@ export function VisitForm() {
                       rows={3}
                       maxLength={1000}
                       placeholder="Follow-up requirements..."
-                      className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
                   </div>
                 </>
@@ -420,7 +420,7 @@ export function VisitForm() {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="flex-1 px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {loading ? 'Saving...' : isEditing ? 'Update Visit' : 'Create Visit'}
               </button>
