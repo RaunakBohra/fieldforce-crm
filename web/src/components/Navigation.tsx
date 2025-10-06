@@ -14,7 +14,8 @@ import {
   FileText,
   MapIcon,
   LogOut,
-  ChevronDown
+  ChevronDown,
+  MoreHorizontal
 } from 'lucide-react';
 
 export function Navigation() {
@@ -22,7 +23,7 @@ export function Navigation() {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [reportsOpen, setReportsOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -37,7 +38,15 @@ export function Navigation() {
 
   const isActive = (path: string) => location.pathname === path || location.pathname.startsWith(`${path}/`);
 
-  const navItems = [
+  // Primary nav items (shown as icons only on desktop)
+  const primaryNavItems = [
+    { path: '/visits', label: 'Visits', icon: MapPin },
+    { path: '/orders', label: 'Orders', icon: ShoppingCart },
+    { path: '/contacts', label: 'Contacts', icon: Users },
+  ];
+
+  // All nav items for mobile
+  const allNavItems = [
     { path: '/contacts', label: 'Contacts', icon: Users },
     { path: '/visits', label: 'Visits', icon: MapPin },
     { path: '/products', label: 'Products', icon: Package },
@@ -77,45 +86,68 @@ export function Navigation() {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-1">
-            {navItems.map((item) => {
+          <div className="hidden md:flex items-center gap-2">
+            {/* Primary nav items - Icon only */}
+            {primaryNavItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.path);
               return (
                 <button
                   key={item.path}
                   onClick={() => navigate(item.path)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all text-sm font-medium ${
+                  className={`p-2.5 rounded-lg transition-all ${
                     active
                       ? 'bg-primary-600 text-white'
                       : 'hover:bg-primary-700 text-primary-50'
                   }`}
+                  title={item.label}
+                  aria-label={item.label}
                 >
-                  <Icon className="w-4 h-4" />
-                  <span>{item.label}</span>
+                  <Icon className="w-5 h-5" />
                 </button>
               );
             })}
 
-            {/* Reports Dropdown */}
+            {/* More Dropdown */}
             <div className="relative">
               <button
-                onClick={() => setReportsOpen(!reportsOpen)}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all text-sm font-medium ${
-                  isActive('/analytics') || isActive('/reports')
+                onClick={() => setMoreOpen(!moreOpen)}
+                className={`p-2.5 rounded-lg transition-all ${
+                  isActive('/products') || isActive('/payments') || isActive('/analytics') || isActive('/reports') || isActive('/territories') || isActive('/users')
                     ? 'bg-primary-600 text-white'
                     : 'hover:bg-primary-700 text-primary-50'
                 }`}
+                title="More"
+                aria-label="More menu"
               >
-                <TrendingUp className="w-4 h-4" />
-                <span>Reports</span>
-                <ChevronDown className={`w-4 h-4 transition-transform ${reportsOpen ? 'rotate-180' : ''}`} />
+                <MoreHorizontal className="w-5 h-5" />
               </button>
-              {reportsOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-2 text-neutral-900">
+              {moreOpen && (
+                <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl py-2 text-neutral-900 z-50">
                   <button
-                    onClick={() => { navigate('/analytics'); setReportsOpen(false); }}
-                    className={`w-full text-left px-4 py-2 text-sm hover:bg-neutral-100 flex items-center gap-2 ${
+                    onClick={() => { navigate('/products'); setMoreOpen(false); }}
+                    className={`w-full text-left px-4 py-2.5 text-sm hover:bg-neutral-100 flex items-center gap-3 ${
+                      isActive('/products') ? 'bg-neutral-50 text-primary-700 font-medium' : ''
+                    }`}
+                  >
+                    <Package className="w-4 h-4" />
+                    Products
+                  </button>
+                  <button
+                    onClick={() => { navigate('/payments'); setMoreOpen(false); }}
+                    className={`w-full text-left px-4 py-2.5 text-sm hover:bg-neutral-100 flex items-center gap-3 ${
+                      isActive('/payments') ? 'bg-neutral-50 text-primary-700 font-medium' : ''
+                    }`}
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    Payments
+                  </button>
+
+                  <div className="my-1 border-t border-neutral-200"></div>
+
+                  <button
+                    onClick={() => { navigate('/analytics'); setMoreOpen(false); }}
+                    className={`w-full text-left px-4 py-2.5 text-sm hover:bg-neutral-100 flex items-center gap-3 ${
                       isActive('/analytics') ? 'bg-neutral-50 text-primary-700 font-medium' : ''
                     }`}
                   >
@@ -123,57 +155,55 @@ export function Navigation() {
                     Analytics
                   </button>
                   <button
-                    onClick={() => { navigate('/reports'); setReportsOpen(false); }}
-                    className={`w-full text-left px-4 py-2 text-sm hover:bg-neutral-100 flex items-center gap-2 ${
+                    onClick={() => { navigate('/reports'); setMoreOpen(false); }}
+                    className={`w-full text-left px-4 py-2.5 text-sm hover:bg-neutral-100 flex items-center gap-3 ${
                       isActive('/reports') ? 'bg-neutral-50 text-primary-700 font-medium' : ''
                     }`}
                   >
                     <FileText className="w-4 h-4" />
                     Reports
                   </button>
+
+                  {(user?.role === 'ADMIN' || user?.role === 'MANAGER') && (
+                    <>
+                      <div className="my-1 border-t border-neutral-200"></div>
+                      <button
+                        onClick={() => { navigate('/territories'); setMoreOpen(false); }}
+                        className={`w-full text-left px-4 py-2.5 text-sm hover:bg-neutral-100 flex items-center gap-3 ${
+                          isActive('/territories') ? 'bg-neutral-50 text-primary-700 font-medium' : ''
+                        }`}
+                      >
+                        <MapIcon className="w-4 h-4" />
+                        Territories
+                      </button>
+                    </>
+                  )}
+
+                  {user?.role === 'ADMIN' && (
+                    <button
+                      onClick={() => { navigate('/users'); setMoreOpen(false); }}
+                      className={`w-full text-left px-4 py-2.5 text-sm hover:bg-neutral-100 flex items-center gap-3 ${
+                        isActive('/users') ? 'bg-neutral-50 text-primary-700 font-medium' : ''
+                      }`}
+                    >
+                      <Users className="w-4 h-4" />
+                      Users
+                    </button>
+                  )}
                 </div>
               )}
             </div>
 
-            {/* Admin sections */}
-            {(user?.role === 'ADMIN' || user?.role === 'MANAGER') && (
-              <button
-                onClick={() => navigate('/territories')}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all text-sm font-medium ${
-                  isActive('/territories')
-                    ? 'bg-primary-600 text-white'
-                    : 'hover:bg-primary-700 text-primary-50'
-                }`}
-              >
-                <MapIcon className="w-4 h-4" />
-                <span>Territories</span>
-              </button>
-            )}
-
-            {user?.role === 'ADMIN' && (
-              <button
-                onClick={() => navigate('/users')}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all text-sm font-medium ${
-                  isActive('/users')
-                    ? 'bg-primary-600 text-white'
-                    : 'hover:bg-primary-700 text-primary-50'
-                }`}
-              >
-                <Users className="w-4 h-4" />
-                <span>Users</span>
-              </button>
-            )}
-
             {/* User section */}
-            <div className="ml-4 pl-4 border-l border-primary-700 flex items-center gap-3">
-              <span className="text-sm text-primary-100 hidden lg:block">{user?.name}</span>
+            <div className="ml-2 pl-2 border-l border-primary-700 flex items-center gap-2">
+              <span className="text-sm text-primary-100 hidden xl:block">{user?.name}</span>
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 bg-primary-700 hover:bg-primary-600 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                className="p-2.5 hover:bg-primary-700 rounded-lg transition-colors"
+                title="Logout"
                 aria-label="Logout from your account"
               >
-                <LogOut className="w-4 h-4" />
-                <span>Logout</span>
+                <LogOut className="w-5 h-5" />
               </button>
             </div>
           </div>
@@ -189,7 +219,7 @@ export function Navigation() {
                   Core
                 </h3>
                 <div className="grid grid-cols-2 gap-2">
-                  {navItems.map((item) => {
+                  {allNavItems.map((item) => {
                     const Icon = item.icon;
                     const active = isActive(item.path);
                     return (
