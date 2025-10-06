@@ -34,6 +34,6 @@ DROP INDEX IF EXISTS "Payment_paymentMode_idx";
 DROP INDEX IF EXISTS "Payment_status_idx";
 DROP INDEX IF EXISTS "Payment_orderId_status_idx";
 
--- CreateIndex optimized Order indexes
-CREATE INDEX "Order_createdById_paymentStatus_status_idx" ON "Order"("createdById", "paymentStatus", "status");
-CREATE INDEX "Order_status_createdAt_idx" ON "Order"("status", "createdAt");
+-- CreateIndex optimized Order indexes (only if they don't exist)
+CREATE INDEX IF NOT EXISTS "Order_createdById_paymentStatus_status_idx" ON "Order"("createdById", "paymentStatus", "status");
+CREATE INDEX IF NOT EXISTS "Order_status_createdAt_idx" ON "Order"("status", "createdAt");
