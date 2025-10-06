@@ -169,7 +169,11 @@ model Visit {
   visitDate       DateTime     @default(now())
   visitType       VisitType    @default(FIELD_VISIT)
   status          VisitStatus  @default(COMPLETED)
-  duration        Int?         // Duration in minutes
+  duration        Int?         // Duration in minutes (auto-calculated from check-in/check-out)
+
+  // Check-in/Check-out timestamps
+  checkInTime     DateTime?    // When field rep checked in
+  checkOutTime    DateTime?    // When field rep checked out
 
   // Contact & User
   contactId       String
@@ -177,7 +181,7 @@ model Visit {
   fieldRepId      String
   fieldRep        User         @relation(fields: [fieldRepId], references: [id])
 
-  // GPS Location
+  // GPS Location (captured at check-in)
   latitude        Float?
   longitude       Float?
   locationName    String?      // e.g., "Hospital Name" or "Clinic Address"

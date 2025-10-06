@@ -920,6 +920,78 @@ class ApiService {
     }
   }
 
+  async uploadVisitPhoto(photo: string, visitId?: string): Promise<ApiResponse<{ objectKey: string }>> {
+    try {
+      const response = await fetch(`${API_URL}/api/visits/upload-photo`, {
+        method: 'POST',
+        headers: await this.getHeaders(true, true),
+        credentials: 'include',
+        body: JSON.stringify({ photo, visitId }),
+      });
+
+      return this.handleResponse<{ objectKey: string }>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  async checkInVisit(data: {
+    contactId: string;
+    latitude?: number;
+    longitude?: number;
+    locationName?: string;
+  }): Promise<ApiResponse<{ visit: Visit }>> {
+    try {
+      const response = await fetch(`${API_URL}/api/visits/check-in`, {
+        method: 'POST',
+        headers: await this.getHeaders(true, true),
+        credentials: 'include',
+        body: JSON.stringify(data),
+      });
+
+      return this.handleResponse<{ visit: Visit }>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  async checkOutVisit(
+    visitId: string,
+    data: {
+      purpose?: string;
+      notes?: string;
+      outcome?: string;
+      products?: string[];
+      samplesGiven?: Record<string, number>;
+      followUpRequired?: boolean;
+      followUpNotes?: string;
+      nextVisitDate?: string;
+      photos?: string[];
+    }
+  ): Promise<ApiResponse<{ visit: Visit }>> {
+    try {
+      const response = await fetch(`${API_URL}/api/visits/${visitId}/check-out`, {
+        method: 'POST',
+        headers: await this.getHeaders(true, true),
+        credentials: 'include',
+        body: JSON.stringify(data),
+      });
+
+      return this.handleResponse<{ visit: Visit }>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
   async deleteVisit(id: string): Promise<ApiResponse<void>> {
     try {
       const response = await fetch(`${API_URL}/api/visits/${id}`, {

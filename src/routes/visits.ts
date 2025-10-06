@@ -282,4 +282,233 @@ visits.delete('/:id', async (c) => {
   }
 });
 
+/**
+ * POST /api/visits/upload-photo
+ * Upload photo to R2 and return the R2 object key
+ */
+visits.post('/upload-photo', async (c) => {
+  const user = c.get('user');
+
+  try {
+    const body = await c.req.json();
+    const { photo, visitId } = body;
+
+    if (!photo || typeof photo !== 'string') {
+      return c.json({ success: false, error: 'Photo data is required' }, 400);
+    }
+
+    logger.info('Upload photo request', {
+      ...getLogContext(c),
+      visitId: visitId || 'new',
+      photoSize: photo.length,
+    });
+
+    // Extract base64 data
+    const base64Data = photo.split(',')[1];
+    if (!base64Data) {
+      return c.json({ success: false, error: 'Invalid photo format' }, 400);
+    }
+
+    // Convert base64 to binary
+    const binaryData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+
+    // Generate unique filename
+    const timestamp = Date.now();
+    const objectKey = `visits/${user.userId}/${timestamp}_${visitId || 'temp'}.jpg`;
+
+    // Upload to R2
+    const bucket = c.env.BUCKET;
+    await bucket.put(objectKey, binaryData, {
+      httpMetadata: {
+        contentType: 'image/jpeg',
+      },
+    });
+
+    logger.info('Photo uploaded successfully', {
+      ...getLogContext(c),
+      objectKey,
+      size: binaryData.length,
+    });
+
+    return c.json({
+      success: true,
+      data: { objectKey },
+    }, 200);
+  } catch (error: unknown) {
+    logger.error('Upload photo failed', error, getLogContext(c));
+    return c.json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to upload photo',
+    }, 500);
+  }
+});
+
+/**
+ * POST /api/visits/check-in
+ * Check in to a visit (start visit)
+ */
+visits.post('/check-in', async (c) => {
+  const deps = c.get('deps');
+  const user = c.get('user');
+
+  try {
+    const body = await c.req.json();
+    const { contactId, latitude, longitude, locationName } = body;
+
+    if (!contactId) {
+      return c.json({ success: false, error: 'Contact ID is required' }, 400);
+    }
+
+    logger.info('Check-in request', {
+      ...getLogContext(c),
+      contactId,
+      hasGPS: !!(latitude && longitude),
+    });
+
+    // Create visit with check-in time
+    const visit = await deps.prisma.visit.create({
+      data: {
+        contactId,
+        fieldRepId: user.userId,
+        checkInTime: new Date(),
+        status: 'IN_PROGRESS',
+        latitude,
+        longitude,
+        locationName,
+        visitDate: new Date(),
+      },
+      include: {
+        contact: {
+          select: {
+            id: true,
+            name: true,
+            designation: true,
+            city: true,
+          },
+        },
+      },
+    });
+
+    logger.info('Visit checked in successfully', {
+      visitId: visit.id,
+      contactId,
+      userId: user.userId,
+    });
+
+    return c.json({
+      success: true,
+      data: { visit },
+    }, 201);
+  } catch (error: unknown) {
+    logger.error('Check-in failed', error, getLogContext(c));
+    return c.json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to check in',
+    }, 500);
+  }
+});
+
+/**
+ * POST /api/visits/:id/check-out
+ * Check out from a visit (complete visit)
+ */
+visits.post('/:id/check-out', async (c) => {
+  const deps = c.get('deps');
+  const user = c.get('user');
+  const visitId = c.req.param('id');
+
+  try {
+    const body = await c.req.json();
+    const {
+      purpose,
+      notes,
+      outcome,
+      products,
+      samplesGiven,
+      followUpRequired,
+      followUpNotes,
+      nextVisitDate,
+      photos,
+    } = body;
+
+    logger.info('Check-out request', {
+      ...getLogContext(c),
+      visitId,
+      hasPhotos: !!photos?.length,
+    });
+
+    // Get visit to calculate duration
+    const existingVisit = await deps.prisma.visit.findUnique({
+      where: { id: visitId },
+    });
+
+    if (!existingVisit) {
+      return c.json({ success: false, error: 'Visit not found' }, 404);
+    }
+
+    if (existingVisit.fieldRepId !== user.userId) {
+      return c.json({ success: false, error: 'Unauthorized' }, 403);
+    }
+
+    if (!existingVisit.checkInTime) {
+      return c.json({ success: false, error: 'Visit was not checked in' }, 400);
+    }
+
+    // Calculate duration
+    const checkOutTime = new Date();
+    const durationMinutes = Math.round(
+      (checkOutTime.getTime() - new Date(existingVisit.checkInTime).getTime()) / 1000 / 60
+    );
+
+    // Update visit with check-out data
+    const visit = await deps.prisma.visit.update({
+      where: { id: visitId },
+      data: {
+        checkOutTime,
+        duration: durationMinutes,
+        status: 'COMPLETED',
+        purpose,
+        notes,
+        outcome: outcome || 'SUCCESSFUL',
+        products: products || [],
+        samplesGiven,
+        followUpRequired: followUpRequired || false,
+        followUpNotes,
+        nextVisitDate: nextVisitDate ? new Date(nextVisitDate) : undefined,
+        photos: photos || [],
+      },
+      include: {
+        contact: {
+          select: {
+            id: true,
+            name: true,
+            designation: true,
+            city: true,
+          },
+        },
+      },
+    });
+
+    logger.info('Visit checked out successfully', {
+      visitId: visit.id,
+      duration: durationMinutes,
+      userId: user.userId,
+    });
+
+    return c.json({
+      success: true,
+      data: { visit },
+    }, 200);
+  } catch (error: unknown) {
+    logger.error('Check-out failed', error, {
+      ...getLogContext(c),
+      visitId,
+    });
+    return c.json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to check out',
+    }, 500);
+  }
+});
+
 export default visits;
