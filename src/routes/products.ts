@@ -177,6 +177,74 @@ products.get('/categories/list', async (c) => {
   }
 });
 
+// Product creation schema
+const createProductSchema = z.object({
+  name: z.string().min(1, 'Product name is required'),
+  sku: z.string().min(1, 'SKU is required'),
+  description: z.string().optional(),
+  category: z.string().min(1, 'Category is required'),
+  price: z.number().positive('Price must be positive'),
+  stock: z.number().int().min(0, 'Stock cannot be negative'),
+  isActive: z.boolean().optional().default(true),
+});
+
+/**
+ * POST /api/products
+ * Create a new product
+ */
+products.post('/', async (c) => {
+  const deps = c.get('deps');
+
+  try {
+    const body = await c.req.json();
+    const data = createProductSchema.parse(body);
+
+    logger.info('Create product request', {
+      ...getLogContext(c),
+      data,
+    });
+
+    // Check if SKU already exists
+    const existing = await deps.prisma.product.findUnique({
+      where: { sku: data.sku },
+    });
+
+    if (existing) {
+      return c.json({ success: false, error: 'Product with this SKU already exists' }, 409);
+    }
+
+    // Create product
+    const product = await deps.prisma.product.create({
+      data,
+    });
+
+    logger.info('Product created successfully', {
+      productId: product.id,
+      sku: product.sku,
+    });
+
+    return c.json({
+      success: true,
+      message: 'Product created successfully',
+      data: product,
+    }, 201);
+  } catch (error: unknown) {
+    if (error instanceof ZodError) {
+      return c.json(
+        {
+          success: false,
+          error: error.errors[0]?.message || 'Invalid product data',
+          details: error.errors,
+        },
+        400
+      );
+    }
+
+    logger.error('Create product failed', error, getLogContext(c));
+    throw error;
+  }
+});
+
 // Product update schema
 const updateProductSchema = z.object({
   name: z.string().min(1).optional(),

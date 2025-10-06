@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import type { Product, ProductQueryParams } from '../services/api';
 import { useDebounce } from '../hooks/useDebounce';
-import { Search, Package, Edit2, Save, X } from 'lucide-react';
+import { Search, Package, Edit2, Save, X, Plus } from 'lucide-react';
 import { Navigation } from '../components/Navigation';
 
 export function ProductsList() {
+  const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -102,9 +104,18 @@ export function ProductsList() {
       <Navigation />
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Product Catalog</h1>
-            <p className="text-gray-600">Browse and select products for orders</p>
+          <div className="mb-6 flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">Product Catalog</h1>
+              <p className="text-gray-600">Browse and select products for orders</p>
+            </div>
+            <button
+              onClick={() => navigate('/products/new')}
+              className="flex items-center gap-2 bg-teal-600 text-white px-4 py-2 rounded-md hover:bg-teal-700"
+            >
+              <Plus size={20} />
+              Add Product
+            </button>
           </div>
 
       {/* Filters */}

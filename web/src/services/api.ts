@@ -679,6 +679,30 @@ class ApiService {
     }
   }
 
+  async createProduct(data: {
+    name: string;
+    sku: string;
+    description?: string;
+    category: string;
+    price: number;
+    stock: number;
+  }): Promise<ApiResponse<Product>> {
+    try {
+      const response = await fetch(`${API_URL}/api/products`, {
+        method: 'POST',
+        headers: await this.getHeaders(true, true),
+        body: JSON.stringify(data),
+      });
+
+      return this.handleResponse<Product>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
   async updateProduct(id: string, data: Partial<Product>): Promise<ApiResponse<Product>> {
     try {
       const response = await fetch(`${API_URL}/api/products/${id}`, {
