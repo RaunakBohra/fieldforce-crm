@@ -80,20 +80,6 @@ export default function PendingPayments() {
     }).format(amount);
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Navigation />
-        <div className="flex items-center justify-center h-96">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-teal-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading pending payments...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   const totalPendingAmount = pendingOrders.reduce((sum, o) => sum + o.pendingAmount, 0);
   const overdueCount = pendingOrders.filter((o) => o.daysPending > 30).length;
 
@@ -164,7 +150,23 @@ export default function PendingPayments() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {pendingOrders.map((order) => (
+                {loading ? (
+                  [...Array(5)].map((_, i) => (
+                    <tr key={i} className="animate-pulse">
+                      <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-24"></div></td>
+                      <td className="px-6 py-4">
+                        <div className="h-4 bg-gray-200 rounded w-32 mb-2"></div>
+                        <div className="h-3 bg-gray-200 rounded w-24"></div>
+                      </td>
+                      <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-20"></div></td>
+                      <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-20"></div></td>
+                      <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-20"></div></td>
+                      <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-16"></div></td>
+                      <td className="px-6 py-4"><div className="h-6 bg-gray-200 rounded-full w-16"></div></td>
+                      <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-32"></div></td>
+                    </tr>
+                  ))
+                ) : pendingOrders.map((order) => (
                   <tr key={order.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {order.orderNumber}
@@ -212,7 +214,7 @@ export default function PendingPayments() {
             </table>
           </div>
 
-          {pendingOrders.length === 0 && (
+          {!loading && pendingOrders.length === 0 && (
             <div className="text-center py-12 text-gray-500">
               <p className="text-lg font-medium">No pending payments</p>
               <p className="text-sm mt-1">All orders are fully paid!</p>

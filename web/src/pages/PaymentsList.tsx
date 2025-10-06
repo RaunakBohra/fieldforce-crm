@@ -228,7 +228,19 @@ export default function PaymentsList() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {payments.map((payment) => (
+                {loading ? (
+                  [...Array(5)].map((_, i) => (
+                    <tr key={i} className="animate-pulse">
+                      <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-24"></div></td>
+                      <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-20"></div></td>
+                      <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-32"></div></td>
+                      <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-24"></div></td>
+                      <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-16"></div></td>
+                      <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-20"></div></td>
+                      <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-24"></div></td>
+                    </tr>
+                  ))
+                ) : payments.map((payment) => (
                   <tr key={payment.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {payment.paymentNumber}
@@ -259,7 +271,7 @@ export default function PaymentsList() {
             </table>
           </div>
 
-          {payments.length === 0 && (
+          {!loading && payments.length === 0 && (
             <div className="text-center py-12 text-gray-500">
               <p className="text-lg font-medium">No payments found</p>
               <p className="text-sm mt-1">Record your first payment to get started</p>

@@ -152,15 +152,37 @@ export function ProductsList() {
         </div>
       )}
 
-      {/* Loading State */}
-      {loading && (
-        <div className="flex justify-center items-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
-        </div>
-      )}
-
       {/* Products Table */}
-      {!loading && products.length > 0 && (
+      {loading ? (
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product Name</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">SKU</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stock</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {[...Array(5)].map((_, i) => (
+                <tr key={i} className="animate-pulse">
+                  <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-32"></div></td>
+                  <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-20"></div></td>
+                  <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-48"></div></td>
+                  <td className="px-6 py-4"><div className="h-6 bg-gray-200 rounded w-20"></div></td>
+                  <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-16"></div></td>
+                  <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-12"></div></td>
+                  <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-8"></div></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : products.length > 0 ? (
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -279,10 +301,15 @@ export function ProductsList() {
             </tbody>
           </table>
         </div>
+      ) : (
+        <div className="text-center py-12 bg-white rounded-lg shadow">
+          <Package className="mx-auto text-gray-400 mb-4" size={48} />
+          <p className="text-gray-500">No products found</p>
+        </div>
       )}
 
-      {/* Empty State */}
-      {!loading && products.length === 0 && (
+      {/* Old Empty State - REMOVE */}
+      {false && (
         <div className="text-center py-12 bg-white rounded-lg shadow">
           <Package className="mx-auto text-gray-400 mb-4" size={48} />
           <p className="text-gray-500">No products found</p>

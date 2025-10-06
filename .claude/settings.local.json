@@ -79,7 +79,10 @@
       "Bash(awk:*)",
       "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_EK1XpFYRye6M@ep-ancient-art-a1aag2jx-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require\" npx prisma migrate dev --name add_composite_performance_indexes)",
       "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_EK1XpFYRye6M@ep-ancient-art-a1aag2jx-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require\" npx prisma migrate dev --name add_payments_and_payment_status)",
-      "Bash(open:*)"
+      "Bash(open:*)",
+      "Bash(xargs kill:*)",
+      "Bash(CLOUDFLARE_ACCOUNT_ID=7e506c3c49803094e72145796c0f8598 npx wrangler pages deploy /Users/raunakbohra/Desktop/medical-CRM/web/dist --project-name=fieldforce-crm --commit-dirty=true)",
+      "Bash(CLOUDFLARE_ACCOUNT_ID=610762493d34333f1a6d72a037b345cf npx wrangler deploy)"
     ],
     "deny": [],
     "ask": []

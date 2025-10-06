@@ -198,7 +198,34 @@ export function ContactsList() {
             {/* Contacts Table */}
             <div className="mt-6 bg-white rounded-lg border border-neutral-200 overflow-hidden">
           {loading ? (
-            <div className="p-8 text-center text-neutral-600">Loading contacts...</div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-neutral-200">
+                <thead className="bg-neutral-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Name</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Category</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Type</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Contact</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Location</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-neutral-500 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-neutral-200">
+                  {[...Array(5)].map((_, i) => (
+                    <tr key={i} className="animate-pulse">
+                      <td className="px-6 py-4"><div className="h-4 bg-neutral-200 rounded w-32"></div></td>
+                      <td className="px-6 py-4"><div className="h-4 bg-neutral-200 rounded w-20"></div></td>
+                      <td className="px-6 py-4"><div className="h-4 bg-neutral-200 rounded w-24"></div></td>
+                      <td className="px-6 py-4"><div className="h-4 bg-neutral-200 rounded w-28"></div></td>
+                      <td className="px-6 py-4"><div className="h-4 bg-neutral-200 rounded w-36"></div></td>
+                      <td className="px-6 py-4"><div className="h-4 bg-neutral-200 rounded w-16"></div></td>
+                      <td className="px-6 py-4"><div className="h-4 bg-neutral-200 rounded w-12 ml-auto"></div></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           ) : contacts.length === 0 ? (
             <div className="p-8 text-center text-neutral-600">
               No contacts found. Click "Add Contact" to create one.

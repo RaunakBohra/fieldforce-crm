@@ -277,14 +277,46 @@ export function VisitsList() {
 
           {/* Visits List */}
           <div className="px-4 sm:px-6 lg:px-8 py-6">
-        {loading ? (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-            <p className="mt-2 text-neutral-600">Loading visits...</p>
-          </div>
-        ) : error ? (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
             {error}
+          </div>
+        )}
+
+        {loading ? (
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <table className="min-w-full divide-y divide-neutral-200">
+              <thead className="bg-neutral-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Contact</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Date & Time</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Type</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Outcome</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">Location</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-neutral-500 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-neutral-200">
+                {[...Array(5)].map((_, i) => (
+                  <tr key={i} className="animate-pulse">
+                    <td className="px-6 py-4">
+                      <div className="h-4 bg-neutral-200 rounded w-32 mb-2"></div>
+                      <div className="h-3 bg-neutral-200 rounded w-24"></div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="h-4 bg-neutral-200 rounded w-28 mb-2"></div>
+                      <div className="h-3 bg-neutral-200 rounded w-16"></div>
+                    </td>
+                    <td className="px-6 py-4"><div className="h-4 bg-neutral-200 rounded w-24"></div></td>
+                    <td className="px-6 py-4"><div className="h-6 bg-neutral-200 rounded-full w-20"></div></td>
+                    <td className="px-6 py-4"><div className="h-6 bg-neutral-200 rounded-full w-24"></div></td>
+                    <td className="px-6 py-4"><div className="h-4 bg-neutral-200 rounded w-28"></div></td>
+                    <td className="px-6 py-4"><div className="h-4 bg-neutral-200 rounded w-20 ml-auto"></div></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         ) : visits.length === 0 ? (
           <div className="text-center py-12">
