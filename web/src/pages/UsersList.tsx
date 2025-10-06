@@ -4,7 +4,7 @@ import { api } from '../services/api';
 import type { User } from '../services/api';
 import { PageContainer, ContentSection, Card } from '../components/layout';
 import { StatusBadge, TableSkeleton, Pagination } from '../components/ui';
-import { Plus, Search, Users as UsersIcon } from 'lucide-react';
+import { Plus, Search, Users as UsersIcon, UserPlus } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 export function UsersList() {
@@ -168,8 +168,20 @@ export function UsersList() {
               headers={['Name', 'Email', 'Phone', 'Role', 'Status', 'Actions']}
             />
           ) : users.length === 0 ? (
-            <div className="p-8 text-center text-neutral-600">
-              <p className="text-lg font-medium">No users found</p>
+            <div className="flex flex-col items-center justify-center py-16 px-4 min-h-[400px]">
+              <UserPlus className="w-16 h-16 text-neutral-400 mb-4" />
+              <h3 className="text-xl font-semibold text-neutral-900 mb-2">No Users Found</h3>
+              <p className="text-neutral-600 text-center mb-6 max-w-md">
+                {currentUser?.role === 'ADMIN'
+                  ? 'Start building your team by adding users. Assign roles and manage access.'
+                  : 'No users match your current filters. Try adjusting your search criteria.'}
+              </p>
+              {currentUser?.role === 'ADMIN' && (
+                <button onClick={() => navigate('/users/new')} className="btn-primary">
+                  <Plus className="w-4 h-4" />
+                  <span>Add User</span>
+                </button>
+              )}
             </div>
           ) : (
             <>

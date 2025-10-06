@@ -83,15 +83,20 @@ export function VisitDetails() {
       <PageContainer>
         <ContentSection maxWidth="4xl">
           <Card>
-            <div className="bg-danger-50 border border-danger-200 text-danger-700 px-4 py-3 rounded-lg">
-              {error || 'Visit not found'}
+            <div className="flex flex-col items-center justify-center min-h-[400px] px-4">
+              <AlertCircle className="w-16 h-16 text-danger-500 mb-4" />
+              <h3 className="text-xl font-semibold text-neutral-900 mb-2">Visit Not Found</h3>
+              <p className="text-neutral-600 text-center mb-6 max-w-md">
+                {error || 'The visit you are looking for could not be found. It may have been deleted or you may not have permission to view it.'}
+              </p>
+              <button
+                onClick={() => navigate('/visits')}
+                className="btn-primary"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back to Visits</span>
+              </button>
             </div>
-            <button
-              onClick={() => navigate('/visits')}
-              className="mt-4 text-primary-600 hover:text-primary-700"
-            >
-              ← Back to Visits
-            </button>
           </Card>
         </ContentSection>
       </PageContainer>
@@ -105,34 +110,34 @@ export function VisitDetails() {
         <Card className="mb-6">
           <button
             onClick={() => navigate('/visits')}
-            className="flex items-center gap-2 text-neutral-600 hover:text-neutral-900 mb-4"
+            className="flex items-center gap-2 text-neutral-600 hover:text-neutral-900 mb-6 transition-colors"
           >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Visits
+            <ArrowLeft className="w-5 h-5" />
+            <span className="font-medium">Back to Visits</span>
           </button>
 
-          <div className="flex justify-between items-start">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-neutral-900">Visit Details</h1>
-              <p className="mt-1 text-sm text-neutral-600">
+              <h1 className="page-title">Visit Details</h1>
+              <p className="page-subtitle">
                 Created {new Date(visit.createdAt).toLocaleDateString()}
               </p>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               <button
                 onClick={() => navigate(`/visits/${visit.id}/edit`)}
-                className="flex items-center gap-2 px-4 py-2 bg-primary-800 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                className="btn-primary"
               >
                 <Pencil className="w-4 h-4" />
-                Edit
+                <span>Edit</span>
               </button>
               <button
                 onClick={handleDelete}
-                className="flex items-center gap-2 px-4 py-2 bg-danger-600 text-white rounded-lg hover:bg-danger-700 transition-colors"
+                className="btn-danger"
               >
                 <Trash2 className="w-4 h-4" />
-                Delete
+                <span>Delete</span>
               </button>
             </div>
           </div>
@@ -328,7 +333,7 @@ export function VisitDetails() {
 
                   <button
                     onClick={() => navigate(`/contacts/${visit.contactId}`)}
-                    className="w-full mt-2 px-4 py-2 text-sm bg-neutral-100 text-neutral-700 rounded-lg hover:bg-neutral-200 transition-colors"
+                    className="w-full mt-4 btn-secondary text-sm"
                   >
                     View Contact Details
                   </button>

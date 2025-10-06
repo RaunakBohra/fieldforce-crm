@@ -5,6 +5,7 @@ import type { PendingOrder } from '../services/api';
 import { PageContainer, ContentSection, Card } from '../components/layout';
 import { StatusBadge, TableSkeleton } from '../components/ui';
 import { formatCurrency, getPriorityColor } from '../utils';
+import { CheckCircle } from 'lucide-react';
 
 export default function PendingPayments() {
   const [pendingOrders, setPendingOrders] = useState<PendingOrder[]>([]);
@@ -92,9 +93,15 @@ export default function PendingPayments() {
               headers={['Order #', 'Contact', 'Total', 'Paid', 'Pending', 'Days', 'Priority', 'Actions']}
             />
           ) : pendingOrders.length === 0 ? (
-            <div className="p-8 text-center text-neutral-600">
-              <p className="text-lg font-medium">No pending payments</p>
-              <p className="text-sm mt-1">All orders are fully paid!</p>
+            <div className="flex flex-col items-center justify-center py-16 px-4 min-h-[400px]">
+              <CheckCircle className="w-16 h-16 text-success-500 mb-4" />
+              <h3 className="text-xl font-semibold text-neutral-900 mb-2">All Caught Up!</h3>
+              <p className="text-neutral-600 text-center mb-6 max-w-md">
+                Great job! There are no pending payments at the moment. All orders are fully paid.
+              </p>
+              <button onClick={() => navigate('/payments')} className="btn-primary">
+                <span>View All Payments</span>
+              </button>
             </div>
           ) : (
             <div className="overflow-x-auto">

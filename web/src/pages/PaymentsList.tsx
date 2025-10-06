@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import type { PaymentStats, PaymentQueryParams } from '../services/api';
-import { Search, Filter, X } from 'lucide-react';
+import { Search, Filter, X, DollarSign, Plus } from 'lucide-react';
 import { useDebounce } from '../hooks/useDebounce';
 import { PageContainer, ContentSection, Card } from '../components/layout';
 import { StatusBadge, Pagination, TableSkeleton } from '../components/ui';
@@ -286,9 +286,16 @@ export default function PaymentsList() {
               headers={['Payment #', 'Order', 'Contact', 'Amount', 'Mode', 'Reference', 'Date']}
             />
           ) : payments.length === 0 ? (
-            <div className="p-8 text-center text-neutral-600">
-              <p className="text-lg font-medium">No payments found</p>
-              <p className="text-sm mt-1">Record your first payment to get started</p>
+            <div className="flex flex-col items-center justify-center py-16 px-4 min-h-[400px]">
+              <DollarSign className="w-16 h-16 text-neutral-400 mb-4" />
+              <h3 className="text-xl font-semibold text-neutral-900 mb-2">No Payments Yet</h3>
+              <p className="text-neutral-600 text-center mb-6 max-w-md">
+                Start tracking your payments by recording the first one. Keep track of all transactions in one place.
+              </p>
+              <button onClick={() => navigate('/payments/new')} className="btn-primary">
+                <Plus className="w-4 h-4" />
+                <span>Record Payment</span>
+              </button>
             </div>
           ) : (
             <div className="overflow-x-auto">

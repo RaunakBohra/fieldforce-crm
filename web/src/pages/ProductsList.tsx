@@ -181,10 +181,16 @@ export function ProductsList() {
               headers={['Product Name', 'SKU', 'Description', 'Category', 'Price', 'Stock', 'Actions']}
             />
           ) : products.length === 0 ? (
-            <div className="p-8 text-center text-neutral-600">
-              <Package className="mx-auto text-neutral-400 mb-4" size={48} />
-              <p className="text-lg font-medium">No products found</p>
-              <p className="text-sm mt-1">Add your first product to get started</p>
+            <div className="flex flex-col items-center justify-center py-16 px-4 min-h-[400px]">
+              <Package className="w-16 h-16 text-neutral-400 mb-4" />
+              <h3 className="text-xl font-semibold text-neutral-900 mb-2">No Products Yet</h3>
+              <p className="text-neutral-600 text-center mb-6 max-w-md">
+                Build your product catalog by adding products. This will help you create orders more efficiently.
+              </p>
+              <button onClick={() => navigate('/products/new')} className="btn-primary">
+                <Plus className="w-4 h-4" />
+                <span>Add Product</span>
+              </button>
             </div>
           ) : (
             <div className="overflow-x-auto">

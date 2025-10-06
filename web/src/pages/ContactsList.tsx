@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import type { Contact, ContactStats, ContactQueryParams } from '../services/api';
 import { useDebounce } from '../hooks/useDebounce';
-import { Pencil, Trash2, Plus, Search, Filter } from 'lucide-react';
+import { Pencil, Trash2, Plus, Search, Filter, Users } from 'lucide-react';
 import { PageContainer, ContentSection, Card } from '../components/layout';
 import { StatCard, StatusBadge, Pagination, TableSkeleton } from '../components/ui';
 
@@ -201,8 +201,16 @@ export function ContactsList() {
               headers={['Name', 'Category', 'Type', 'Contact', 'Location', 'Status', 'Actions']}
             />
           ) : contacts.length === 0 ? (
-            <div className="p-8 text-center text-neutral-600">
-              No contacts found. Click "Add Contact" to create one.
+            <div className="flex flex-col items-center justify-center py-16 px-4 min-h-[400px]">
+              <Users className="w-16 h-16 text-neutral-400 mb-4" />
+              <h3 className="text-xl font-semibold text-neutral-900 mb-2">No Contacts Yet</h3>
+              <p className="text-neutral-600 text-center mb-6 max-w-md">
+                Get started by adding your first contact. Build your network of distribution and medical contacts.
+              </p>
+              <button onClick={() => navigate('/contacts/new')} className="btn-primary">
+                <Plus className="w-4 h-4" />
+                <span>Add Contact</span>
+              </button>
             </div>
           ) : (
             <div className="overflow-x-auto">

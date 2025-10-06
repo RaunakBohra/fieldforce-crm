@@ -167,14 +167,15 @@ export function OrdersList() {
               headers={['Order #', 'Customer', 'Items', 'Amount', 'Status', 'Payment', 'Date', 'Actions']}
             />
           ) : orders.length === 0 ? (
-            <div className="p-8 text-center text-neutral-600">
-              <ShoppingCart className="mx-auto text-neutral-400 mb-4" size={48} />
-              <p className="text-neutral-500 mb-4">No orders found</p>
-              <button
-                onClick={() => navigate('/orders/new')}
-                className="bg-primary-800 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
-              >
-                Create First Order
+            <div className="flex flex-col items-center justify-center py-16 px-4 min-h-[400px]">
+              <ShoppingCart className="w-16 h-16 text-neutral-400 mb-4" />
+              <h3 className="text-xl font-semibold text-neutral-900 mb-2">No Orders Yet</h3>
+              <p className="text-neutral-600 text-center mb-6 max-w-md">
+                Start managing your sales by creating your first order. Track orders from creation to delivery.
+              </p>
+              <button onClick={() => navigate('/orders/new')} className="btn-primary">
+                <Plus className="w-4 h-4" />
+                <span>Create Order</span>
               </button>
             </div>
           ) : (

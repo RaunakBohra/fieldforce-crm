@@ -174,9 +174,20 @@ export function TerritoriesList() {
               headers={['Name', 'Code', 'Type', 'Location', 'Users', 'Status', 'Actions']}
             />
           ) : territories.length === 0 ? (
-            <div className="p-8 text-center text-neutral-600">
-              <p className="text-lg font-medium">No territories found</p>
-              <p className="mt-2 text-sm">Try adjusting your filters or create a new territory</p>
+            <div className="flex flex-col items-center justify-center py-16 px-4 min-h-[400px]">
+              <MapPin className="w-16 h-16 text-neutral-400 mb-4" />
+              <h3 className="text-xl font-semibold text-neutral-900 mb-2">No Territories Found</h3>
+              <p className="text-neutral-600 text-center mb-6 max-w-md">
+                {currentUser?.role === 'ADMIN'
+                  ? 'Start organizing your field force by creating territories. Define regions and assign team members.'
+                  : 'No territories match your current filters. Try adjusting your search criteria.'}
+              </p>
+              {currentUser?.role === 'ADMIN' && (
+                <button onClick={() => navigate('/territories/new')} className="btn-primary">
+                  <Plus className="w-4 h-4" />
+                  <span>Add Territory</span>
+                </button>
+              )}
             </div>
           ) : (
             <>

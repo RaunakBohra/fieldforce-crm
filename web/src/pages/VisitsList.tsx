@@ -239,8 +239,16 @@ export function VisitsList() {
               headers={['Date', 'Contact', 'Status', 'Outcome', 'Type', 'Location', 'Actions']}
             />
           ) : visits.length === 0 ? (
-            <div className="p-8 text-center text-neutral-600">
-              No visits found. Click "New Visit" to create one.
+            <div className="flex flex-col items-center justify-center py-16 px-4 min-h-[400px]">
+              <MapPin className="w-16 h-16 text-neutral-400 mb-4" />
+              <h3 className="text-xl font-semibold text-neutral-900 mb-2">No Visits Yet</h3>
+              <p className="text-neutral-600 text-center mb-6 max-w-md">
+                Start tracking your field visits. Record visits to contacts and build better relationships.
+              </p>
+              <button onClick={() => navigate('/visits/new')} className="btn-primary">
+                <Plus className="w-4 h-4" />
+                <span>New Visit</span>
+              </button>
             </div>
           ) : (
             <div className="overflow-x-auto">
