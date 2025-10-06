@@ -7,14 +7,12 @@ import {
   ShoppingCart,
   DollarSign,
   CreditCard,
-  TrendingUp,
   Clock,
   CheckCircle2,
-  Package,
   Users
 } from 'lucide-react';
 import { PageContainer, ContentSection, Card } from '../components/layout';
-import { StatCard, StatusBadge, LoadingSpinner } from '../components/ui';
+import { StatusBadge, LoadingSpinner } from '../components/ui';
 import { useAuth } from '../contexts/AuthContext';
 import { formatCurrency, formatDate } from '../utils';
 
@@ -88,7 +86,7 @@ export default function Dashboard() {
   }
 
   return (
-    <PageContainer className="bg-hero">
+    <PageContainer>
       <ContentSection>
         {/* Compact Welcome Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-6">

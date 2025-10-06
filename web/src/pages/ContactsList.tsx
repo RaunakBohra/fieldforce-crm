@@ -5,7 +5,7 @@ import type { Contact, ContactStats, ContactQueryParams } from '../services/api'
 import { useDebounce } from '../hooks/useDebounce';
 import { Pencil, Trash2, Plus, Search, Filter, Users } from 'lucide-react';
 import { PageContainer, ContentSection, Card } from '../components/layout';
-import { StatCard, StatusBadge, Pagination, TableSkeleton } from '../components/ui';
+import { StatusBadge, Pagination, TableSkeleton } from '../components/ui';
 
 export function ContactsList() {
   const navigate = useNavigate();

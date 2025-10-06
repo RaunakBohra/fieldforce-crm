@@ -4,7 +4,6 @@ import { useAuth } from '../contexts/AuthContext';
 import {
   Menu,
   X,
-  LayoutDashboard,
   Users,
   MapPin,
   Package,
@@ -14,7 +13,6 @@ import {
   FileText,
   MapIcon,
   LogOut,
-  ChevronDown,
   MoreHorizontal
 } from 'lucide-react';
 

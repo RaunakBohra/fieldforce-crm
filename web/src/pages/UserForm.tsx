@@ -70,7 +70,7 @@ export function UserForm() {
           confirmPassword: '',
           phone: user.phone || '',
           role: user.role as 'ADMIN' | 'MANAGER' | 'FIELD_REP',
-          territoryId: user.territoryId || '',
+          territoryId: (user as any).territoryId || '',
         });
       } else {
         setError(response.error || 'Failed to fetch user');

@@ -4,7 +4,7 @@ import { api } from '../services/api';
 import type { Order, OrderStats } from '../services/api';
 import { ShoppingCart, Eye, XCircle, Plus } from 'lucide-react';
 import { PageContainer, ContentSection, Card } from '../components/layout';
-import { StatCard, StatusBadge, Pagination, TableSkeleton } from '../components/ui';
+import { StatusBadge, Pagination, TableSkeleton } from '../components/ui';
 import { formatCurrency, formatDate, getOrderStatusColor, getPaymentStatusColor } from '../utils';
 
 export function OrdersList() {

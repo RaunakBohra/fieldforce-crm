@@ -16,7 +16,7 @@ export function TerritoriesList() {
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
-  const [countryFilter, setCountryFilter] = useState('');
+  const [countryFilter] = useState('');
   const [isActiveFilter, setIsActiveFilter] = useState('');
 
   // Redirect if not admin or manager
@@ -268,7 +268,7 @@ export function TerritoriesList() {
                           )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <StatusBadge status={territory.isActive ? 'active' : 'inactive'} />
+                          <StatusBadge label={territory.isActive ? 'active' : 'inactive'} />
                         </td>
                         {currentUser?.role === 'ADMIN' && (
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
