@@ -66,6 +66,7 @@ app.use(
         'http://localhost:3000',
         'http://localhost:5173',
         'https://crm.raunakbohra.com',
+        'https://crm-api.raunakbohra.com',
       ];
 
       // Allow all Cloudflare Pages deployments (*.pages.dev)

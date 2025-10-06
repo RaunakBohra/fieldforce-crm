@@ -20,6 +20,8 @@ export function OrderForm() {
   // Data
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [contactSearch, setContactSearch] = useState('');
+  const [productSearch, setProductSearch] = useState('');
 
   // Form state
   const [contactId, setContactId] = useState('');
@@ -27,13 +29,24 @@ export function OrderForm() {
   const [notes, setNotes] = useState('');
 
   useEffect(() => {
-    fetchContacts();
-    fetchProducts();
-  }, []);
+    const timer = setTimeout(() => {
+      fetchContacts();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [contactSearch]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchProducts();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [productSearch]);
 
   const fetchContacts = async () => {
     try {
-      const response = await api.getContacts({ page: 1, limit: 100 });
+      const params: any = { page: 1, limit: 50 };
+      if (contactSearch) params.search = contactSearch;
+      const response = await api.getContacts(params);
       if (response.success && response.data) {
         setContacts(response.data.contacts);
       }
@@ -44,7 +57,9 @@ export function OrderForm() {
 
   const fetchProducts = async () => {
     try {
-      const response = await api.getProducts({ page: 1, limit: 100, isActive: true });
+      const params: any = { page: 1, limit: 50, isActive: true };
+      if (productSearch) params.search = productSearch;
+      const response = await api.getProducts(params);
       if (response.success && response.data) {
         setProducts(response.data.products);
       }
@@ -150,6 +165,13 @@ export function OrderForm() {
             {/* Contact Selection */}
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Select Contact</h2>
+              <input
+                type="text"
+                placeholder="Search contacts..."
+                value={contactSearch}
+                onChange={(e) => setContactSearch(e.target.value)}
+                className="w-full px-4 py-2 mb-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              />
               <select
                 value={contactId}
                 onChange={(e) => setContactId(e.target.value)}
@@ -163,6 +185,9 @@ export function OrderForm() {
                   </option>
                 ))}
               </select>
+              {contacts.length === 0 && contactSearch && (
+                <p className="mt-2 text-sm text-gray-500">No contacts found matching "{contactSearch}"</p>
+              )}
             </div>
 
             {/* Order Items */}
@@ -178,6 +203,14 @@ export function OrderForm() {
                   Add Product
                 </button>
               </div>
+
+              <input
+                type="text"
+                placeholder="Search products..."
+                value={productSearch}
+                onChange={(e) => setProductSearch(e.target.value)}
+                className="w-full px-4 py-2 mb-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              />
 
               {items.length === 0 ? (
                 <p className="text-gray-500 text-center py-8">No products added yet. Click "Add Product" to begin.</p>

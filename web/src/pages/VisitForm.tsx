@@ -14,6 +14,7 @@ export function VisitForm() {
   const [fetchingLocation, setFetchingLocation] = useState(false);
   const [error, setError] = useState('');
   const [contacts, setContacts] = useState<Contact[]>([]);
+  const [contactSearch, setContactSearch] = useState('');
 
   const [formData, setFormData] = useState<CreateVisitData>({
     contactId: '',
@@ -36,7 +37,13 @@ export function VisitForm() {
   const [productsInput, setProductsInput] = useState('');
 
   useEffect(() => {
-    fetchContacts();
+    const timer = setTimeout(() => {
+      fetchContacts();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [contactSearch]);
+
+  useEffect(() => {
     if (isEditing) {
       fetchVisit();
     }
@@ -44,7 +51,9 @@ export function VisitForm() {
 
   const fetchContacts = async () => {
     try {
-      const response = await api.getContacts({ limit: 100, isActive: true });
+      const params: any = { limit: 50, isActive: true };
+      if (contactSearch) params.search = contactSearch;
+      const response = await api.getContacts(params);
       if (response.success && response.data) {
         setContacts(response.data.contacts);
       }
@@ -176,6 +185,13 @@ export function VisitForm() {
               <label className="block text-sm font-medium text-neutral-700 mb-1">
                 Contact <span className="text-red-500">*</span>
               </label>
+              <input
+                type="text"
+                placeholder="Search contacts..."
+                value={contactSearch}
+                onChange={(e) => setContactSearch(e.target.value)}
+                className="w-full px-3 py-2 mb-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              />
               <select
                 required
                 value={formData.contactId}
@@ -189,6 +205,9 @@ export function VisitForm() {
                   </option>
                 ))}
               </select>
+              {contacts.length === 0 && contactSearch && (
+                <p className="mt-1 text-sm text-neutral-500">No contacts found matching "{contactSearch}"</p>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

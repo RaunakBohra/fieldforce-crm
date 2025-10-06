@@ -37,24 +37,32 @@ export default function PaymentsList() {
   const { token } = useAuth();
   const navigate = useNavigate();
 
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const limit = 20;
+
   useEffect(() => {
     fetchPayments();
     fetchStats();
-  }, [filter]);
+  }, [filter, currentPage]);
 
   const fetchPayments = async () => {
     try {
       const params = new URLSearchParams();
+      params.append('page', currentPage.toString());
+      params.append('limit', limit.toString());
       if (filter.paymentMode) params.append('paymentMode', filter.paymentMode);
       if (filter.startDate) params.append('startDate', filter.startDate);
       if (filter.endDate) params.append('endDate', filter.endDate);
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://fieldforce-crm.raunakbohra.workers.dev'}/api/payments?${params}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://crm-api.raunakbohra.com'}/api/payments?${params}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json();
       if (data.success) {
         setPayments(data.data.payments);
+        setTotalPages(data.data.pagination.totalPages);
       }
     } catch (error) {
       console.error('Failed to fetch payments:', error);
@@ -69,7 +77,7 @@ export default function PaymentsList() {
       if (filter.startDate) params.append('startDate', filter.startDate);
       if (filter.endDate) params.append('endDate', filter.endDate);
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://fieldforce-crm.raunakbohra.workers.dev'}/api/payments/stats?${params}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://crm-api.raunakbohra.com'}/api/payments/stats?${params}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json();
@@ -258,6 +266,29 @@ export default function PaymentsList() {
             </div>
           )}
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center gap-2 mt-6">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="px-4 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+            >
+              Previous
+            </button>
+            <span className="text-gray-600">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -26,7 +26,7 @@ export default function PendingPayments() {
 
   const fetchPendingPayments = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://fieldforce-crm.raunakbohra.workers.dev'}/api/payments/pending`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://crm-api.raunakbohra.com'}/api/payments/pending`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json();
