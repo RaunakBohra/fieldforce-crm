@@ -106,107 +106,143 @@ export default function Dashboard() {
         </Card>
 
         {/* Overview Stats */}
-        <section className="mt-6 space-y-3">
-          {/* Visits */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <StatCard
-              title="Today's Visits"
-              value={stats?.visits.today ?? 0}
-              icon={MapPin}
-              iconColor="text-primary-600"
-              valueColor="text-primary-700"
-              onClick={() => navigate('/visits')}
-            />
-            <StatCard
-              title="This Week Visits"
-              value={stats?.visits.thisWeek ?? 0}
-              icon={MapPin}
-              iconColor="text-primary-600"
-              valueColor="text-primary-700"
-              onClick={() => navigate('/visits')}
-            />
-            <StatCard
-              title="This Month Visits"
-              value={stats?.visits.thisMonth ?? 0}
-              icon={MapPin}
-              iconColor="text-primary-600"
-              valueColor="text-primary-700"
-              onClick={() => navigate('/visits')}
-            />
-          </div>
+        <section className="mt-6 space-y-4">
+          {/* Visits Card */}
+          <Card>
+            <h3 className="text-lg font-semibold text-neutral-900 mb-4 flex items-center gap-2">
+              <MapPin className="w-5 h-5 text-primary-600" />
+              Visits
+            </h3>
+            <div className="overflow-x-auto">
+              <div className="grid grid-cols-3 gap-4 min-w-max">
+                {/* Headers */}
+                <div className="text-center">
+                  <div className="text-xs font-medium text-neutral-600 mb-2">Today</div>
+                  <button
+                    onClick={() => navigate('/visits')}
+                    className="text-2xl font-bold text-primary-700 hover:text-primary-800 transition-colors"
+                  >
+                    {stats?.visits.today ?? 0}
+                  </button>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs font-medium text-neutral-600 mb-2">This Week</div>
+                  <button
+                    onClick={() => navigate('/visits')}
+                    className="text-2xl font-bold text-primary-700 hover:text-primary-800 transition-colors"
+                  >
+                    {stats?.visits.thisWeek ?? 0}
+                  </button>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs font-medium text-neutral-600 mb-2">This Month</div>
+                  <button
+                    onClick={() => navigate('/visits')}
+                    className="text-2xl font-bold text-primary-700 hover:text-primary-800 transition-colors"
+                  >
+                    {stats?.visits.thisMonth ?? 0}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </Card>
 
-          {/* Orders */}
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-            <StatCard
-              title="Total Orders"
-              value={stats?.orders.total ?? 0}
-              icon={ShoppingCart}
-              iconColor="text-neutral-600"
-              valueColor="text-neutral-900"
-              onClick={() => navigate('/orders')}
-            />
-            <StatCard
-              title="Pending Orders"
-              value={stats?.orders.pending ?? 0}
-              icon={Clock}
-              iconColor="text-warn-600"
-              valueColor="text-warn-600"
-              onClick={() => navigate('/orders')}
-            />
-            <StatCard
-              title="Approved Orders"
-              value={stats?.orders.approved ?? 0}
-              icon={CheckCircle2}
-              iconColor="text-primary-600"
-              valueColor="text-primary-600"
-              onClick={() => navigate('/orders')}
-            />
-            <StatCard
-              title="Delivered Orders"
-              value={stats?.orders.delivered ?? 0}
-              icon={Package}
-              iconColor="text-success-600"
-              valueColor="text-success-600"
-              onClick={() => navigate('/orders')}
-            />
-            <StatCard
-              title="Cancelled Orders"
-              value={stats?.orders.cancelled ?? 0}
-              icon={Package}
-              iconColor="text-danger-600"
-              valueColor="text-danger-600"
-              onClick={() => navigate('/orders')}
-            />
-          </div>
+          {/* Orders Card */}
+          <Card>
+            <h3 className="text-lg font-semibold text-neutral-900 mb-4 flex items-center gap-2">
+              <ShoppingCart className="w-5 h-5 text-neutral-600" />
+              Orders
+            </h3>
+            <div className="overflow-x-auto">
+              <div className="grid grid-cols-5 gap-4 min-w-max">
+                <div className="text-center">
+                  <div className="text-xs font-medium text-neutral-600 mb-2">Total</div>
+                  <button
+                    onClick={() => navigate('/orders')}
+                    className="text-2xl font-bold text-neutral-900 hover:text-neutral-700 transition-colors"
+                  >
+                    {stats?.orders.total ?? 0}
+                  </button>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs font-medium text-neutral-600 mb-2">Pending</div>
+                  <button
+                    onClick={() => navigate('/orders')}
+                    className="text-2xl font-bold text-warn-600 hover:text-warn-700 transition-colors"
+                  >
+                    {stats?.orders.pending ?? 0}
+                  </button>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs font-medium text-neutral-600 mb-2">Approved</div>
+                  <button
+                    onClick={() => navigate('/orders')}
+                    className="text-2xl font-bold text-primary-600 hover:text-primary-700 transition-colors"
+                  >
+                    {stats?.orders.approved ?? 0}
+                  </button>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs font-medium text-neutral-600 mb-2">Delivered</div>
+                  <button
+                    onClick={() => navigate('/orders')}
+                    className="text-2xl font-bold text-success-600 hover:text-success-700 transition-colors"
+                  >
+                    {stats?.orders.delivered ?? 0}
+                  </button>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs font-medium text-neutral-600 mb-2">Cancelled</div>
+                  <button
+                    onClick={() => navigate('/orders')}
+                    className="text-2xl font-bold text-danger-600 hover:text-danger-700 transition-colors"
+                  >
+                    {stats?.orders.cancelled ?? 0}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </Card>
 
-          {/* Financials */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <StatCard
-              title="Total Revenue"
-              value={formatCurrency(stats?.revenue.total ?? 0)}
-              icon={DollarSign}
-              iconColor="text-primary-600"
-              valueColor="text-primary-700"
-              subtitle="Delivered orders"
-              onClick={() => navigate('/orders')}
-            />
-            <StatCard
-              title="Collected Payments"
-              value={formatCurrency(stats?.revenue.collected ?? 0)}
-              icon={CreditCard}
-              iconColor="text-success-600"
-              valueColor="text-success-600"
-              onClick={() => navigate('/payments')}
-            />
-            <StatCard
-              title="Outstanding Payments"
-              value={formatCurrency(stats?.revenue.outstanding ?? 0)}
-              icon={TrendingUp}
-              iconColor="text-warn-600"
-              valueColor="text-warn-600"
-              onClick={() => navigate('/payments/pending')}
-            />
-          </div>
+          {/* Financials Card */}
+          <Card>
+            <h3 className="text-lg font-semibold text-neutral-900 mb-4 flex items-center gap-2">
+              <DollarSign className="w-5 h-5 text-primary-600" />
+              Financials
+            </h3>
+            <div className="overflow-x-auto">
+              <div className="grid grid-cols-3 gap-4 min-w-max">
+                <div className="text-center">
+                  <div className="text-xs font-medium text-neutral-600 mb-2">Total Revenue</div>
+                  <button
+                    onClick={() => navigate('/orders')}
+                    className="text-2xl font-bold text-primary-700 hover:text-primary-800 transition-colors"
+                  >
+                    {formatCurrency(stats?.revenue.total ?? 0)}
+                  </button>
+                  <div className="text-xs text-neutral-500 mt-1">Delivered orders</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs font-medium text-neutral-600 mb-2">Collected</div>
+                  <button
+                    onClick={() => navigate('/payments')}
+                    className="text-2xl font-bold text-success-600 hover:text-success-700 transition-colors"
+                  >
+                    {formatCurrency(stats?.revenue.collected ?? 0)}
+                  </button>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs font-medium text-neutral-600 mb-2">Outstanding</div>
+                  <button
+                    onClick={() => navigate('/payments/pending')}
+                    className="text-2xl font-bold text-warn-600 hover:text-warn-700 transition-colors"
+                  >
+                    {formatCurrency(stats?.revenue.outstanding ?? 0)}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </Card>
         </section>
 
         {/* Top Performers (Admin/Manager Only) */}
