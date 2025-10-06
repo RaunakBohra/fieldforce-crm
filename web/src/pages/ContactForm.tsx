@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { api } from '../services/api';
 import type { CreateContactData } from '../services/api';
 import { ArrowLeft, Save } from 'lucide-react';
+import { Navigation } from '../components/Navigation';
 
 const DISTRIBUTION_TYPES = [
   { value: 'SUPER_ADMIN', label: 'Super Admin' },
@@ -102,17 +103,27 @@ export function ContactForm() {
 
   if (loading && isEditMode) {
     return (
-      <div className="min-h-screen bg-neutral-100 flex items-center justify-center">
-        <div className="text-neutral-600">Loading contact...</div>
+      <div className="min-h-screen bg-neutral-100">
+        <Navigation />
+        <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+          <div className="px-4 py-6 sm:px-0">
+            <div className="flex items-center justify-center">
+              <div className="text-neutral-600">Loading contact...</div>
+            </div>
+          </div>
+        </main>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-neutral-100">
-      {/* Header */}
-      <div className="bg-white border-b border-neutral-200">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <Navigation />
+      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div className="px-4 py-6 sm:px-0">
+          {/* Header */}
+          <div className="bg-white border-b border-neutral-200">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <button
             onClick={() => navigate('/contacts')}
             className="flex items-center gap-2 text-neutral-600 hover:text-neutral-900 mb-4"
@@ -522,6 +533,8 @@ export function ContactForm() {
           </div>
         </form>
       </div>
+        </div>
+      </main>
     </div>
   );
 }

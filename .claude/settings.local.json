@@ -75,7 +75,9 @@
       "Bash(chmod:*)",
       "Bash(/Users/raunakbohra/Desktop/medical-CRM/test-csrf.sh:*)",
       "Bash(npm run test:e2e:*)",
-      "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_EK1XpFYRye6M@ep-ancient-art-a1aag2jx-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require\" npx tsx prisma/seed.ts)"
+      "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_EK1XpFYRye6M@ep-ancient-art-a1aag2jx-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require\" npx tsx prisma/seed.ts)",
+      "Bash(awk:*)",
+      "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_EK1XpFYRye6M@ep-ancient-art-a1aag2jx-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require\" npx prisma migrate dev --name add_composite_performance_indexes)"
     ],
     "deny": [],
     "ask": []

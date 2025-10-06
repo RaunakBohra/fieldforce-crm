@@ -1,18 +1,20 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import Login from './pages/Login';
-import Signup from './pages/Signup';
-import Dashboard from './pages/Dashboard';
-import ThemePreview from './pages/ThemePreview';
-import { ContactsList } from './pages/ContactsList';
-import { ContactForm } from './pages/ContactForm';
-import { VisitsList } from './pages/VisitsList';
-import { VisitForm } from './pages/VisitForm';
-import { VisitDetails } from './pages/VisitDetails';
-import { ProductsList } from './pages/ProductsList';
-import { OrdersList } from './pages/OrdersList';
-import { type ReactElement } from 'react';
+import { lazy, Suspense, type ReactElement } from 'react';
+
+// Lazy load pages for code splitting
+const Login = lazy(() => import('./pages/Login'));
+const Signup = lazy(() => import('./pages/Signup'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const ThemePreview = lazy(() => import('./pages/ThemePreview'));
+const ContactsList = lazy(() => import('./pages/ContactsList').then(m => ({ default: m.ContactsList })));
+const ContactForm = lazy(() => import('./pages/ContactForm').then(m => ({ default: m.ContactForm })));
+const VisitsList = lazy(() => import('./pages/VisitsList').then(m => ({ default: m.VisitsList })));
+const VisitForm = lazy(() => import('./pages/VisitForm').then(m => ({ default: m.VisitForm })));
+const VisitDetails = lazy(() => import('./pages/VisitDetails').then(m => ({ default: m.VisitDetails })));
+const ProductsList = lazy(() => import('./pages/ProductsList').then(m => ({ default: m.ProductsList })));
+const OrdersList = lazy(() => import('./pages/OrdersList').then(m => ({ default: m.OrdersList })));
 
 function PrivateRoute({ children }: { children: ReactElement }) {
   const { user, loading } = useAuth();
@@ -28,12 +30,25 @@ function PrivateRoute({ children }: { children: ReactElement }) {
   return user ? children : <Navigate to="/login" />;
 }
 
+// Loading component
+function PageLoader() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-teal-600 mx-auto mb-4"></div>
+        <p className="text-gray-600">Loading...</p>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   return (
     <ErrorBoundary>
       <AuthProvider>
         <BrowserRouter>
-          <Routes>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/themes" element={<ThemePreview />} />
@@ -118,7 +133,8 @@ function App() {
               }
             />
             <Route path="/" element={<Navigate to="/dashboard" />} />
-          </Routes>
+            </Routes>
+          </Suspense>
         </BrowserRouter>
       </AuthProvider>
     </ErrorBoundary>

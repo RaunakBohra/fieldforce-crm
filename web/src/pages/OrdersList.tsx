@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import type { Order, OrderStats } from '../services/api';
 import { ShoppingCart, Eye, XCircle, Plus } from 'lucide-react';
+import { Navigation } from '../components/Navigation';
 
 export function OrdersList() {
   const navigate = useNavigate();
@@ -25,7 +26,11 @@ export function OrdersList() {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const params: any = {
+      const params: {
+        page: number;
+        limit: number;
+        status?: string;
+      } = {
         page: currentPage,
         limit,
       };
@@ -85,12 +90,15 @@ export function OrdersList() {
   };
 
   return (
-    <div className="p-6">
-      <div className="mb-6 flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Orders</h1>
-          <p className="text-gray-600">Manage customer orders</p>
-        </div>
+    <div className="min-h-screen bg-neutral-100">
+      <Navigation />
+      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div className="px-4 py-6 sm:px-0">
+          <div className="mb-6 flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">Orders</h1>
+              <p className="text-gray-600">Manage customer orders</p>
+            </div>
         <button
           onClick={() => navigate('/orders/new')}
           className="flex items-center gap-2 bg-teal-600 text-white px-4 py-2 rounded-md hover:bg-teal-700"
@@ -256,6 +264,8 @@ export function OrdersList() {
           </button>
         </div>
       )}
+        </div>
+      </main>
     </div>
   );
 }

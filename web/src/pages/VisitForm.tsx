@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api } from '../services/api';
 import type { CreateVisitData, Contact } from '../services/api';
-import { MapPin, Navigation, Loader2 } from 'lucide-react';
+import { MapPin, Navigation as NavigationIcon, Loader2 } from 'lucide-react';
+import { Navigation } from '../components/Navigation';
 
 export function VisitForm() {
   const navigate = useNavigate();
@@ -153,9 +154,12 @@ export function VisitForm() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-100 py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-lg shadow-sm p-6">
+    <div className="min-h-screen bg-neutral-100">
+      <Navigation />
+      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div className="px-4 py-6 sm:px-0">
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-white rounded-lg shadow-sm p-6">
           <h1 className="text-2xl font-bold text-neutral-900 mb-6">
             {isEditing ? 'Edit Visit' : 'New Visit'}
           </h1>
@@ -296,7 +300,7 @@ export function VisitForm() {
                     </>
                   ) : (
                     <>
-                      <Navigation className="w-4 h-4" />
+                      <NavigationIcon className="w-4 h-4" />
                       Capture Location
                     </>
                   )}
@@ -433,8 +437,10 @@ export function VisitForm() {
               </button>
             </div>
           </form>
+            </div>
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { api } from '../services/api';
 import type { Contact, ContactStats, ContactQueryParams } from '../services/api';
 import { useDebounce } from '../hooks/useDebounce';
 import { Pencil, Trash2, Plus, Search, Filter } from 'lucide-react';
+import { Navigation } from '../components/Navigation';
 
 export function ContactsList() {
   const navigate = useNavigate();
@@ -94,9 +95,12 @@ export function ContactsList() {
 
   return (
     <div className="min-h-screen bg-neutral-100">
-      {/* Header */}
-      <div className="bg-white border-b border-neutral-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <Navigation />
+      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div className="px-4 py-6 sm:px-0">
+          {/* Header */}
+          <div className="bg-white border-b border-neutral-200">
+            <div className="px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-3xl font-bold text-neutral-900">Contacts</h1>
@@ -130,11 +134,11 @@ export function ContactsList() {
               </div>
             </div>
           )}
-        </div>
-      </div>
+            </div>
+          </div>
 
-      {/* Filters */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          {/* Filters */}
+          <div className="px-4 sm:px-6 lg:px-8 py-6">
         <div className="bg-white rounded-lg border border-neutral-200 p-4">
           <div className="flex items-center gap-2 mb-4">
             <Filter className="w-5 h-5 text-neutral-600" />
@@ -182,17 +186,17 @@ export function ContactsList() {
               Reset Filters
             </button>
           </div>
-        </div>
+            </div>
 
-        {/* Error */}
+            {/* Error */}
         {error && (
           <div className="mt-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
             {error}
           </div>
         )}
 
-        {/* Contacts Table */}
-        <div className="mt-6 bg-white rounded-lg border border-neutral-200 overflow-hidden">
+            {/* Contacts Table */}
+            <div className="mt-6 bg-white rounded-lg border border-neutral-200 overflow-hidden">
           {loading ? (
             <div className="p-8 text-center text-neutral-600">Loading contacts...</div>
           ) : contacts.length === 0 ? (
@@ -284,10 +288,10 @@ export function ContactsList() {
               </table>
             </div>
           )}
-        </div>
+            </div>
 
-        {/* Pagination */}
-        {totalPages > 1 && (
+            {/* Pagination */}
+            {totalPages > 1 && (
           <div className="mt-6 flex justify-center gap-2">
             <button
               onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
@@ -307,8 +311,10 @@ export function ContactsList() {
               Next
             </button>
           </div>
-        )}
-      </div>
+            )}
+          </div>
+        </div>
+      </main>
     </div>
   );
 }

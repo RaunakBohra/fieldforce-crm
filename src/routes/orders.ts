@@ -8,6 +8,7 @@ import {
   orderQuerySchema,
 } from '../validators/orderSchemas';
 import type { Bindings } from '../index';
+import { getOrSetCache, getUserStatsCacheKey } from '../utils/cache';
 import type { Dependencies } from '../config/dependencies';
 
 /**
@@ -46,7 +47,15 @@ orders.get('/', async (c) => {
     });
 
     // Build where clause
-    const where: any = {
+    const where: {
+      createdById: string;
+      status?: string;
+      contactId?: string;
+      createdAt?: {
+        gte?: string;
+        lte?: string;
+      };
+    } = {
       createdById: user.userId, // Only show user's own orders
     };
 
@@ -61,10 +70,10 @@ orders.get('/', async (c) => {
     if (query.startDate || query.endDate) {
       where.createdAt = {};
       if (query.startDate) {
-        where.createdAt.gte = query.startDate;
+        where.createdAt.gte = new Date(query.startDate).toISOString();
       }
       if (query.endDate) {
-        where.createdAt.lte = query.endDate;
+        where.createdAt.lte = new Date(query.endDate).toISOString();
       }
     }
 
@@ -74,7 +83,7 @@ orders.get('/', async (c) => {
     // Get orders
     const [data, total] = await Promise.all([
       deps.prisma.order.findMany({
-        where,
+        where: where as any,
         skip,
         take: query.limit,
         include: {
@@ -95,7 +104,7 @@ orders.get('/', async (c) => {
         },
         orderBy: { createdAt: 'desc' },
       }),
-      deps.prisma.order.count({ where }),
+      deps.prisma.order.count({ where: where as any }),
     ]);
 
     return c.json({
@@ -138,40 +147,51 @@ orders.get('/stats', async (c) => {
   try {
     logger.info('Get order stats request', getLogContext(c));
 
-    const [
-      totalOrders,
-      pendingOrders,
-      approvedOrders,
-      deliveredOrders,
-      totalRevenue,
-    ] = await Promise.all([
-      deps.prisma.order.count({
-        where: { createdById: user.userId },
-      }),
-      deps.prisma.order.count({
-        where: { createdById: user.userId, status: 'PENDING' },
-      }),
-      deps.prisma.order.count({
-        where: { createdById: user.userId, status: 'APPROVED' },
-      }),
-      deps.prisma.order.count({
-        where: { createdById: user.userId, status: 'DELIVERED' },
-      }),
-      deps.prisma.order.aggregate({
-        where: { createdById: user.userId },
-        _sum: { totalAmount: true },
-      }),
-    ]);
+    // Use cache with 5 minute TTL
+    const cacheKey = getUserStatsCacheKey('orders', user.userId);
+    const stats = await getOrSetCache(
+      deps.kv,
+      cacheKey,
+      async () => {
+        const [
+          totalOrders,
+          pendingOrders,
+          approvedOrders,
+          deliveredOrders,
+          totalRevenue,
+        ] = await Promise.all([
+          deps.prisma.order.count({
+            where: { createdById: user.userId },
+          }),
+          deps.prisma.order.count({
+            where: { createdById: user.userId, status: 'PENDING' },
+          }),
+          deps.prisma.order.count({
+            where: { createdById: user.userId, status: 'APPROVED' },
+          }),
+          deps.prisma.order.count({
+            where: { createdById: user.userId, status: 'DELIVERED' },
+          }),
+          deps.prisma.order.aggregate({
+            where: { createdById: user.userId },
+            _sum: { totalAmount: true },
+          }),
+        ]);
+
+        return {
+          totalOrders,
+          pendingOrders,
+          approvedOrders,
+          deliveredOrders,
+          totalRevenue: totalRevenue._sum.totalAmount || 0,
+        };
+      },
+      { ttl: 300 } // 5 minutes
+    );
 
     return c.json({
       success: true,
-      data: {
-        totalOrders,
-        pendingOrders,
-        approvedOrders,
-        deliveredOrders,
-        totalRevenue: totalRevenue._sum.totalAmount || 0,
-      },
+      data: stats,
     }, 200);
   } catch (error: unknown) {
     logger.error('Get order stats failed', error, getLogContext(c));

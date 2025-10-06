@@ -2,13 +2,16 @@ import { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import type { Product, ProductQueryParams } from '../services/api';
 import { useDebounce } from '../hooks/useDebounce';
-import { Search, Filter, Package } from 'lucide-react';
+import { Search, Package, Edit2, Save, X } from 'lucide-react';
+import { Navigation } from '../components/Navigation';
 
 export function ProductsList() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [categories, setCategories] = useState<string[]>([]);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<Partial<Product>>({});
 
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -64,12 +67,45 @@ export function ProductsList() {
     }
   };
 
+  const handleEdit = (product: Product) => {
+    setEditingId(product.id);
+    setEditForm({
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      stock: product.stock,
+      category: product.category,
+    });
+  };
+
+  const handleCancel = () => {
+    setEditingId(null);
+    setEditForm({});
+  };
+
+  const handleSave = async (id: string) => {
+    try {
+      const response = await api.updateProduct(id, editForm);
+      if (response.success) {
+        fetchProducts();
+        setEditingId(null);
+        setEditForm({});
+      }
+    } catch (err) {
+      const error = err as Error;
+      alert(error.message || 'Failed to update product');
+    }
+  };
+
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Product Catalog</h1>
-        <p className="text-gray-600">Browse and select products for orders</p>
-      </div>
+    <div className="min-h-screen bg-neutral-100">
+      <Navigation />
+      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div className="px-4 py-6 sm:px-0">
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Product Catalog</h1>
+            <p className="text-gray-600">Browse and select products for orders</p>
+          </div>
 
       {/* Filters */}
       <div className="bg-white rounded-lg shadow p-4 mb-6">
@@ -112,47 +148,131 @@ export function ProductsList() {
         </div>
       )}
 
-      {/* Products Grid */}
+      {/* Products Table */}
       {!loading && products.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {products.map((product) => (
-            <div key={product.id} className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900 mb-1">{product.name}</h3>
-                  <p className="text-sm text-gray-500">{product.sku}</p>
-                </div>
-                <Package className="text-teal-600" size={24} />
-              </div>
-
-              <p className="text-sm text-gray-600 mb-4">{product.description}</p>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="text-xs text-gray-500 block">Price</span>
-                  <span className="text-lg font-bold text-gray-900">₹{product.price}</span>
-                </div>
-                <div>
-                  <span className="text-xs text-gray-500 block">Stock</span>
-                  <span className={`text-lg font-bold ${product.stock > 100 ? 'text-green-600' : product.stock > 20 ? 'text-yellow-600' : 'text-red-600'}`}>
-                    {product.stock}
-                  </span>
-                </div>
-              </div>
-
-              <div className="mt-4">
-                <span className="inline-block bg-teal-100 text-teal-800 text-xs px-2 py-1 rounded">
-                  {product.category}
-                </span>
-              </div>
-            </div>
-          ))}
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product Name</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">SKU</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stock</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {products.map((product) => (
+                <tr key={product.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {editingId === product.id ? (
+                      <input
+                        type="text"
+                        value={editForm.name || ''}
+                        onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                        className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-teal-500"
+                      />
+                    ) : (
+                      <div className="text-sm font-medium text-gray-900">{product.name}</div>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.sku}</td>
+                  <td className="px-6 py-4">
+                    {editingId === product.id ? (
+                      <input
+                        type="text"
+                        value={editForm.description || ''}
+                        onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                        className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-teal-500"
+                      />
+                    ) : (
+                      <div className="text-sm text-gray-600 max-w-xs truncate">{product.description}</div>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {editingId === product.id ? (
+                      <select
+                        value={editForm.category || ''}
+                        onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
+                        className="px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-teal-500"
+                      >
+                        {categories.map((cat) => (
+                          <option key={cat} value={cat}>{cat}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <span className="inline-block bg-teal-100 text-teal-800 text-xs px-2 py-1 rounded">
+                        {product.category}
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {editingId === product.id ? (
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={editForm.price || ''}
+                        onChange={(e) => setEditForm({ ...editForm, price: parseFloat(e.target.value) })}
+                        className="w-24 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-teal-500"
+                      />
+                    ) : (
+                      <div className="text-sm font-semibold text-gray-900">₹{product.price}</div>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {editingId === product.id ? (
+                      <input
+                        type="number"
+                        value={editForm.stock || ''}
+                        onChange={(e) => setEditForm({ ...editForm, stock: parseInt(e.target.value) })}
+                        className="w-20 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-teal-500"
+                      />
+                    ) : (
+                      <span className={`text-sm font-bold ${product.stock > 100 ? 'text-green-600' : product.stock > 20 ? 'text-yellow-600' : 'text-red-600'}`}>
+                        {product.stock}
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    {editingId === product.id ? (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleSave(product.id)}
+                          className="text-green-600 hover:text-green-900"
+                          title="Save"
+                        >
+                          <Save size={18} />
+                        </button>
+                        <button
+                          onClick={handleCancel}
+                          className="text-red-600 hover:text-red-900"
+                          title="Cancel"
+                        >
+                          <X size={18} />
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => handleEdit(product)}
+                        className="text-teal-600 hover:text-teal-900"
+                        title="Edit"
+                      >
+                        <Edit2 size={18} />
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
 
       {/* Empty State */}
       {!loading && products.length === 0 && (
-        <div className="text-center py-12">
+        <div className="text-center py-12 bg-white rounded-lg shadow">
           <Package className="mx-auto text-gray-400 mb-4" size={48} />
           <p className="text-gray-500">No products found</p>
         </div>
@@ -180,6 +300,8 @@ export function ProductsList() {
           </button>
         </div>
       )}
+        </div>
+      </main>
     </div>
   );
 }

@@ -16,6 +16,7 @@ import {
   Tag,
   AlertCircle
 } from 'lucide-react';
+import { Navigation } from '../components/Navigation';
 
 export function VisitDetails() {
   const navigate = useNavigate();
@@ -103,36 +104,51 @@ export function VisitDetails() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-neutral-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
-          <p className="mt-2 text-neutral-600">Loading visit...</p>
-        </div>
+      <div className="min-h-screen bg-neutral-100">
+        <Navigation />
+        <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+          <div className="px-4 py-6 sm:px-0">
+            <div className="flex items-center justify-center">
+              <div className="text-center">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
+                <p className="mt-2 text-neutral-600">Loading visit...</p>
+              </div>
+            </div>
+          </div>
+        </main>
       </div>
     );
   }
 
   if (error || !visit) {
     return (
-      <div className="min-h-screen bg-neutral-100 py-8">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-            {error || 'Visit not found'}
+      <div className="min-h-screen bg-neutral-100">
+        <Navigation />
+        <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+          <div className="px-4 py-6 sm:px-0">
+            <div className="max-w-4xl mx-auto">
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                {error || 'Visit not found'}
+              </div>
+              <button
+                onClick={() => navigate('/visits')}
+                className="mt-4 text-primary-600 hover:text-primary-700"
+              >
+                ← Back to Visits
+              </button>
+            </div>
           </div>
-          <button
-            onClick={() => navigate('/visits')}
-            className="mt-4 text-primary-600 hover:text-primary-700"
-          >
-            ← Back to Visits
-          </button>
-        </div>
+        </main>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-neutral-100 py-8">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-neutral-100">
+      <Navigation />
+      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div className="px-4 py-6 sm:px-0">
+          <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="mb-6">
           <button
@@ -376,7 +392,9 @@ export function VisitDetails() {
             )}
           </div>
         </div>
-      </div>
+          </div>
+        </div>
+      </main>
     </div>
   );
 }

@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import type { ContactStats, VisitStats } from '../services/api';
-import { Users, Calendar, ShoppingCart, Package } from 'lucide-react';
+import { Users, CheckCircle2 } from 'lucide-react';
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
@@ -156,7 +156,7 @@ export default function Dashboard() {
             <div className="bg-white rounded-lg shadow p-6" role="article">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-lg font-semibold text-neutral-900">Orders</h3>
-                <ShoppingCart className="w-6 h-6 text-primary-800" />
+                <CheckCircle2 className="w-6 h-6 text-primary-800" />
               </div>
               <p className="text-3xl font-bold text-primary-600" aria-label="Order count">0</p>
               <p className="text-sm text-accent-500 mt-1">Coming in Day 4</p>

@@ -1,11 +1,12 @@
 import { Context, Next } from 'hono';
 import { verifyToken } from '../utils/jwt';
-import { Bindings } from '../index';
+import { Bindings, UserContext } from '../index';
+import { Dependencies } from '../config/dependencies';
 
 export async function authMiddleware(
-  c: Context<{ Bindings: Bindings }>,
+  c: Context<{ Bindings: Bindings; Variables: { deps: Dependencies; user: UserContext } }>,
   next: Next
-) {
+): Promise<Response | void> {
   const authHeader = c.req.header('Authorization');
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {

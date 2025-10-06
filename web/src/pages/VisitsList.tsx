@@ -4,6 +4,7 @@ import { api } from '../services/api';
 import type { Visit, VisitStats, VisitQueryParams } from '../services/api';
 import { useDebounce } from '../hooks/useDebounce';
 import { Pencil, Trash2, Plus, Search, MapPin, Calendar, Eye } from 'lucide-react';
+import { Navigation } from '../components/Navigation';
 
 export function VisitsList() {
   const navigate = useNavigate();
@@ -134,9 +135,12 @@ export function VisitsList() {
 
   return (
     <div className="min-h-screen bg-neutral-100">
-      {/* Header */}
-      <div className="bg-white border-b border-neutral-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <Navigation />
+      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div className="px-4 py-6 sm:px-0">
+          {/* Header */}
+          <div className="bg-white border-b border-neutral-200">
+            <div className="px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-3xl font-bold text-neutral-900">Visits</h1>
@@ -177,9 +181,9 @@ export function VisitsList() {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="bg-white border-b border-neutral-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          {/* Filters */}
+          <div className="bg-white border-b border-neutral-200">
+            <div className="px-4 sm:px-6 lg:px-8 py-4">
           <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
             {/* Search */}
             <div className="md:col-span-2 relative">
@@ -271,8 +275,8 @@ export function VisitsList() {
         </div>
       </div>
 
-      {/* Visits List */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          {/* Visits List */}
+          <div className="px-4 sm:px-6 lg:px-8 py-6">
         {loading ? (
           <div className="text-center py-12">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
@@ -420,7 +424,9 @@ export function VisitsList() {
             )}
           </>
         )}
-      </div>
+          </div>
+        </div>
+      </main>
     </div>
   );
 }

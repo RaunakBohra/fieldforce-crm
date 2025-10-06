@@ -679,6 +679,23 @@ class ApiService {
     }
   }
 
+  async updateProduct(id: string, data: Partial<Product>): Promise<ApiResponse<Product>> {
+    try {
+      const response = await fetch(`${API_URL}/api/products/${id}`, {
+        method: 'PUT',
+        headers: await this.getHeaders(true, true),
+        body: JSON.stringify(data),
+      });
+
+      return this.handleResponse<Product>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
   // Order Management
   async getOrders(params?: OrderQueryParams): Promise<ApiResponse<OrderListResponse>> {
     try {

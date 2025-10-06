@@ -49,7 +49,14 @@ products.get('/', async (c) => {
     });
 
     // Build where clause
-    const where: any = {};
+    const where: {
+      category?: string;
+      isActive?: boolean;
+      OR?: Array<{
+        name?: { contains: string; mode: 'insensitive' };
+        sku?: { contains: string; mode: 'insensitive' };
+      }>;
+    } = {};
 
     if (query.category) {
       where.category = query.category;
@@ -65,8 +72,7 @@ products.get('/', async (c) => {
       where.OR = [
         { name: { contains: query.search, mode: 'insensitive' } },
         { sku: { contains: query.search, mode: 'insensitive' } },
-        { description: { contains: query.search, mode: 'insensitive' } },
-      ];
+      ] as any;
     }
 
     // Calculate pagination
@@ -167,6 +173,74 @@ products.get('/categories/list', async (c) => {
     }, 200);
   } catch (error: unknown) {
     logger.error('Get product categories failed', error, getLogContext(c));
+    throw error;
+  }
+});
+
+// Product update schema
+const updateProductSchema = z.object({
+  name: z.string().min(1).optional(),
+  description: z.string().optional(),
+  category: z.string().optional(),
+  price: z.number().positive().optional(),
+  stock: z.number().int().min(0).optional(),
+  isActive: z.boolean().optional(),
+});
+
+/**
+ * PUT /api/products/:id
+ * Update a product
+ */
+products.put('/:id', async (c) => {
+  const deps = c.get('deps');
+  const productId = c.req.param('id');
+
+  try {
+    const body = await c.req.json();
+    const data = updateProductSchema.parse(body);
+
+    logger.info('Update product request', {
+      ...getLogContext(c),
+      productId,
+      data,
+    });
+
+    // Check if product exists
+    const existing = await deps.prisma.product.findUnique({
+      where: { id: productId },
+    });
+
+    if (!existing) {
+      return c.json({ success: false, error: 'Product not found' }, 404);
+    }
+
+    // Update product
+    const product = await deps.prisma.product.update({
+      where: { id: productId },
+      data,
+    });
+
+    return c.json({
+      success: true,
+      message: 'Product updated successfully',
+      data: product,
+    }, 200);
+  } catch (error: unknown) {
+    if (error instanceof ZodError) {
+      return c.json(
+        {
+          success: false,
+          error: error.errors[0]?.message || 'Invalid product data',
+          details: error.errors,
+        },
+        400
+      );
+    }
+
+    logger.error('Update product failed', error, {
+      ...getLogContext(c),
+      productId,
+    });
     throw error;
   }
 });

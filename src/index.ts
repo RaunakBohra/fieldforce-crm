@@ -41,7 +41,13 @@ export type Bindings = {
   AWS_SQS_QUEUE_URLS?: string; // JSON string: {"email-queue": "https://sqs..."}
 };
 
-const app = new Hono<{ Bindings: Bindings; Variables: { deps: Dependencies } }>();
+export interface UserContext {
+  userId: string;
+  email: string;
+  role: string;
+}
+
+const app = new Hono<{ Bindings: Bindings; Variables: { deps: Dependencies; user: UserContext } }>();
 
 /**
  * Global Middleware
@@ -80,6 +86,7 @@ app.use('/*', async (c, next) => {
 app.use('/api/contacts/*', csrfProtection);
 app.use('/api/visits/*', csrfProtection);
 app.use('/api/orders/*', csrfProtection);
+app.use('/api/products/*', csrfProtection);
 // Add other protected routes here as needed
 
 /**

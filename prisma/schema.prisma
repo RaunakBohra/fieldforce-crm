@@ -263,6 +263,10 @@ model Product {
   @@index([category])
   @@index([isActive])
   @@index([sku])
+
+  // Composite indexes for common query patterns
+  @@index([isActive, category])  // Active products by category
+  @@index([category, isActive])  // Category filter with active status
 }
 
 model Order {
@@ -303,6 +307,11 @@ model Order {
   @@index([status])
   @@index([orderNumber])
   @@index([createdAt])
+
+  // Composite indexes for common query patterns
+  @@index([createdById, status, createdAt])  // Field rep's orders by status and date
+  @@index([contactId, status])               // Contact's order history
+  @@index([status, createdAt])               // Orders by status and date
 }
 
 model OrderItem {

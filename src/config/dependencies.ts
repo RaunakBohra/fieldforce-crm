@@ -30,6 +30,7 @@ export interface Dependencies {
   cache: ICacheService;
   storage: IStorageService;
   queue?: IQueueService; // Optional: AWS SQS (free tier: 1M requests/month)
+  kv: KVNamespace | null; // Cloudflare KV for direct access
 }
 
 /**
@@ -60,7 +61,7 @@ export function createDependencies(env: Bindings): Dependencies {
   // Infrastructure layer - Cache (Cloudflare KV - free tier available)
   const cache = new CloudflareKVCacheService(
     env.KV, // KV namespace binding
-    'app'   // Namespace prefix
+    'fieldforce-crm'   // Namespace prefix
   );
 
   // Infrastructure layer - Storage (Cloudflare R2 - free tier: 10GB storage)
@@ -95,6 +96,7 @@ export function createDependencies(env: Bindings): Dependencies {
     cache,
     storage,
     queue,
+    kv: env.KV || null,
   };
 }
 
