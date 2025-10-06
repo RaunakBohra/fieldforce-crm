@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import type { ContactStats, VisitStats } from '../services/api';
-import { Users, ShoppingCart, CheckCircle2 } from 'lucide-react';
+import { Users, Calendar, ShoppingCart, Package } from 'lucide-react';
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
@@ -68,6 +68,18 @@ export default function Dashboard() {
                   className="hover:bg-primary-700 px-3 py-2 rounded-lg transition-colors"
                 >
                   Visits
+                </button>
+                <button
+                  onClick={() => navigate('/products')}
+                  className="hover:bg-primary-700 px-3 py-2 rounded-lg transition-colors"
+                >
+                  Products
+                </button>
+                <button
+                  onClick={() => navigate('/orders')}
+                  className="hover:bg-primary-700 px-3 py-2 rounded-lg transition-colors"
+                >
+                  Orders
                 </button>
               </nav>
             </div>

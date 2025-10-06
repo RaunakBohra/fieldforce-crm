@@ -10,6 +10,8 @@ import { ContactForm } from './pages/ContactForm';
 import { VisitsList } from './pages/VisitsList';
 import { VisitForm } from './pages/VisitForm';
 import { VisitDetails } from './pages/VisitDetails';
+import { ProductsList } from './pages/ProductsList';
+import { OrdersList } from './pages/OrdersList';
 import { type ReactElement } from 'react';
 
 function PrivateRoute({ children }: { children: ReactElement }) {
@@ -96,6 +98,22 @@ function App() {
               element={
                 <PrivateRoute>
                   <VisitForm />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/products"
+              element={
+                <PrivateRoute>
+                  <ProductsList />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/orders"
+              element={
+                <PrivateRoute>
+                  <OrdersList />
                 </PrivateRoute>
               }
             />
