@@ -38,7 +38,6 @@ export function Navigation() {
   const isActive = (path: string) => location.pathname === path || location.pathname.startsWith(`${path}/`);
 
   const navItems = [
-    { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/contacts', label: 'Contacts', icon: Users },
     { path: '/visits', label: 'Visits', icon: MapPin },
     { path: '/products', label: 'Products', icon: Package },
