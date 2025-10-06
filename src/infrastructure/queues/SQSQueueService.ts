@@ -7,6 +7,7 @@ import {
   GetQueueAttributesCommand,
 } from '@aws-sdk/client-sqs';
 import { IQueueService, QueueMessage, QueueOptions } from '../../core/ports/IQueueService';
+import { logger } from '../../utils/logger';
 
 /**
  * AWS SQS Queue Service Implementation
@@ -62,7 +63,7 @@ export class SQSQueueService implements IQueueService {
 
       return response.MessageId || crypto.randomUUID();
     } catch (error: unknown) {
-      console.error('SQS sendMessage error:', error);
+      logger.error('SQS sendMessage error', { error: error instanceof Error ? error.message : error });
       throw error;
     }
   }
@@ -105,13 +106,13 @@ export class SQSQueueService implements IQueueService {
 
         // Log failed messages
         if (response.Failed && response.Failed.length > 0) {
-          console.error('SQS batch send failures:', response.Failed);
+          logger.error('SQS batch send failures', { failed: response.Failed });
         }
       }
 
       return messageIds;
     } catch (error: unknown) {
-      console.error('SQS sendBatch error:', error);
+      logger.error('SQS sendBatch error', { error: error instanceof Error ? error.message : error });
       throw error;
     }
   }
@@ -149,7 +150,7 @@ export class SQSQueueService implements IQueueService {
         };
       });
     } catch (error: unknown) {
-      console.error('SQS receiveMessages error:', error);
+      logger.error('SQS receiveMessages error', { error: error instanceof Error ? error.message : error });
       return [];
     }
   }
@@ -169,7 +170,7 @@ export class SQSQueueService implements IQueueService {
 
       await this.client.send(command);
     } catch (error: unknown) {
-      console.error('SQS deleteMessage error:', error);
+      logger.error('SQS deleteMessage error', { error: error instanceof Error ? error.message : error });
       throw error;
     }
   }
@@ -203,7 +204,7 @@ export class SQSQueueService implements IQueueService {
           parseInt(response.Attributes?.ApproximateNumberOfMessagesDelayed || '0', 10),
       };
     } catch (error: unknown) {
-      console.error('SQS getQueueStats error:', error);
+      logger.error('SQS getQueueStats error', { error: error instanceof Error ? error.message : error });
       return {
         queueName,
         error: error instanceof Error ? error.message : 'Failed to get queue stats',
@@ -254,7 +255,7 @@ export async function processSQSMessages<T>(
       // Delete message after successful processing
       await queueService.deleteMessage(queueName, message.receiptHandle || message.id);
     } catch (error: unknown) {
-      console.error('Message processing failed:', error);
+      logger.error('Message processing failed', { error: error instanceof Error ? error.message : error });
       // Message will automatically return to queue after visibility timeout
     }
   }

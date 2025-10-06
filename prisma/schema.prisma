@@ -3,7 +3,7 @@
 // Documentation: https://www.prisma.io/docs
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["driverAdapters"]
 }
 
@@ -19,7 +19,7 @@ datasource db {
 model User {
   id          String     @id @default(cuid())
   email       String     @unique
-  password    String     // bcrypt hashed
+  password    String // bcrypt hashed
   name        String
   phone       String?
   role        UserRole   @default(FIELD_REP)
@@ -29,10 +29,10 @@ model User {
   territory   Territory? @relation(fields: [territoryId], references: [id])
 
   // Relations
-  contacts  Contact[] // Contacts assigned to this user
-  visits    Visit[]   // Visits conducted by this user
-  orders    Order[]   // Orders created by this user
-  payments  Payment[] // Payments recorded by this user
+  contacts Contact[] // Contacts assigned to this user
+  visits   Visit[] // Visits conducted by this user
+  orders   Order[] // Orders created by this user
+  payments Payment[] // Payments recorded by this user
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -43,27 +43,27 @@ model User {
 }
 
 model Company {
-  id          String   @id @default(cuid())
-  name        String
-  email       String   @unique
-  phone       String?
-  address     String?
+  id      String  @id @default(cuid())
+  name    String
+  email   String  @unique
+  phone   String?
+  address String?
 
   // Relations
-  users       User[]
-  contacts    Contact[]
+  users    User[]
+  contacts Contact[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([email])
 }
 
 enum UserRole {
-  SUPER_ADMIN   // Platform admin
-  ADMIN         // Company admin
-  MANAGER       // Regional manager
-  FIELD_REP     // Medical representative
+  SUPER_ADMIN // Platform admin
+  ADMIN // Company admin
+  MANAGER // Regional manager
+  FIELD_REP // Medical representative
 }
 
 // ============================================================================
@@ -71,85 +71,85 @@ enum UserRole {
 // ============================================================================
 
 model Contact {
-  id              String       @id @default(cuid())
+  id String @id @default(cuid())
 
   // Basic Information
-  name            String
-  designation     String?      // Dr., Pharmacist, Store Owner, etc.
-  specialty       String?      // Cardiologist, Dermatologist, etc.
-  contactType     ContactType  @default(DOCTOR)
+  name        String
+  designation String? // Dr., Pharmacist, Store Owner, etc.
+  specialty   String? // Cardiologist, Dermatologist, etc.
+  contactType ContactType @default(DOCTOR)
 
   // Contact Details
-  phone           String?
-  email           String?
-  alternatePhone  String?
+  phone          String?
+  email          String?
+  alternatePhone String?
 
   // Address Information
-  address         String?
-  city            String?
-  state           String?
-  pincode         String?
+  address String?
+  city    String?
+  state   String?
+  pincode String?
 
   // Professional Details
-  hospitalName    String?
-  clinicName      String?
-  licenseNumber   String?
+  hospitalName  String?
+  clinicName    String?
+  licenseNumber String?
 
   // Visit Planning
-  visitFrequency  VisitFrequency @default(MONTHLY)
-  preferredDay    String?        // Monday, Tuesday, etc.
-  preferredTime   String?        // Morning, Afternoon, Evening
-  lastVisitDate   DateTime?
-  nextVisitDate   DateTime?
+  visitFrequency VisitFrequency @default(MONTHLY)
+  preferredDay   String? // Monday, Tuesday, etc.
+  preferredTime  String? // Morning, Afternoon, Evening
+  lastVisitDate  DateTime?
+  nextVisitDate  DateTime?
 
   // Relationship
-  assignedToId    String?
-  assignedTo      User?        @relation(fields: [assignedToId], references: [id])
-  companyId       String?
-  company         Company?     @relation(fields: [companyId], references: [id])
-  territoryId     String?
-  territory       Territory?   @relation(fields: [territoryId], references: [id])
+  assignedToId String?
+  assignedTo   User?      @relation(fields: [assignedToId], references: [id])
+  companyId    String?
+  company      Company?   @relation(fields: [companyId], references: [id])
+  territoryId  String?
+  territory    Territory? @relation(fields: [territoryId], references: [id])
 
   // Relations
-  visits          Visit[]      // Visits to this contact
-  orders          Order[]      // Orders from this contact
-  payments        Payment[]    // Payments from this contact
+  visits   Visit[] // Visits to this contact
+  orders   Order[] // Orders from this contact
+  payments Payment[] // Payments from this contact
 
   // Additional Information
-  notes           String?      // Special notes about the contact
-  tags            String[]     @default([])
+  notes String? // Special notes about the contact
+  tags  String[] @default([])
 
   // Status
-  isActive        Boolean      @default(true)
+  isActive Boolean @default(true)
 
   // Metadata
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Optimized indexes for query performance
-  @@index([assignedToId])                           // Field rep lookup
-  @@index([companyId])                              // Company lookup
-  @@index([companyId, isActive, contactType])       // List active contacts by company and type
-  @@index([assignedToId, isActive])                 // Field rep's active contacts
-  @@index([nextVisitDate, assignedToId])            // Visit planning queries
-  @@index([isActive, createdAt])                    // Recent active contacts
-  @@index([territoryId])                            // Territory lookup
-  @@index([territoryId, isActive])                  // Active contacts by territory
+  @@index([assignedToId]) // Field rep lookup
+  @@index([companyId]) // Company lookup
+  @@index([companyId, isActive, contactType]) // List active contacts by company and type
+  @@index([assignedToId, isActive]) // Field rep's active contacts
+  @@index([nextVisitDate, assignedToId]) // Visit planning queries
+  @@index([isActive, createdAt]) // Recent active contacts
+  @@index([territoryId]) // Territory lookup
+  @@index([territoryId, isActive]) // Active contacts by territory
 }
 
 enum ContactType {
-  DOCTOR        // Medical practitioner
-  PHARMACIST    // Pharmacy owner/staff
-  RETAILER      // Medical store retailer
-  HOSPITAL      // Hospital admin/procurement
-  CLINIC        // Clinic contact
-  OTHER         // Other contacts
+  DOCTOR // Medical practitioner
+  PHARMACIST // Pharmacy owner/staff
+  RETAILER // Medical store retailer
+  HOSPITAL // Hospital admin/procurement
+  CLINIC // Clinic contact
+  OTHER // Other contacts
 }
 
 enum VisitFrequency {
   DAILY
   WEEKLY
-  BIWEEKLY      // Every 2 weeks
+  BIWEEKLY // Every 2 weeks
   MONTHLY
   QUARTERLY
   CUSTOM
@@ -160,87 +160,87 @@ enum VisitFrequency {
 // ============================================================================
 
 model Visit {
-  id              String       @id @default(cuid())
+  id String @id @default(cuid())
 
   // Basic Information
-  visitDate       DateTime     @default(now())
-  visitType       VisitType    @default(FIELD_VISIT)
-  status          VisitStatus  @default(COMPLETED)
-  duration        Int?         // Duration in minutes (auto-calculated from check-in/check-out)
+  visitDate DateTime    @default(now())
+  visitType VisitType   @default(FIELD_VISIT)
+  status    VisitStatus @default(COMPLETED)
+  duration  Int? // Duration in minutes (auto-calculated from check-in/check-out)
 
   // Check-in/Check-out timestamps
-  checkInTime     DateTime?    // When field rep checked in
-  checkOutTime    DateTime?    // When field rep checked out
+  checkInTime  DateTime? // When field rep checked in
+  checkOutTime DateTime? // When field rep checked out
 
   // Contact & User
-  contactId       String
-  contact         Contact      @relation(fields: [contactId], references: [id], onDelete: Cascade)
-  fieldRepId      String
-  fieldRep        User         @relation(fields: [fieldRepId], references: [id])
+  contactId  String
+  contact    Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  fieldRepId String
+  fieldRep   User    @relation(fields: [fieldRepId], references: [id])
 
   // GPS Location (captured at check-in)
-  latitude        Float?
-  longitude       Float?
-  locationName    String?      // e.g., "Hospital Name" or "Clinic Address"
+  latitude     Float?
+  longitude    Float?
+  locationName String? // e.g., "Hospital Name" or "Clinic Address"
 
   // Visit Details
-  purpose         String?      // Purpose of visit
-  notes           String?      // Visit notes
-  outcome         VisitOutcome @default(SUCCESSFUL)
-  nextVisitDate   DateTime?    // Planned next visit
+  purpose       String? // Purpose of visit
+  notes         String? // Visit notes
+  outcome       VisitOutcome @default(SUCCESSFUL)
+  nextVisitDate DateTime? // Planned next visit
 
   // Products Discussed/Demonstrated
-  products        String[]     @default([])  // Array of product names
+  products String[] @default([]) // Array of product names
 
   // Samples & Marketing Materials
-  samplesGiven    Json?        // { "productName": quantity }
-  marketingMaterials Json?     // Array of materials distributed
+  samplesGiven       Json? // { "productName": quantity }
+  marketingMaterials Json? // Array of materials distributed
 
   // Follow-up
-  followUpRequired Boolean     @default(false)
-  followUpNotes   String?
+  followUpRequired Boolean @default(false)
+  followUpNotes    String?
 
   // Attachments (stored in R2)
-  attachments     String[]     @default([])  // Array of R2 object keys
-  photos          String[]     @default([])  // Photos from visit
+  attachments String[] @default([]) // Array of R2 object keys
+  photos      String[] @default([]) // Photos from visit
 
   // Metadata
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Optimized indexes for query performance
-  @@index([fieldRepId, visitDate])          // Field rep's visits by date
-  @@index([contactId, visitDate])           // Contact visit history
-  @@index([fieldRepId, status, visitDate])  // Field rep's visits filtered by status
-  @@index([fieldRepId, createdAt])          // Dashboard stats
+  @@index([fieldRepId, visitDate]) // Field rep's visits by date
+  @@index([contactId, visitDate]) // Contact visit history
+  @@index([fieldRepId, status, visitDate]) // Field rep's visits filtered by status
+  @@index([fieldRepId, createdAt]) // Dashboard stats
 }
 
 enum VisitType {
-  FIELD_VISIT      // Regular field visit
-  FOLLOW_UP        // Follow-up visit
-  EMERGENCY        // Emergency/urgent visit
-  PLANNED          // Pre-scheduled visit
-  COLD_CALL        // Unplanned visit
-  VIRTUAL          // Virtual/phone call
-  EVENT            // Event/conference meeting
+  FIELD_VISIT // Regular field visit
+  FOLLOW_UP // Follow-up visit
+  EMERGENCY // Emergency/urgent visit
+  PLANNED // Pre-scheduled visit
+  COLD_CALL // Unplanned visit
+  VIRTUAL // Virtual/phone call
+  EVENT // Event/conference meeting
 }
 
 enum VisitStatus {
-  PLANNED          // Visit is scheduled
-  IN_PROGRESS      // Visit is ongoing
-  COMPLETED        // Visit completed
-  CANCELLED        // Visit cancelled
-  POSTPONED        // Visit postponed
-  NO_SHOW          // Contact not available
+  PLANNED // Visit is scheduled
+  IN_PROGRESS // Visit is ongoing
+  COMPLETED // Visit completed
+  CANCELLED // Visit cancelled
+  POSTPONED // Visit postponed
+  NO_SHOW // Contact not available
 }
 
 enum VisitOutcome {
-  SUCCESSFUL       // Successful visit
-  PARTIAL          // Partially successful
-  UNSUCCESSFUL     // Unsuccessful visit
+  SUCCESSFUL // Successful visit
+  PARTIAL // Partially successful
+  UNSUCCESSFUL // Unsuccessful visit
   FOLLOW_UP_NEEDED // Needs follow-up
-  ORDER_PLACED     // Order placed
-  SAMPLE_GIVEN     // Samples provided
+  ORDER_PLACED // Order placed
+  SAMPLE_GIVEN // Samples provided
   INFORMATION_ONLY // Information sharing only
 }
 
@@ -249,94 +249,94 @@ enum VisitOutcome {
 // ============================================================================
 
 model Product {
-  id          String   @id @default(cuid())
+  id          String  @id @default(cuid())
   name        String
-  sku         String   @unique
+  sku         String  @unique
   description String?
   category    String
-  price       Decimal  @db.Decimal(10, 2)
-  stock       Int      @default(0)
-  isActive    Boolean  @default(true)
+  price       Decimal @db.Decimal(10, 2)
+  stock       Int     @default(0)
+  isActive    Boolean @default(true)
 
   // Relations
-  orderItems  OrderItem[]
+  orderItems OrderItem[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@index([sku])                    // SKU lookup (unique constraint handles this)
-  @@index([isActive, category])    // Active products by category
+  @@index([sku]) // SKU lookup (unique constraint handles this)
+  @@index([isActive, category]) // Active products by category
 }
 
 model Order {
-  id            String      @id @default(cuid())
-  orderNumber   String      @unique
+  id          String @id @default(cuid())
+  orderNumber String @unique
 
   // Customer (Contact)
-  contactId     String
-  contact       Contact     @relation(fields: [contactId], references: [id])
+  contactId String
+  contact   Contact @relation(fields: [contactId], references: [id])
 
   // Created by (Field Rep)
-  createdById   String
-  createdBy     User        @relation(fields: [createdById], references: [id])
+  createdById String
+  createdBy   User   @relation(fields: [createdById], references: [id])
 
   // Order Details
-  totalAmount   Decimal     @db.Decimal(10, 2)
-  status        OrderStatus @default(PENDING)
+  totalAmount   Decimal       @db.Decimal(10, 2)
+  status        OrderStatus   @default(PENDING)
   paymentStatus PaymentStatus @default(UNPAID)
 
   // Delivery Information
-  deliveryAddress String?
-  deliveryCity    String?
-  deliveryState   String?
-  deliveryPincode String?
+  deliveryAddress      String?
+  deliveryCity         String?
+  deliveryState        String?
+  deliveryPincode      String?
   expectedDeliveryDate DateTime?
   actualDeliveryDate   DateTime?
 
   // Notes
-  notes         String?
+  notes String?
 
   // Relations
-  items         OrderItem[]
-  payments      Payment[]
+  items    OrderItem[]
+  payments Payment[]
 
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@index([orderNumber])                        // Order lookup (unique constraint)
-  @@index([createdById, status, createdAt])    // Field rep's orders by status and date
+  @@index([orderNumber]) // Order lookup (unique constraint)
+  @@index([createdById, status, createdAt]) // Field rep's orders by status and date
   @@index([createdById, paymentStatus, status]) // Payment tracking and outstanding orders
-  @@index([status, createdAt])                 // Admin analytics queries
+  @@index([status, createdAt]) // Admin analytics queries
 }
 
 model OrderItem {
-  id          String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  orderId     String
-  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
-  productId   String
-  product     Product  @relation(fields: [productId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
 
-  quantity    Int
-  unitPrice   Decimal  @db.Decimal(10, 2)
-  totalPrice  Decimal  @db.Decimal(10, 2)
+  quantity   Int
+  unitPrice  Decimal @db.Decimal(10, 2)
+  totalPrice Decimal @db.Decimal(10, 2)
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([orderId])
   @@index([productId])
 }
 
 enum OrderStatus {
-  PENDING       // Order placed, awaiting approval
-  APPROVED      // Order approved
-  PROCESSING    // Order being processed
-  SHIPPED       // Order shipped
-  DELIVERED     // Order delivered
-  CANCELLED     // Order cancelled
-  REJECTED      // Order rejected
+  PENDING // Order placed, awaiting approval
+  APPROVED // Order approved
+  PROCESSING // Order being processed
+  SHIPPED // Order shipped
+  DELIVERED // Order delivered
+  CANCELLED // Order cancelled
+  REJECTED // Order rejected
 }
 
 // Update Contact model to include orders
@@ -347,38 +347,38 @@ enum OrderStatus {
 // ============================================================================
 
 model Payment {
-  id              String        @id @default(cuid())
-  paymentNumber   String        @unique
+  id            String @id @default(cuid())
+  paymentNumber String @unique
 
   // Order relation (optional - payments can be standalone or linked to orders)
-  orderId         String?
-  order           Order?        @relation(fields: [orderId], references: [id])
+  orderId String?
+  order   Order?  @relation(fields: [orderId], references: [id])
 
   // Contact relation (for standalone payments without order)
-  contactId       String?
-  contact         Contact?      @relation(fields: [contactId], references: [id])
+  contactId String?
+  contact   Contact? @relation(fields: [contactId], references: [id])
 
   // Payment Details
   amount          Decimal       @db.Decimal(10, 2)
   paymentMode     PaymentMode
   paymentDate     DateTime      @default(now())
-  referenceNumber String?       // Transaction ID, Cheque Number, etc.
+  referenceNumber String? // Transaction ID, Cheque Number, etc.
   status          PaymentStatus @default(COMPLETED)
 
   // Notes
-  notes           String?
+  notes String?
 
   // Recorded by (Field Rep)
-  recordedById    String
-  recordedBy      User          @relation(fields: [recordedById], references: [id])
+  recordedById String
+  recordedBy   User   @relation(fields: [recordedById], references: [id])
 
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@index([orderId])                     // Order payment lookup
-  @@index([recordedById, paymentDate])   // Field rep's payment history
-  @@index([paymentMode, paymentDate])    // Payment mode analytics
-  @@index([recordedById, createdAt])     // Dashboard recent activity
+  @@index([orderId]) // Order payment lookup
+  @@index([recordedById, paymentDate]) // Field rep's payment history
+  @@index([paymentMode, paymentDate]) // Payment mode analytics
+  @@index([recordedById, createdAt]) // Dashboard recent activity
 }
 
 enum PaymentMode {
@@ -396,9 +396,9 @@ enum PaymentStatus {
   COMPLETED
   FAILED
   REFUNDED
-  UNPAID    // For order payment status
-  PARTIAL   // For order payment status
-  PAID      // For order payment status
+  UNPAID // For order payment status
+  PARTIAL // For order payment status
+  PAID // For order payment status
 }
 
 // ============================================================================
@@ -406,34 +406,34 @@ enum PaymentStatus {
 // ============================================================================
 
 model Territory {
-  id          String   @id @default(cuid())
+  id String @id @default(cuid())
 
   // Basic Information
   name        String
-  code        String   @unique // e.g., "MH-MUM", "NP-KTM"
+  code        String        @unique // e.g., "MH-MUM", "NP-KTM"
   description String?
   type        TerritoryType
 
   // Geographic Information
-  country     String   // India, Nepal
-  state       String?  // Maharashtra, Kathmandu
-  city        String?  // Mumbai, Lalitpur
-  pincode     String?
+  country String // India, Nepal
+  state   String? // Maharashtra, Kathmandu
+  city    String? // Mumbai, Lalitpur
+  pincode String?
 
   // Hierarchy
-  parentId    String?
-  parent      Territory?  @relation("TerritoryHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
-  children    Territory[] @relation("TerritoryHierarchy")
+  parentId String?
+  parent   Territory?  @relation("TerritoryHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  children Territory[] @relation("TerritoryHierarchy")
 
   // Status
-  isActive    Boolean  @default(true)
+  isActive Boolean @default(true)
 
   // Relations
-  users       User[]
-  contacts    Contact[]
+  users    User[]
+  contacts Contact[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([country])
   @@index([state])

@@ -1,5 +1,6 @@
 import { PrismaClient, Visit, VisitStatus, VisitType, VisitOutcome } from '@prisma/client';
 import { CreateVisitInput, UpdateVisitInput, VisitQueryInput } from '../validators/visitSchemas';
+import { logger } from '../utils/logger';
 
 /**
  * Visit Service Result Interfaces
@@ -125,7 +126,7 @@ export class VisitService {
         data: visit,
       };
     } catch (error) {
-      console.error('Error creating visit:', error);
+      logger.error('Error creating visit', { error: error instanceof Error ? error.message : error });
       return {
         success: false,
         error: 'Failed to create visit',
@@ -214,7 +215,7 @@ export class VisitService {
         },
       };
     } catch (error) {
-      console.error('Error getting visits:', error);
+      logger.error('Error getting visits', { error: error instanceof Error ? error.message : error });
       return {
         success: false,
         error: 'Failed to get visits',
@@ -275,7 +276,7 @@ export class VisitService {
         data: visit,
       };
     } catch (error) {
-      console.error('Error getting visit:', error);
+      logger.error('Error getting visit', { error: error instanceof Error ? error.message : error });
       return {
         success: false,
         error: 'Failed to get visit',
@@ -344,7 +345,7 @@ export class VisitService {
         data: visit,
       };
     } catch (error) {
-      console.error('Error updating visit:', error);
+      logger.error('Error updating visit', { error: error instanceof Error ? error.message : error });
       return {
         success: false,
         error: 'Failed to update visit',
@@ -382,7 +383,7 @@ export class VisitService {
         data: visit,
       };
     } catch (error) {
-      console.error('Error deleting visit:', error);
+      logger.error('Error deleting visit', { error: error instanceof Error ? error.message : error });
       return {
         success: false,
         error: 'Failed to delete visit',
@@ -459,7 +460,7 @@ export class VisitService {
         },
       };
     } catch (error) {
-      console.error('Error getting visit stats:', error);
+      logger.error('Error getting visit stats', { error: error instanceof Error ? error.message : error });
       return {
         success: false,
         error: 'Failed to get visit statistics',

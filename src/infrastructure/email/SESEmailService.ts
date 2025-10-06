@@ -1,6 +1,7 @@
 import { IEmailService, EmailOptions, EmailResponse } from '../../core/ports/IEmailService';
 import nodemailer from 'nodemailer';
 import type { Transporter } from 'nodemailer';
+import { logger } from '../../utils/logger';
 
 /**
  * AWS SES Email Service Implementation
@@ -137,7 +138,7 @@ export class SESEmailService implements IEmailService {
       await this.transporter.verify();
       return true;
     } catch (error: unknown) {
-      console.error('Email service verification failed:', error);
+      logger.error('Email service verification failed', { error: error instanceof Error ? error.message : error });
       return false;
     }
   }
