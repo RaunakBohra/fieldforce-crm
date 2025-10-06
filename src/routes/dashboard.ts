@@ -38,83 +38,59 @@ dashboard.get('/stats', async (c) => {
     const orderFilter = user.role === 'FIELD_REP' ? { createdById: user.userId } : {};
     const paymentFilter = user.role === 'FIELD_REP' ? { recordedById: user.userId } : {};
 
-    // Aggregate visit stats
-    const [todayVisits, weekVisits, monthVisits] = await Promise.all([
-      deps.prisma.visit.count({
-        where: {
-          ...visitFilter,
-          createdAt: { gte: startOfToday },
-        },
-      }),
-      deps.prisma.visit.count({
-        where: {
-          ...visitFilter,
-          createdAt: { gte: startOfWeek },
-        },
-      }),
-      deps.prisma.visit.count({
-        where: {
-          ...visitFilter,
-          createdAt: { gte: startOfMonth },
-        },
-      }),
-    ]);
-
-    // Aggregate order stats
-    const [pendingOrders, approvedOrders, deliveredOrders, cancelledOrders] = await Promise.all([
-      deps.prisma.order.count({
-        where: { ...orderFilter, status: 'PENDING' },
-      }),
-      deps.prisma.order.count({
-        where: { ...orderFilter, status: 'APPROVED' },
-      }),
-      deps.prisma.order.count({
-        where: { ...orderFilter, status: 'DELIVERED' },
-      }),
-      deps.prisma.order.count({
-        where: { ...orderFilter, status: 'CANCELLED' },
-      }),
-    ]);
-
-    const totalOrders = pendingOrders + approvedOrders + deliveredOrders + cancelledOrders;
-
-    // Calculate total revenue (only delivered orders)
-    const revenueResult = await deps.prisma.order.aggregate({
-      where: {
-        ...orderFilter,
-        status: 'DELIVERED',
-      },
-      _sum: {
-        totalAmount: true,
-      },
-    });
-
-    const totalRevenue = revenueResult._sum.totalAmount || 0;
-
-    // Calculate payment stats
-    const [totalPayments, totalPaid, outstandingPayments] = await Promise.all([
-      deps.prisma.payment.count({
-        where: paymentFilter,
-      }),
-      deps.prisma.payment.aggregate({
-        where: paymentFilter,
-        _sum: {
-          amount: true,
-        },
-      }),
+    // Optimized: Run all DB queries in parallel
+    const [
+      visitStats,
+      orderStats,
+      revenueStats,
+      paymentStats,
+    ] = await Promise.all([
+      // Visit counts by date range (3 counts combined)
+      Promise.all([
+        deps.prisma.visit.count({
+          where: { ...visitFilter, createdAt: { gte: startOfToday } },
+        }),
+        deps.prisma.visit.count({
+          where: { ...visitFilter, createdAt: { gte: startOfWeek } },
+        }),
+        deps.prisma.visit.count({
+          where: { ...visitFilter, createdAt: { gte: startOfMonth } },
+        }),
+      ]),
+      // Order counts by status (4 counts combined)
+      Promise.all([
+        deps.prisma.order.count({ where: { ...orderFilter, status: 'PENDING' } }),
+        deps.prisma.order.count({ where: { ...orderFilter, status: 'APPROVED' } }),
+        deps.prisma.order.count({ where: { ...orderFilter, status: 'DELIVERED' } }),
+        deps.prisma.order.count({ where: { ...orderFilter, status: 'CANCELLED' } }),
+      ]),
+      // Revenue from delivered orders
       deps.prisma.order.aggregate({
-        where: {
-          ...orderFilter,
-          paymentStatus: { in: ['UNPAID', 'PARTIAL'] },
-        },
-        _sum: {
-          totalAmount: true,
-        },
+        where: { ...orderFilter, status: 'DELIVERED' },
+        _sum: { totalAmount: true },
       }),
+      // Payment stats (collected and outstanding)
+      Promise.all([
+        deps.prisma.payment.aggregate({
+          where: paymentFilter,
+          _sum: { amount: true },
+          _count: true,
+        }),
+        deps.prisma.order.aggregate({
+          where: { ...orderFilter, paymentStatus: { in: ['UNPAID', 'PARTIAL'] } },
+          _sum: { totalAmount: true },
+        }),
+      ]),
     ]);
 
-    const totalCollected = (totalPaid._sum?.amount || 0);
-    const totalOutstanding = (outstandingPayments._sum.totalAmount || 0);
+    const [todayVisits, weekVisits, monthVisits] = visitStats;
+    const [pendingOrders, approvedOrders, deliveredOrders, cancelledOrders] = orderStats;
+    const totalOrders = pendingOrders + approvedOrders + deliveredOrders + cancelledOrders;
+    const totalRevenue = revenueStats._sum.totalAmount || 0;
+    const [totalPaid, outstandingPayments] = paymentStats;
+    const totalCollected = totalPaid._sum?.amount || 0;
+    const totalOutstanding = outstandingPayments._sum.totalAmount || 0;
+    const totalPayments = totalPaid._count;
 
     logger.info('Dashboard stats retrieved successfully', {
       ...getLogContext(c),
@@ -177,13 +153,16 @@ dashboard.get('/recent-activity', async (c) => {
     const orderFilter = user.role === 'FIELD_REP' ? { createdById: user.userId } : {};
     const paymentFilter = user.role === 'FIELD_REP' ? { recordedById: user.userId } : {};
 
-    // Fetch recent items
+    // Optimized: Fetch fewer items and less data per item (7 instead of 15)
     const [recentVisits, recentOrders, recentPayments] = await Promise.all([
       deps.prisma.visit.findMany({
         where: visitFilter,
-        take: 5,
+        take: 3,  // Reduced from 5
         orderBy: { createdAt: 'desc' },
-        include: {
+        select: {
+          id: true,
+          status: true,
+          createdAt: true,
           contact: {
             select: {
               name: true,
@@ -193,9 +172,14 @@ dashboard.get('/recent-activity', async (c) => {
       }),
       deps.prisma.order.findMany({
         where: orderFilter,
-        take: 5,
+        take: 3,  // Reduced from 5
         orderBy: { createdAt: 'desc' },
-        include: {
+        select: {
+          id: true,
+          orderNumber: true,
+          status: true,
+          totalAmount: true,
+          createdAt: true,
           contact: {
             select: {
               name: true,
@@ -205,9 +189,13 @@ dashboard.get('/recent-activity', async (c) => {
       }),
       deps.prisma.payment.findMany({
         where: paymentFilter,
-        take: 5,
+        take: 3,  // Reduced from 5
         orderBy: { createdAt: 'desc' },
-        include: {
+        select: {
+          id: true,
+          amount: true,
+          paymentMode: true,
+          createdAt: true,
           order: {
             select: {
               orderNumber: true,
@@ -254,7 +242,7 @@ dashboard.get('/recent-activity', async (c) => {
         timestamp: p.createdAt,
       })),
     ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-     .slice(0, 20);
+     .slice(0, 10);  // Reduced from 20 to 10 for faster rendering
 
     logger.info('Recent activity retrieved successfully', {
       ...getLogContext(c),

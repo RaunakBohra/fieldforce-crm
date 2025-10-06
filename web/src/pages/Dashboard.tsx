@@ -36,15 +36,19 @@ export default function Dashboard() {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const [statsRes, activitiesRes, performersRes] = await Promise.all([
-        api.getDashboardStats(),
+
+      // Progressive loading: Load stats first (fastest), show immediately
+      const statsRes = await api.getDashboardStats();
+      if (statsRes.success && statsRes.data) {
+        setStats(statsRes.data);
+        setLoading(false); // Show stats immediately
+      }
+
+      // Load secondary data in background (activities and performers)
+      const [activitiesRes, performersRes] = await Promise.all([
         api.getRecentActivity(),
         isAdmin ? api.getTopPerformers() : Promise.resolve({ success: false, data: null }),
       ]);
-
-      if (statsRes.success && statsRes.data) {
-        setStats(statsRes.data);
-      }
 
       if (activitiesRes.success && activitiesRes.data) {
         setActivities(activitiesRes.data.activities);
@@ -55,7 +59,6 @@ export default function Dashboard() {
       }
     } catch (error: any) {
       setError(error.message || 'Failed to load dashboard');
-    } finally {
       setLoading(false);
     }
   };

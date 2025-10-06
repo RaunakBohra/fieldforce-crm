@@ -6,14 +6,14 @@
     - heading "Field Force CRM" [level=1] [ref=e6]
     - paragraph [ref=e7]: Sign in to your account
   - form "Login form" [ref=e8]:
-    - alert [ref=e9]: Invalid credentials
+    - alert [ref=e9]: Too many login attempts. Please try again in 15 minutes.
     - generic [ref=e10]:
       - generic [ref=e11]:
         - generic [ref=e12]: Email address
         - textbox "Email address" [ref=e13]: prodtest@example.com
       - generic [ref=e14]:
         - generic [ref=e15]: Password
-        - textbox "Password" [ref=e16]: Test123!
+        - textbox "Password" [ref=e16]: Test123!@#
     - button "Sign in to your account" [ref=e17] [cursor=pointer]: Sign in
     - paragraph [ref=e18]:
       - text: Don't have an account?

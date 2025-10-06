@@ -214,6 +214,10 @@ model Visit {
   @@index([status])
   @@index([fieldRepId, status, visitDate])  // Field rep's visits filtered by status
   @@index([contactId, status])              // Contact's visit history
+
+  // Dashboard performance indexes
+  @@index([fieldRepId, createdAt])          // Dashboard stats by field rep and date
+  @@index([createdAt])                      // Dashboard stats for admin (all visits by date)
 }
 
 enum VisitType {
@@ -321,6 +325,9 @@ model Order {
   @@index([contactId, status])               // Contact's order history
   @@index([status, createdAt])               // Orders by status and date
   @@index([paymentStatus, status])           // Payment tracking queries
+
+  // Dashboard performance indexes
+  @@index([createdById, paymentStatus])      // Dashboard payment stats by field rep
 }
 
 model OrderItem {
@@ -400,6 +407,9 @@ model Payment {
   @@index([recordedById, paymentDate])   // Field rep's payment history
   @@index([orderId, status])             // Order payment tracking
   @@index([paymentMode, paymentDate])    // Payment mode analytics
+
+  // Dashboard performance indexes
+  @@index([recordedById, createdAt])     // Dashboard recent activity by field rep
 }
 
 enum PaymentMode {

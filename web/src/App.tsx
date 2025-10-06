@@ -26,6 +26,7 @@ const UsersList = lazy(() => import('./pages/UsersList').then(m => ({ default: m
 const UserForm = lazy(() => import('./pages/UserForm').then(m => ({ default: m.UserForm })));
 const TerritoriesList = lazy(() => import('./pages/TerritoriesList').then(m => ({ default: m.TerritoriesList })));
 const TerritoryForm = lazy(() => import('./pages/TerritoryForm').then(m => ({ default: m.TerritoryForm })));
+const ThemeComparison = lazy(() => import('./pages/ThemeComparison').then(m => ({ default: m.ThemeComparison })));
 
 function PrivateRoute({ children }: { children: ReactElement }) {
   const { user, loading } = useAuth();
@@ -63,6 +64,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/themes" element={<ThemePreview />} />
+            <Route path="/theme-comparison" element={<ThemeComparison />} />
             <Route
               path="/dashboard"
               element={
