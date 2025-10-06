@@ -15,6 +15,9 @@ const VisitForm = lazy(() => import('./pages/VisitForm').then(m => ({ default: m
 const VisitDetails = lazy(() => import('./pages/VisitDetails').then(m => ({ default: m.VisitDetails })));
 const ProductsList = lazy(() => import('./pages/ProductsList').then(m => ({ default: m.ProductsList })));
 const OrdersList = lazy(() => import('./pages/OrdersList').then(m => ({ default: m.OrdersList })));
+const PaymentsList = lazy(() => import('./pages/PaymentsList'));
+const PaymentForm = lazy(() => import('./pages/PaymentForm'));
+const PendingPayments = lazy(() => import('./pages/PendingPayments'));
 
 function PrivateRoute({ children }: { children: ReactElement }) {
   const { user, loading } = useAuth();
@@ -129,6 +132,38 @@ function App() {
               element={
                 <PrivateRoute>
                   <OrdersList />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/payments"
+              element={
+                <PrivateRoute>
+                  <PaymentsList />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/payments/new"
+              element={
+                <PrivateRoute>
+                  <PaymentForm />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/payments/new/:orderId"
+              element={
+                <PrivateRoute>
+                  <PaymentForm />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/payments/pending"
+              element={
+                <PrivateRoute>
+                  <PendingPayments />
                 </PrivateRoute>
               }
             />

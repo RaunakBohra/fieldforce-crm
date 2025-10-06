@@ -177,6 +177,7 @@ export function OrdersList() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Items</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Payment</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
               </tr>
@@ -198,6 +199,15 @@ export function OrdersList() {
                       {order.status}
                     </span>
                   </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-2 py-1 text-xs font-semibold rounded ${
+                      (order as any).paymentStatus === 'PAID' ? 'bg-green-100 text-green-800' :
+                      (order as any).paymentStatus === 'PARTIAL' ? 'bg-amber-100 text-amber-800' :
+                      'bg-red-100 text-red-800'
+                    }`}>
+                      {(order as any).paymentStatus || 'UNPAID'}
+                    </span>
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {new Date(order.createdAt).toLocaleDateString()}
                   </td>
@@ -217,6 +227,15 @@ export function OrdersList() {
                           title="Cancel Order"
                         >
                           <XCircle size={18} />
+                        </button>
+                      )}
+                      {(order.status === 'APPROVED' || order.status === 'DELIVERED') && (order as any).paymentStatus !== 'PAID' && (
+                        <button
+                          onClick={() => navigate(`/payments/new/${order.id}`)}
+                          className="text-green-600 hover:text-green-900 text-xs underline"
+                          title="Record Payment"
+                        >
+                          Record Payment
                         </button>
                       )}
                     </div>

@@ -47,6 +47,12 @@ export function Navigation() {
               >
                 Orders
               </button>
+              <button
+                onClick={() => navigate('/payments')}
+                className="hover:bg-primary-700 px-3 py-2 rounded-lg transition-colors"
+              >
+                Payments
+              </button>
             </nav>
           </div>
           <div className="flex items-center space-x-4">
