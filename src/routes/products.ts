@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { authMiddleware } from '../middleware/auth';
+import { requireManager } from '../middleware/rbac';
 import { ZodError } from 'zod';
 import { logger, getLogContext } from '../utils/logger';
 import { z } from 'zod';
@@ -192,7 +193,7 @@ const createProductSchema = z.object({
  * POST /api/products
  * Create a new product
  */
-products.post('/', async (c) => {
+products.post('/', requireManager, async (c) => {
   const deps = c.get('deps');
 
   try {
@@ -259,7 +260,7 @@ const updateProductSchema = z.object({
  * PUT /api/products/:id
  * Update a product
  */
-products.put('/:id', async (c) => {
+products.put('/:id', requireManager, async (c) => {
   const deps = c.get('deps');
   const productId = c.req.param('id');
 

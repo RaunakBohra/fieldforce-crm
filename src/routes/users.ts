@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { authMiddleware } from '../middleware/auth';
+import { requireAdmin, requireManager } from '../middleware/rbac';
 import { logger, getLogContext } from '../utils/logger';
 import type { Bindings } from '../index';
 import type { Dependencies } from '../config/dependencies';
@@ -16,43 +17,19 @@ const users = new Hono<{ Bindings: Bindings; Variables: { deps: Dependencies; us
 // All user routes require authentication
 users.use('/*', authMiddleware);
 
-/**
- * Middleware to check if user is admin
- */
-const adminOnly = async (c: any, next: any) => {
-  const user = c.get('user');
-
-  if (user.role !== 'ADMIN') {
-    logger.warn('Unauthorized admin access attempt', {
-      ...getLogContext(c),
-      userId: user.userId,
-      role: user.role,
-    });
-    return c.json({
-      success: false,
-      error: 'Unauthorized: Admin access required',
-    }, 403);
-  }
-
-  await next();
-};
+// Note: adminOnly middleware replaced with requireAdmin from rbac.ts
+// Old inline middleware removed for consistency with RBAC system
 
 /**
  * GET /api/users
  * List all users with pagination (Admin/Manager only)
  */
-users.get('/', async (c) => {
+users.get('/', requireManager, async (c) => {
   const deps = c.get('deps');
   const user = c.get('user');
 
   try {
-    // Only admin and managers can list users
-    if (user.role !== 'ADMIN' && user.role !== 'MANAGER') {
-      return c.json({
-        success: false,
-        error: 'Unauthorized: Admin or Manager access required',
-      }, 403);
-    }
+    // RBAC middleware ensures only ADMIN or MANAGER can access
 
     logger.info('List users request', getLogContext(c));
 
@@ -201,7 +178,7 @@ users.get('/:id', async (c) => {
  * POST /api/users
  * Create new user (Admin only)
  */
-users.post('/', adminOnly, async (c) => {
+users.post('/', requireAdmin, async (c) => {
   const deps = c.get('deps');
 
   try {
@@ -281,7 +258,7 @@ users.post('/', adminOnly, async (c) => {
  * PUT /api/users/:id
  * Update user (Admin only)
  */
-users.put('/:id', adminOnly, async (c) => {
+users.put('/:id', requireAdmin, async (c) => {
   const deps = c.get('deps');
   const userId = c.req.param('id');
 
@@ -360,7 +337,7 @@ users.put('/:id', adminOnly, async (c) => {
  * Deactivate user (Admin only)
  * We don't actually delete users, just mark them as inactive
  */
-users.delete('/:id', adminOnly, async (c) => {
+users.delete('/:id', requireAdmin, async (c) => {
   const deps = c.get('deps');
   const userId = c.req.param('id');
   const currentUser = c.get('user');

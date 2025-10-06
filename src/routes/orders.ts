@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { authMiddleware } from '../middleware/auth';
+import { requireManager } from '../middleware/rbac';
 import { ZodError } from 'zod';
 import { logger, getLogContext } from '../utils/logger';
 import {
@@ -344,7 +345,7 @@ orders.post('/', async (c) => {
  * PUT /api/orders/:id/status
  * Update order status
  */
-orders.put('/:id/status', async (c) => {
+orders.put('/:id/status', requireManager, async (c) => {
   const deps = c.get('deps');
   const user = c.get('user');
   const orderId = c.req.param('id');

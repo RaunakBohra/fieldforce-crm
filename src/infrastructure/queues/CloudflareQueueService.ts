@@ -1,4 +1,5 @@
 import { IQueueService, QueueMessage, QueueOptions } from '../../core/ports/IQueueService';
+import { logger } from '../../utils/logger';
 
 /**
  * Cloudflare Queue Service Implementation
@@ -30,7 +31,7 @@ export class CloudflareQueueService implements IQueueService {
 
       return messageId;
     } catch (error: unknown) {
-      console.error('Queue send error:', error);
+      logger.error('Failed to send message to queue', error, { queueName });
       throw error;
     }
   }
@@ -57,7 +58,7 @@ export class CloudflareQueueService implements IQueueService {
 
       return messageIds;
     } catch (error: unknown) {
-      console.error('Queue sendBatch error:', error);
+      logger.error('Failed to send batch messages to queue', error, { queueName, count: messages.length });
       throw error;
     }
   }
@@ -74,7 +75,7 @@ export class CloudflareQueueService implements IQueueService {
     // Cloudflare Queues don't support polling/pulling messages
     // Messages are pushed to consumers automatically
     // This is a placeholder for interface compatibility
-    console.warn('Cloudflare Queues use push-based consumers, not pull-based');
+    logger.warn('Cloudflare Queues use push-based consumers, not pull-based', { queueName });
     return [];
   }
 
@@ -86,7 +87,7 @@ export class CloudflareQueueService implements IQueueService {
   async deleteMessage(queueName: string, messageId: string): Promise<void> {
     // Cloudflare Queues auto-acknowledge messages on successful processing
     // This is a no-op for interface compatibility
-    console.warn('Cloudflare Queues auto-acknowledge messages');
+    logger.warn('Cloudflare Queues auto-acknowledge messages', { queueName, messageId });
   }
 
   /**
@@ -125,11 +126,11 @@ export async function handleQueueMessages(
 
       // Process message based on type
       // Example: send email, process visit data, etc.
-      console.log('Processing queue message:', body);
+      logger.info('Processing queue message', { body });
 
       // Acknowledge message (automatic on successful completion)
     } catch (error: unknown) {
-      console.error('Failed to process message:', error);
+      logger.error('Failed to process queue message', error);
       // Message will be retried automatically
       throw error;
     }

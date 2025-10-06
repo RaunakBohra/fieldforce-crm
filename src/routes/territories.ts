@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { authMiddleware } from '../middleware/auth';
+import { requireManager } from '../middleware/rbac';
 import { logger, getLogContext } from '../utils/logger';
 import type { Bindings } from '../index';
 import type { Dependencies } from '../config/dependencies';
@@ -240,7 +241,7 @@ territories.get('/:id', adminOnly, async (c) => {
  * POST /api/territories
  * Create new territory
  */
-territories.post('/', adminOnly, async (c) => {
+territories.post('/', requireManager, async (c) => {
   const deps = c.get('deps');
 
   try {
@@ -335,7 +336,7 @@ territories.post('/', adminOnly, async (c) => {
  * PUT /api/territories/:id
  * Update territory
  */
-territories.put('/:id', adminOnly, async (c) => {
+territories.put('/:id', requireManager, async (c) => {
   const deps = c.get('deps');
   const territoryId = c.req.param('id');
 
@@ -454,7 +455,7 @@ territories.put('/:id', adminOnly, async (c) => {
  * DELETE /api/territories/:id
  * Delete territory (only if no users or children)
  */
-territories.delete('/:id', adminOnly, async (c) => {
+territories.delete('/:id', requireManager, async (c) => {
   const deps = c.get('deps');
   const territoryId = c.req.param('id');
 
@@ -596,7 +597,7 @@ territories.get('/:id/users', adminOnly, async (c) => {
  * PUT /api/territories/:id/users/:userId
  * Assign user to territory
  */
-territories.put('/:id/users/:userId', adminOnly, async (c) => {
+territories.put('/:id/users/:userId', requireManager, async (c) => {
   const deps = c.get('deps');
   const territoryId = c.req.param('id');
   const userId = c.req.param('userId');

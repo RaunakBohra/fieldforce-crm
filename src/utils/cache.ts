@@ -3,6 +3,8 @@
  * Provides simple caching with TTL support
  */
 
+import { logger } from './logger';
+
 export interface CacheOptions {
   ttl?: number; // Time to live in seconds (default: 5 minutes)
 }
@@ -35,7 +37,7 @@ export async function getOrSetCache<T>(
       return cached as T;
     }
   } catch (error) {
-    console.error('Cache read error:', error);
+    logger.error('Cache read failed', error, { key });
     // Continue to fetch fresh data
   }
 
@@ -48,7 +50,7 @@ export async function getOrSetCache<T>(
       expirationTtl: ttl,
     });
   } catch (error) {
-    console.error('Cache write error:', error);
+    logger.error('Cache write failed', error, { key });
     // Don't fail the request if cache write fails
   }
 
@@ -69,7 +71,7 @@ export async function invalidateCache(
   try {
     await kv.delete(key);
   } catch (error) {
-    console.error('Cache invalidation error:', error);
+    logger.error('Cache invalidation failed', error, { key });
   }
 }
 
@@ -96,7 +98,7 @@ export async function invalidateCachePattern(
     const deletePromises = list.keys.map((key) => kv.delete(key.name));
     await Promise.all(deletePromises);
   } catch (error) {
-    console.error('Cache pattern invalidation error:', error);
+    logger.error('Cache pattern invalidation failed', error, { pattern });
   }
 }
 
