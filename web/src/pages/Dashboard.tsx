@@ -87,265 +87,70 @@ export default function Dashboard() {
   return (
     <PageContainer>
       <ContentSection>
-        {/* Welcome Header */}
-        <Card className="border-b border-neutral-200 rounded-none bg-gradient-to-r from-primary-50 to-primary-100">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold text-neutral-900">
-                Welcome, {user?.name}!
-              </h1>
-              <p className="mt-1 text-sm text-neutral-600">
-                Here's what's happening with your business today
-              </p>
-            </div>
-            <div className="text-right text-sm text-neutral-600">
-              <p className="font-medium">{user?.role}</p>
-              <p>{user?.email}</p>
-            </div>
+        {/* Compact Welcome Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-neutral-900">
+              Welcome, {user?.name}!
+            </h1>
+            <p className="text-sm text-neutral-600">
+              Here's what's happening with your business today
+            </p>
           </div>
-        </Card>
+          <div className="text-sm text-neutral-600 text-right">
+            <span className="font-medium text-primary-700">{user?.role}</span>
+          </div>
+        </div>
 
-        {/* Overview Stats */}
-        <section className="mt-6 space-y-4">
-          {/* Visits Card */}
-          <Card>
-            <h3 className="text-lg font-semibold text-neutral-900 mb-4 flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-primary-600" />
-              Visits
-            </h3>
-            <div className="overflow-x-auto">
-              <div className="grid grid-cols-3 gap-4 min-w-max">
-                {/* Headers */}
-                <div className="text-center">
-                  <div className="text-xs font-medium text-neutral-600 mb-2">Today</div>
-                  <button
-                    onClick={() => navigate('/visits')}
-                    className="text-2xl font-bold text-primary-700 hover:text-primary-800 transition-colors"
-                  >
-                    {stats?.visits.today ?? 0}
-                  </button>
-                </div>
-                <div className="text-center">
-                  <div className="text-xs font-medium text-neutral-600 mb-2">This Week</div>
-                  <button
-                    onClick={() => navigate('/visits')}
-                    className="text-2xl font-bold text-primary-700 hover:text-primary-800 transition-colors"
-                  >
-                    {stats?.visits.thisWeek ?? 0}
-                  </button>
-                </div>
-                <div className="text-center">
-                  <div className="text-xs font-medium text-neutral-600 mb-2">This Month</div>
-                  <button
-                    onClick={() => navigate('/visits')}
-                    className="text-2xl font-bold text-primary-700 hover:text-primary-800 transition-colors"
-                  >
-                    {stats?.visits.thisMonth ?? 0}
-                  </button>
-                </div>
+        {/* Key Metrics Row */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
+          <Card className="bg-gradient-to-br from-primary-50 to-primary-100 border-primary-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-primary-700 mb-1">Today's Visits</p>
+                <p className="text-2xl font-bold text-primary-900">{stats?.visits.today ?? 0}</p>
+                <p className="text-xs text-primary-600 mt-1">{stats?.visits.thisWeek ?? 0} this week</p>
               </div>
+              <MapPin className="w-8 h-8 text-primary-600 opacity-50" />
             </div>
           </Card>
 
-          {/* Orders Card */}
-          <Card>
-            <h3 className="text-lg font-semibold text-neutral-900 mb-4 flex items-center gap-2">
-              <ShoppingCart className="w-5 h-5 text-neutral-600" />
-              Orders
-            </h3>
-            <div className="overflow-x-auto">
-              <div className="grid grid-cols-5 gap-4 min-w-max">
-                <div className="text-center">
-                  <div className="text-xs font-medium text-neutral-600 mb-2">Total</div>
-                  <button
-                    onClick={() => navigate('/orders')}
-                    className="text-2xl font-bold text-neutral-900 hover:text-neutral-700 transition-colors"
-                  >
-                    {stats?.orders.total ?? 0}
-                  </button>
-                </div>
-                <div className="text-center">
-                  <div className="text-xs font-medium text-neutral-600 mb-2">Pending</div>
-                  <button
-                    onClick={() => navigate('/orders')}
-                    className="text-2xl font-bold text-warn-600 hover:text-warn-700 transition-colors"
-                  >
-                    {stats?.orders.pending ?? 0}
-                  </button>
-                </div>
-                <div className="text-center">
-                  <div className="text-xs font-medium text-neutral-600 mb-2">Approved</div>
-                  <button
-                    onClick={() => navigate('/orders')}
-                    className="text-2xl font-bold text-primary-600 hover:text-primary-700 transition-colors"
-                  >
-                    {stats?.orders.approved ?? 0}
-                  </button>
-                </div>
-                <div className="text-center">
-                  <div className="text-xs font-medium text-neutral-600 mb-2">Delivered</div>
-                  <button
-                    onClick={() => navigate('/orders')}
-                    className="text-2xl font-bold text-success-600 hover:text-success-700 transition-colors"
-                  >
-                    {stats?.orders.delivered ?? 0}
-                  </button>
-                </div>
-                <div className="text-center">
-                  <div className="text-xs font-medium text-neutral-600 mb-2">Cancelled</div>
-                  <button
-                    onClick={() => navigate('/orders')}
-                    className="text-2xl font-bold text-danger-600 hover:text-danger-700 transition-colors"
-                  >
-                    {stats?.orders.cancelled ?? 0}
-                  </button>
-                </div>
+          <Card className="bg-gradient-to-br from-warn-50 to-warn-100 border-warn-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-warn-700 mb-1">Pending Orders</p>
+                <p className="text-2xl font-bold text-warn-900">{stats?.orders.pending ?? 0}</p>
+                <p className="text-xs text-warn-600 mt-1">{stats?.orders.total ?? 0} total</p>
               </div>
+              <ShoppingCart className="w-8 h-8 text-warn-600 opacity-50" />
             </div>
           </Card>
 
-          {/* Financials Card */}
-          <Card>
-            <h3 className="text-lg font-semibold text-neutral-900 mb-4 flex items-center gap-2">
-              <DollarSign className="w-5 h-5 text-primary-600" />
-              Financials
-            </h3>
-            <div className="overflow-x-auto">
-              <div className="grid grid-cols-3 gap-4 min-w-max">
-                <div className="text-center">
-                  <div className="text-xs font-medium text-neutral-600 mb-2">Total Revenue</div>
-                  <button
-                    onClick={() => navigate('/orders')}
-                    className="text-2xl font-bold text-primary-700 hover:text-primary-800 transition-colors"
-                  >
-                    {formatCurrency(stats?.revenue.total ?? 0)}
-                  </button>
-                  <div className="text-xs text-neutral-500 mt-1">Delivered orders</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-xs font-medium text-neutral-600 mb-2">Collected</div>
-                  <button
-                    onClick={() => navigate('/payments')}
-                    className="text-2xl font-bold text-success-600 hover:text-success-700 transition-colors"
-                  >
-                    {formatCurrency(stats?.revenue.collected ?? 0)}
-                  </button>
-                </div>
-                <div className="text-center">
-                  <div className="text-xs font-medium text-neutral-600 mb-2">Outstanding</div>
-                  <button
-                    onClick={() => navigate('/payments/pending')}
-                    className="text-2xl font-bold text-warn-600 hover:text-warn-700 transition-colors"
-                  >
-                    {formatCurrency(stats?.revenue.outstanding ?? 0)}
-                  </button>
-                </div>
+          <Card className="bg-gradient-to-br from-success-50 to-success-100 border-success-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-success-700 mb-1">Collected</p>
+                <p className="text-2xl font-bold text-success-900">{formatCurrency(stats?.revenue.collected ?? 0)}</p>
+                <p className="text-xs text-success-600 mt-1">Payments</p>
               </div>
+              <CheckCircle2 className="w-8 h-8 text-success-600 opacity-50" />
             </div>
           </Card>
-        </section>
 
-        {/* Top Performers (Admin/Manager Only) */}
-        {isAdmin && topPerformers.length > 0 && (
-          <section className="mt-6">
-            <Card>
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-semibold text-neutral-900">
-                  Top Performers (This Month)
-                </h2>
-                <Users className="w-5 h-5 text-neutral-400" />
+          <Card className="bg-gradient-to-br from-danger-50 to-danger-100 border-danger-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-danger-700 mb-1">Outstanding</p>
+                <p className="text-2xl font-bold text-danger-900">{formatCurrency(stats?.revenue.outstanding ?? 0)}</p>
+                <p className="text-xs text-danger-600 mt-1">Due payments</p>
               </div>
-              <div className="space-y-3">
-                {topPerformers.slice(0, 5).map((performer, index) => (
-                  <div
-                    key={performer.userId}
-                    className="flex items-center justify-between p-3 bg-neutral-50 rounded-lg hover:bg-neutral-100 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-primary-100 text-primary-700 font-bold flex items-center justify-center">
-                        {index + 1}
-                      </div>
-                      <div>
-                        <p className="font-medium text-neutral-900">
-                          {performer.user?.name || 'Unknown'}
-                        </p>
-                        <p className="text-sm text-neutral-500">
-                          {performer.totalOrders} orders
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-primary-700">
-                        {formatCurrency(performer.totalRevenue)}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          </section>
-        )}
-
-        {/* Recent Activity */}
-        <section className="mt-6">
-          <Card>
-            <h2 className="text-lg font-semibold text-neutral-900 mb-4">
-              Recent Activity
-            </h2>
-            {activities.length === 0 ? (
-              <p className="text-neutral-500 text-center py-8">No recent activity</p>
-            ) : (
-              <div className="space-y-3">
-                {activities.map((activity) => (
-                  <div
-                    key={activity.id}
-                    className="flex items-center justify-between p-3 border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors cursor-pointer"
-                    onClick={() => {
-                      if (activity.type === 'visit') navigate('/visits');
-                      if (activity.type === 'order') navigate('/orders');
-                      if (activity.type === 'payment') navigate('/payments');
-                    }}
-                  >
-                    <div className="flex items-center gap-3 flex-1">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                        activity.type === 'visit' ? 'bg-primary-100' :
-                        activity.type === 'order' ? 'bg-warn-100' :
-                        'bg-success-100'
-                      }`}>
-                        {activity.type === 'visit' && <MapPin className="w-5 h-5 text-primary-600" />}
-                        {activity.type === 'order' && <ShoppingCart className="w-5 h-5 text-warn-600" />}
-                        {activity.type === 'payment' && <CreditCard className="w-5 h-5 text-success-600" />}
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-medium text-neutral-900">{activity.title}</p>
-                        <p className="text-sm text-neutral-500">
-                          {formatDate(activity.timestamp)}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      {activity.status && (
-                        <StatusBadge
-                          label={activity.status}
-                          className="text-xs"
-                          formatLabel
-                        />
-                      )}
-                      {activity.amount && (
-                        <p className="font-semibold text-neutral-900 min-w-[100px] text-right">
-                          {formatCurrency(activity.amount)}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+              <Clock className="w-8 h-8 text-danger-600 opacity-50" />
+            </div>
           </Card>
-        </section>
+        </div>
 
         {/* Quick Actions */}
-        <section className="mt-6">
+        <section className="mb-6">
           <h2 className="section-heading mb-4">Quick Actions</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
             <button
@@ -390,6 +195,218 @@ export default function Dashboard() {
             </button>
           </div>
         </section>
+
+        {/* Detailed Stats - Combined Card */}
+        <Card className="mb-6">
+          <h2 className="text-lg font-semibold text-neutral-900 mb-6">Overview Statistics</h2>
+
+          {/* Visits */}
+          <div className="mb-6 pb-6 border-b border-neutral-200">
+            <h3 className="text-sm font-semibold text-neutral-700 mb-3 flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-primary-600" />
+              Visits
+            </h3>
+            <div className="grid grid-cols-3 gap-4">
+              <button
+                onClick={() => navigate('/visits')}
+                className="text-center p-3 rounded-lg hover:bg-neutral-50 transition-colors"
+              >
+                <div className="text-xs font-medium text-neutral-600 mb-1">Today</div>
+                <div className="text-xl font-bold text-primary-700">{stats?.visits.today ?? 0}</div>
+              </button>
+              <button
+                onClick={() => navigate('/visits')}
+                className="text-center p-3 rounded-lg hover:bg-neutral-50 transition-colors"
+              >
+                <div className="text-xs font-medium text-neutral-600 mb-1">This Week</div>
+                <div className="text-xl font-bold text-primary-700">{stats?.visits.thisWeek ?? 0}</div>
+              </button>
+              <button
+                onClick={() => navigate('/visits')}
+                className="text-center p-3 rounded-lg hover:bg-neutral-50 transition-colors"
+              >
+                <div className="text-xs font-medium text-neutral-600 mb-1">This Month</div>
+                <div className="text-xl font-bold text-primary-700">{stats?.visits.thisMonth ?? 0}</div>
+              </button>
+            </div>
+          </div>
+
+          {/* Orders */}
+          <div className="mb-6 pb-6 border-b border-neutral-200">
+            <h3 className="text-sm font-semibold text-neutral-700 mb-3 flex items-center gap-2">
+              <ShoppingCart className="w-4 h-4 text-neutral-600" />
+              Orders
+            </h3>
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+              <button
+                onClick={() => navigate('/orders')}
+                className="text-center p-3 rounded-lg hover:bg-neutral-50 transition-colors"
+              >
+                <div className="text-xs font-medium text-neutral-600 mb-1">Total</div>
+                <div className="text-xl font-bold text-neutral-900">{stats?.orders.total ?? 0}</div>
+              </button>
+              <button
+                onClick={() => navigate('/orders')}
+                className="text-center p-3 rounded-lg hover:bg-warn-50 transition-colors"
+              >
+                <div className="text-xs font-medium text-neutral-600 mb-1">Pending</div>
+                <div className="text-xl font-bold text-warn-600">{stats?.orders.pending ?? 0}</div>
+              </button>
+              <button
+                onClick={() => navigate('/orders')}
+                className="text-center p-3 rounded-lg hover:bg-primary-50 transition-colors"
+              >
+                <div className="text-xs font-medium text-neutral-600 mb-1">Approved</div>
+                <div className="text-xl font-bold text-primary-600">{stats?.orders.approved ?? 0}</div>
+              </button>
+              <button
+                onClick={() => navigate('/orders')}
+                className="text-center p-3 rounded-lg hover:bg-success-50 transition-colors"
+              >
+                <div className="text-xs font-medium text-neutral-600 mb-1">Delivered</div>
+                <div className="text-xl font-bold text-success-600">{stats?.orders.delivered ?? 0}</div>
+              </button>
+              <button
+                onClick={() => navigate('/orders')}
+                className="text-center p-3 rounded-lg hover:bg-danger-50 transition-colors"
+              >
+                <div className="text-xs font-medium text-neutral-600 mb-1">Cancelled</div>
+                <div className="text-xl font-bold text-danger-600">{stats?.orders.cancelled ?? 0}</div>
+              </button>
+            </div>
+          </div>
+
+          {/* Financials */}
+          <div>
+            <h3 className="text-sm font-semibold text-neutral-700 mb-3 flex items-center gap-2">
+              <DollarSign className="w-4 h-4 text-primary-600" />
+              Financials
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <button
+                onClick={() => navigate('/orders')}
+                className="text-center p-4 rounded-lg hover:bg-primary-50 transition-colors border border-neutral-200"
+              >
+                <div className="text-xs font-medium text-neutral-600 mb-1">Total Revenue</div>
+                <div className="text-xl font-bold text-primary-700">{formatCurrency(stats?.revenue.total ?? 0)}</div>
+                <div className="text-xs text-neutral-500 mt-1">Delivered orders</div>
+              </button>
+              <button
+                onClick={() => navigate('/payments')}
+                className="text-center p-4 rounded-lg hover:bg-success-50 transition-colors border border-neutral-200"
+              >
+                <div className="text-xs font-medium text-neutral-600 mb-1">Collected</div>
+                <div className="text-xl font-bold text-success-600">{formatCurrency(stats?.revenue.collected ?? 0)}</div>
+                <div className="text-xs text-neutral-500 mt-1">Payments received</div>
+              </button>
+              <button
+                onClick={() => navigate('/payments/pending')}
+                className="text-center p-4 rounded-lg hover:bg-warn-50 transition-colors border border-neutral-200"
+              >
+                <div className="text-xs font-medium text-neutral-600 mb-1">Outstanding</div>
+                <div className="text-xl font-bold text-warn-600">{formatCurrency(stats?.revenue.outstanding ?? 0)}</div>
+                <div className="text-xs text-neutral-500 mt-1">Pending payments</div>
+              </button>
+            </div>
+          </div>
+        </Card>
+
+        {/* Top Performers (Admin/Manager Only) */}
+        {isAdmin && topPerformers.length > 0 && (
+          <section className="mt-6">
+            <Card>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-semibold text-neutral-900">
+                  Top Performers (This Month)
+                </h2>
+                <Users className="w-5 h-5 text-neutral-400" />
+              </div>
+              <div className="space-y-3">
+                {topPerformers.slice(0, 5).map((performer, index) => (
+                  <div
+                    key={performer.userId}
+                    className="flex items-center justify-between p-3 bg-neutral-50 rounded-lg hover:bg-neutral-100 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-primary-100 text-primary-700 font-bold flex items-center justify-center">
+                        {index + 1}
+                      </div>
+                      <div>
+                        <p className="font-medium text-neutral-900">
+                          {performer.user?.name || 'Unknown'}
+                        </p>
+                        <p className="text-sm text-neutral-500">
+                          {performer.totalOrders} orders
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold text-primary-700">
+                        {formatCurrency(performer.totalRevenue)}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </section>
+        )}
+
+        {/* Recent Activity */}
+        <Card>
+          <h2 className="text-lg font-semibold text-neutral-900 mb-4">
+            Recent Activity
+          </h2>
+          {activities.length === 0 ? (
+            <p className="text-neutral-500 text-center py-8">No recent activity</p>
+          ) : (
+            <div className="space-y-3">
+              {activities.slice(0, 8).map((activity) => (
+                <div
+                  key={activity.id}
+                  className="flex items-center justify-between p-3 border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors cursor-pointer"
+                  onClick={() => {
+                    if (activity.type === 'visit') navigate('/visits');
+                    if (activity.type === 'order') navigate('/orders');
+                    if (activity.type === 'payment') navigate('/payments');
+                  }}
+                >
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                      activity.type === 'visit' ? 'bg-primary-100' :
+                      activity.type === 'order' ? 'bg-warn-100' :
+                      'bg-success-100'
+                    }`}>
+                      {activity.type === 'visit' && <MapPin className="w-5 h-5 text-primary-600" />}
+                      {activity.type === 'order' && <ShoppingCart className="w-5 h-5 text-warn-600" />}
+                      {activity.type === 'payment' && <CreditCard className="w-5 h-5 text-success-600" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-neutral-900 truncate">{activity.title}</p>
+                      <p className="text-sm text-neutral-500 truncate">
+                        {formatDate(activity.timestamp)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 flex-shrink-0 ml-3">
+                    {activity.status && (
+                      <StatusBadge
+                        label={activity.status}
+                        className="text-xs hidden sm:block"
+                        formatLabel
+                      />
+                    )}
+                    {activity.amount && (
+                      <p className="font-semibold text-neutral-900 text-right min-w-[80px]">
+                        {formatCurrency(activity.amount)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
       </ContentSection>
     </PageContainer>
   );
