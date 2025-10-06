@@ -14,7 +14,10 @@ import {
   Mail,
   Building2,
   Tag,
-  AlertCircle
+  AlertCircle,
+  Package,
+  Image as ImageIcon,
+  FileText
 } from 'lucide-react';
 import { PageContainer, ContentSection, Card } from '../components/layout';
 import { StatusBadge, LoadingSpinner } from '../components/ui';
@@ -167,6 +170,14 @@ export function VisitDetails() {
                     formatLabel
                   />
                 </div>
+                {visit.visitType && (
+                  <div className="flex items-center gap-2">
+                    <strong className="text-neutral-900">Type:</strong>
+                    <span className="px-3 py-1 bg-neutral-100 text-neutral-700 rounded-full text-sm font-medium">
+                      {formatStatusLabel(visit.visitType)}
+                    </span>
+                  </div>
+                )}
               </div>
             </Card>
 
@@ -264,6 +275,49 @@ export function VisitDetails() {
                     >
                       {product}
                     </span>
+                  ))}
+                </div>
+              </Card>
+            )}
+
+            {/* Samples Given */}
+            {visit.samplesGiven && Object.keys(visit.samplesGiven).length > 0 && (
+              <Card>
+                <div className="flex items-center gap-2 mb-4">
+                  <Package className="w-5 h-5 text-success-600" />
+                  <h2 className="text-lg font-semibold text-neutral-900">Samples Given</h2>
+                </div>
+                <div className="space-y-2">
+                  {Object.entries(visit.samplesGiven as Record<string, number>).map(([product, quantity]) => (
+                    <div key={product} className="flex justify-between items-center py-2 px-3 bg-success-50 rounded-lg">
+                      <span className="text-neutral-900 font-medium">{product}</span>
+                      <span className="text-success-700 font-semibold">Qty: {quantity}</span>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )}
+
+            {/* Photos */}
+            {visit.photos && visit.photos.length > 0 && (
+              <Card>
+                <div className="flex items-center gap-2 mb-4">
+                  <ImageIcon className="w-5 h-5 text-primary-600" />
+                  <h2 className="text-lg font-semibold text-neutral-900">Visit Photos</h2>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  {visit.photos.map((photoKey, index) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={`${import.meta.env.VITE_R2_PUBLIC_URL}/${photoKey}`}
+                        alt={`Visit photo ${index + 1}`}
+                        className="w-full h-48 object-cover rounded-lg border border-neutral-200 hover:border-primary-500 transition-colors cursor-pointer"
+                        onClick={() => window.open(`${import.meta.env.VITE_R2_PUBLIC_URL}/${photoKey}`, '_blank')}
+                      />
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all rounded-lg flex items-center justify-center">
+                        <ImageIcon className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </div>
+                    </div>
                   ))}
                 </div>
               </Card>
