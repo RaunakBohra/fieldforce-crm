@@ -44,7 +44,7 @@ export function VisitForm() {
 
   const fetchContacts = async () => {
     try {
-      const response = await api.getContacts({ limit: 1000, isActive: true });
+      const response = await api.getContacts({ limit: 100, isActive: true });
       if (response.success && response.data) {
         setContacts(response.data.contacts);
       }

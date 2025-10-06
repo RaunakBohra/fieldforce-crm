@@ -58,7 +58,7 @@ export default function PaymentForm() {
         orderId: orderId!,
         amount: parseFloat(formData.amount),
         paymentMode: formData.paymentMode as 'CASH' | 'CHEQUE' | 'NEFT' | 'UPI' | 'CARD' | 'OTHER',
-        paymentDate: formData.paymentDate,
+        paymentDate: new Date(formData.paymentDate).toISOString(),
         referenceNumber: formData.referenceNumber || undefined,
         notes: formData.notes || undefined,
       });

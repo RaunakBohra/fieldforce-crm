@@ -33,7 +33,7 @@ export function OrderForm() {
 
   const fetchContacts = async () => {
     try {
-      const response = await api.getContacts({ page: 1, limit: 1000 });
+      const response = await api.getContacts({ page: 1, limit: 100 });
       if (response.success && response.data) {
         setContacts(response.data.contacts);
       }
@@ -44,7 +44,7 @@ export function OrderForm() {
 
   const fetchProducts = async () => {
     try {
-      const response = await api.getProducts({ page: 1, limit: 1000, isActive: true });
+      const response = await api.getProducts({ page: 1, limit: 100, isActive: true });
       if (response.success && response.data) {
         setProducts(response.data.products);
       }
