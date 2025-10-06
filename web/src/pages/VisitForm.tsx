@@ -39,7 +39,6 @@ export function VisitForm() {
   // Photo state
   const [showCamera, setShowCamera] = useState(false);
   const [photos, setPhotos] = useState<string[]>([]);
-  const [uploadedPhotoKeys, setUploadedPhotoKeys] = useState<string[]>([]);
 
   useEffect(() => {
     const timer = setTimeout(() => {

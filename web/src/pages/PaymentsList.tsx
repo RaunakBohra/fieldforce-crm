@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import type { PaymentStats, PaymentQueryParams } from '../services/api';
-import { Search, Filter, X, DollarSign, Plus } from 'lucide-react';
+import { Search, Filter, DollarSign, Plus } from 'lucide-react';
 import { useDebounce } from '../hooks/useDebounce';
 import { PageContainer, ContentSection, Card } from '../components/layout';
 import { StatusBadge, Pagination, TableSkeleton } from '../components/ui';

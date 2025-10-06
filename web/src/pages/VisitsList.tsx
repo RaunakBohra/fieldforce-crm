@@ -6,7 +6,7 @@ import { useDebounce } from '../hooks/useDebounce';
 import { Pencil, Trash2, Plus, Search, MapPin, Calendar, Eye, Clock } from 'lucide-react';
 import { PageContainer, ContentSection, Card } from '../components/layout';
 import { StatusBadge, Pagination, TableSkeleton } from '../components/ui';
-import { formatDateTime, getVisitStatusColor, getVisitOutcomeColor, formatStatusLabel } from '../utils';
+import { formatDateTime, getVisitStatusColor, getVisitOutcomeColor } from '../utils';
 
 export function VisitsList() {
   const navigate = useNavigate();

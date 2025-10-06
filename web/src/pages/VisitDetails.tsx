@@ -13,11 +13,9 @@ import {
   Phone,
   Mail,
   Building2,
-  Tag,
   AlertCircle,
   Package,
-  Image as ImageIcon,
-  FileText
+  Image as ImageIcon
 } from 'lucide-react';
 import { PageContainer, ContentSection, Card } from '../components/layout';
 import { StatusBadge, LoadingSpinner } from '../components/ui';
