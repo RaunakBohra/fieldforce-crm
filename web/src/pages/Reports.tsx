@@ -285,15 +285,15 @@ export default function Reports() {
               <>
                 <Card>
                   <div className="text-sm font-medium text-neutral-600">Total Orders</div>
-                  <div className="mt-1 text-3xl font-bold text-neutral-900">{reportData.summary.total}</div>
+                  <div className="mt-1 text-3xl font-bold text-neutral-900">{reportData.summary.total || 0}</div>
                 </Card>
                 <Card>
                   <div className="text-sm font-medium text-neutral-600">Total Revenue</div>
-                  <div className="mt-1 text-3xl font-bold text-success-600">₹{reportData.summary.totalRevenue.toLocaleString()}</div>
+                  <div className="mt-1 text-3xl font-bold text-success-600">₹{(reportData.summary.totalRevenue || 0).toLocaleString()}</div>
                 </Card>
                 <Card>
                   <div className="text-sm font-medium text-neutral-600">Avg Order Value</div>
-                  <div className="mt-1 text-3xl font-bold text-primary-600">₹{reportData.summary.averageOrderValue.toLocaleString()}</div>
+                  <div className="mt-1 text-3xl font-bold text-primary-600">₹{(reportData.summary.averageOrderValue || 0).toLocaleString()}</div>
                 </Card>
               </>
             )}
@@ -302,15 +302,15 @@ export default function Reports() {
               <>
                 <Card>
                   <div className="text-sm font-medium text-neutral-600">Total Payments</div>
-                  <div className="mt-1 text-3xl font-bold text-neutral-900">{reportData.summary.total}</div>
+                  <div className="mt-1 text-3xl font-bold text-neutral-900">{reportData.summary.total || 0}</div>
                 </Card>
                 <Card>
                   <div className="text-sm font-medium text-neutral-600">Total Amount</div>
-                  <div className="mt-1 text-3xl font-bold text-success-600">₹{reportData.summary.totalAmount.toLocaleString()}</div>
+                  <div className="mt-1 text-3xl font-bold text-success-600">₹{(reportData.summary.totalAmount || 0).toLocaleString()}</div>
                 </Card>
                 <Card>
                   <div className="text-sm font-medium text-neutral-600">Avg Payment</div>
-                  <div className="mt-1 text-3xl font-bold text-primary-600">₹{reportData.summary.averagePayment.toLocaleString()}</div>
+                  <div className="mt-1 text-3xl font-bold text-primary-600">₹{(reportData.summary.averagePayment || 0).toLocaleString()}</div>
                 </Card>
               </>
             )}
