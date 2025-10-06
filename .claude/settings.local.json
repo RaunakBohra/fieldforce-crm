@@ -73,7 +73,8 @@
       "Bash(/dev/null)",
       "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjbWdlcnM2ZG4wMDAwMnlkOHRpZWJ2YmIzIiwiZW1haWwiOiJwcm9kdGVzdEBleGFtcGxlLmNvbSIsInJvbGUiOiJGSUVMRF9SRVAiLCJleHAiOjE3NjAzMzg5MDR9.2uwhneiPKQoBTDXzaKkPzHQSIFSJDkp9FY6N1E7mSp0\")",
       "Bash(chmod:*)",
-      "Bash(/Users/raunakbohra/Desktop/medical-CRM/test-csrf.sh:*)"
+      "Bash(/Users/raunakbohra/Desktop/medical-CRM/test-csrf.sh:*)",
+      "Bash(npm run test:e2e:*)"
     ],
     "deny": [],
     "ask": []
