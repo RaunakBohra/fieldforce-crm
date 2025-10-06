@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Medical CRM Demo - Teal/Amber Theme', () => {
-  test('View Login Page with Teal Theme', async ({ page }) => {
+test.describe('Medical CRM Demo - Silver Blue Theme', () => {
+  test('View Login Page with Silver Blue Theme', async ({ page }) => {
     await page.goto('/login');
     
     // Wait for page to load
@@ -17,7 +17,7 @@ test.describe('Medical CRM Demo - Teal/Amber Theme', () => {
     await page.waitForTimeout(5000);
   });
 
-  test('View Signup Page with Teal Theme', async ({ page }) => {
+  test('View Signup Page with Silver Blue Theme', async ({ page }) => {
     await page.goto('/signup');
     
     // Wait for page to load

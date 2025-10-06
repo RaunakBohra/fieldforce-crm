@@ -55,10 +55,10 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-teal-50 py-12">
+    <div className="min-h-screen flex items-center justify-center bg-sky-50 py-12">
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg" role="main">
         <div>
-          <h1 className="text-3xl font-bold text-center text-teal-800">
+          <h1 className="text-3xl font-bold text-center text-sky-800">
             Field Force CRM
           </h1>
           <p className="mt-2 text-center text-slate-600">
@@ -69,7 +69,7 @@ export default function Signup() {
         <form className="mt-8 space-y-6" onSubmit={handleSubmit} aria-label="Signup form">
           {error && (
             <div
-              className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-lg"
+              className="bg-slate-50 border border-slate-200 text-slate-800 px-4 py-3 rounded-lg"
               role="alert"
               aria-live="polite"
             >
@@ -169,7 +169,7 @@ export default function Signup() {
 
           <p className="text-center text-sm text-slate-600">
             Already have an account?{' '}
-            <Link to="/login" className="text-teal-600 hover:text-teal-700 font-medium">
+            <Link to="/login" className="text-sky-600 hover:text-sky-700 font-medium">
               Sign in
             </Link>
           </p>
