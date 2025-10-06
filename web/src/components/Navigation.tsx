@@ -86,8 +86,8 @@ export function Navigation() {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-2">
-            {/* Primary nav items - Icon only */}
+          <div className="hidden md:flex items-center gap-1">
+            {/* Primary nav items - Icon + Text */}
             {primaryNavItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.path);
@@ -95,15 +95,14 @@ export function Navigation() {
                 <button
                   key={item.path}
                   onClick={() => navigate(item.path)}
-                  className={`p-2.5 rounded-lg transition-all ${
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all text-sm font-medium ${
                     active
                       ? 'bg-primary-600 text-white'
                       : 'hover:bg-primary-700 text-primary-50'
                   }`}
-                  title={item.label}
-                  aria-label={item.label}
                 >
-                  <Icon className="w-5 h-5" />
+                  <Icon className="w-4 h-4" />
+                  <span>{item.label}</span>
                 </button>
               );
             })}
@@ -112,15 +111,14 @@ export function Navigation() {
             <div className="relative">
               <button
                 onClick={() => setMoreOpen(!moreOpen)}
-                className={`p-2.5 rounded-lg transition-all ${
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all text-sm font-medium ${
                   isActive('/products') || isActive('/payments') || isActive('/analytics') || isActive('/reports') || isActive('/territories') || isActive('/users')
                     ? 'bg-primary-600 text-white'
                     : 'hover:bg-primary-700 text-primary-50'
                 }`}
-                title="More"
-                aria-label="More menu"
               >
-                <MoreHorizontal className="w-5 h-5" />
+                <MoreHorizontal className="w-4 h-4" />
+                <span>More</span>
               </button>
               {moreOpen && (
                 <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl py-2 text-neutral-900 z-50">
@@ -195,15 +193,15 @@ export function Navigation() {
             </div>
 
             {/* User section */}
-            <div className="ml-2 pl-2 border-l border-primary-700 flex items-center gap-2">
-              <span className="text-sm text-primary-100 hidden xl:block">{user?.name}</span>
+            <div className="ml-4 pl-4 border-l border-primary-700 flex items-center gap-3">
+              <span className="text-sm text-primary-100 hidden lg:block">{user?.name}</span>
               <button
                 onClick={handleLogout}
-                className="p-2.5 hover:bg-primary-700 rounded-lg transition-colors"
-                title="Logout"
+                className="flex items-center gap-2 bg-primary-700 hover:bg-primary-600 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
                 aria-label="Logout from your account"
               >
-                <LogOut className="w-5 h-5" />
+                <LogOut className="w-4 h-4" />
+                <span>Logout</span>
               </button>
             </div>
           </div>
