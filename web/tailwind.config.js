@@ -8,32 +8,57 @@ export default {
     extend: {
       colors: {
         primary: {
-          50: '#eff6ff',   // blue-50 - light background
-          100: '#dbeafe',  // blue-100
-          200: '#bfdbfe',  // blue-200
-          300: '#93c5fd',  // blue-300
-          500: '#3b82f6',  // blue-500
-          600: '#2563eb',  // blue-600 - primary (Neutral Corporate)
-          700: '#1d4ed8',  // blue-700 - darker blue
-          800: '#1e40af',  // blue-800 - navy
-          900: '#1e3a8a',  // blue-900
+          50: '#eef2ff',
+          100: '#e0e7ff',
+          200: '#c7d2fe',
+          300: '#a5b4fc',
+          400: '#818cf8',
+          500: '#4f46e5',   // main CTA hover
+          600: '#3730a3',   // main CTA default
+          700: '#312e81',
+          800: '#1e3a8a',   // navbar/backgrounds
+          900: '#1e1b4b',
         },
         accent: {
-          500: '#64748b',  // slate-500 - steel
-          600: '#0ea5e9',  // sky-600 - accent cyan
-          700: '#0284c7',  // sky-700
+          50: '#fdf2f8',
+          100: '#fce7f3',
+          200: '#fbcfe8',
+          300: '#f9a8d4',
+          400: '#f472b6',
+          500: '#ec4899',
+          600: '#db2777',   // pill buttons/badges
+          700: '#be185d',
+          800: '#9d174d',
+          900: '#831843',
+        },
+        focus: {
+          500: '#6366f1',
+          600: '#4f46e5'
+        },
+        warn: {
+          500: '#f97316',
+          600: '#ea580c'
+        },
+        success: {
+          500: '#10b981',
+          600: '#059669'
+        },
+        danger: {
+          500: '#ef4444',
+          600: '#dc2626'
         },
         neutral: {
-          50: '#f9fafb',   // gray-50
-          100: '#f3f4f6',  // gray-100 - surface background
-          200: '#e5e7eb',  // gray-200
-          300: '#d1d5db',  // gray-300
-          400: '#9ca3af',  // gray-400
-          500: '#6b7280',  // gray-500
-          600: '#4b5563',  // gray-600
-          700: '#374151',  // gray-700
-          800: '#1f2937',  // gray-800
-          900: '#111827',  // gray-900 - text primary
+          50: '#f8fafc',
+          100: '#f1f5f9',
+          200: '#e2e8f0',
+          300: '#cbd5e1',
+          400: '#94a3b8',
+          500: '#64748b',
+          600: '#475569',
+          700: '#334155',
+          800: '#1e293b',
+          900: '#0f172a',
+          950: '#020617',
         }
       }
     },
