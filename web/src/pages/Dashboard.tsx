@@ -105,10 +105,10 @@ export default function Dashboard() {
           </div>
         </Card>
 
-        {/* Overview Stats - All in One Container */}
-        <section className="mt-6">
-          <div className="grid grid-cols-1 gap-3">
-            {/* Visits */}
+        {/* Overview Stats */}
+        <section className="mt-6 space-y-3">
+          {/* Visits */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <StatCard
               title="Today's Visits"
               value={stats?.visits.today ?? 0}
@@ -133,8 +133,10 @@ export default function Dashboard() {
               valueColor="text-primary-700"
               onClick={() => navigate('/visits')}
             />
+          </div>
 
-            {/* Orders */}
+          {/* Orders */}
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
             <StatCard
               title="Total Orders"
               value={stats?.orders.total ?? 0}
@@ -175,8 +177,10 @@ export default function Dashboard() {
               valueColor="text-danger-600"
               onClick={() => navigate('/orders')}
             />
+          </div>
 
-            {/* Financials */}
+          {/* Financials */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <StatCard
               title="Total Revenue"
               value={formatCurrency(stats?.revenue.total ?? 0)}

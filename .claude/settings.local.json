@@ -92,7 +92,9 @@
       "Bash(do sed -i '' 's/bg-primary-600 text-white rounded-lg hover:bg-primary-700/bg-primary-600 text-white rounded-lg hover:bg-primary-500/g' \"$file\")",
       "Bash(wc:*)",
       "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_EK1XpFYRye6M@ep-ancient-art-a1aag2jx-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require\" npx tsx scripts/make-admin.ts iwbtracking@gmail.com)",
-      "Bash(xargs:*)"
+      "Bash(xargs:*)",
+      "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_EK1XpFYRye6M@ep-ancient-art-a1aag2jx-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require\" npx prisma migrate dev --name add_territory_management)",
+      "Bash(git restore:*)"
     ],
     "deny": [],
     "ask": []
