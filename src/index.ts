@@ -61,12 +61,25 @@ app.use('/*', securityHeaders);
 app.use(
   '/*',
   cors({
-    origin: [
-      'http://localhost:3000',
-      'http://localhost:5173',
-      'https://crm.raunakbohra.com',
-      'https://fieldforce-crm.pages.dev',
-    ],
+    origin: (origin) => {
+      const allowedOrigins = [
+        'http://localhost:3000',
+        'http://localhost:5173',
+        'https://crm.raunakbohra.com',
+      ];
+
+      // Allow all Cloudflare Pages deployments (*.pages.dev)
+      if (origin && origin.match(/^https:\/\/.*\.pages\.dev$/)) {
+        return origin;
+      }
+
+      // Check if origin is in allowed list
+      if (allowedOrigins.includes(origin || '')) {
+        return origin;
+      }
+
+      return allowedOrigins[0]; // fallback
+    },
     credentials: true,
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowHeaders: ['Content-Type', 'Authorization', 'x-csrf-token'],

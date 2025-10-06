@@ -1,6 +1,6 @@
 import { getCsrfToken, getCsrfHeaderName } from '../utils/csrf';
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL || 'https://fieldforce-crm-api.rnkbohra.workers.dev';
 
 export interface ApiResponse<T = unknown> {
   success: boolean;
