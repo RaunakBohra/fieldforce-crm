@@ -40,7 +40,14 @@
       "Bash(npx playwright test:*)",
       "Bash(npm uninstall:*)",
       "Bash(pkill:*)",
-      "Bash(lsof:*)"
+      "Bash(lsof:*)",
+      "Bash(for:*)",
+      "Bash(do)",
+      "Bash(done)",
+      "Bash(if [ -f \"$file\" ])",
+      "Bash(then)",
+      "Bash(fi)",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []

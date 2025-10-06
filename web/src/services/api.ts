@@ -298,4 +298,4 @@ class ApiService {
 }
 
 export const api = new ApiService();
-export type { User };
+export type { User, Contact, ContactStats, ContactListResponse, CreateContactData, ContactQueryParams };
