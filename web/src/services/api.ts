@@ -1,3 +1,5 @@
+import { getCsrfToken, getCsrfHeaderName } from '../utils/csrf';
+
 const API_URL = import.meta.env.VITE_API_URL;
 
 export interface ApiResponse<T = unknown> {
@@ -214,7 +216,7 @@ export interface VisitQueryParams {
 }
 
 class ApiService {
-  private getHeaders(includeAuth: boolean = false): HeadersInit {
+  private async getHeaders(includeAuth: boolean = false, includeCsrf: boolean = false): Promise<HeadersInit> {
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
     };
@@ -223,6 +225,15 @@ class ApiService {
       const token = localStorage.getItem('token');
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
+      }
+    }
+
+    if (includeCsrf) {
+      try {
+        const csrfToken = await getCsrfToken();
+        headers[getCsrfHeaderName()] = csrfToken;
+      } catch (error) {
+        console.warn('Failed to get CSRF token:', error);
       }
     }
 
@@ -246,7 +257,7 @@ class ApiService {
     try {
       const response = await fetch(`${API_URL}/api/auth/signup`, {
         method: 'POST',
-        headers: this.getHeaders(),
+        headers: await this.getHeaders(),
         body: JSON.stringify(data),
       });
 
@@ -263,7 +274,7 @@ class ApiService {
     try {
       const response = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
-        headers: this.getHeaders(),
+        headers: await this.getHeaders(),
         body: JSON.stringify(credentials),
       });
 
@@ -279,7 +290,7 @@ class ApiService {
   async getCurrentUser(): Promise<ApiResponse<User>> {
     try {
       const response = await fetch(`${API_URL}/api/auth/me`, {
-        headers: this.getHeaders(true),
+        headers: await this.getHeaders(true, true),
       });
 
       return this.handleResponse<User>(response);
@@ -301,7 +312,7 @@ class ApiService {
       ).toString() : '';
 
       const response = await fetch(`${API_URL}/api/contacts${queryString}`, {
-        headers: this.getHeaders(true),
+        headers: await this.getHeaders(true, true),
       });
 
       return this.handleResponse<ContactListResponse>(response);
@@ -316,7 +327,7 @@ class ApiService {
   async getContactStats(): Promise<ApiResponse<ContactStats>> {
     try {
       const response = await fetch(`${API_URL}/api/contacts/stats`, {
-        headers: this.getHeaders(true),
+        headers: await this.getHeaders(true, true),
       });
 
       return this.handleResponse<ContactStats>(response);
@@ -331,7 +342,7 @@ class ApiService {
   async getContact(id: string): Promise<ApiResponse<Contact>> {
     try {
       const response = await fetch(`${API_URL}/api/contacts/${id}`, {
-        headers: this.getHeaders(true),
+        headers: await this.getHeaders(true, true),
       });
 
       return this.handleResponse<Contact>(response);
@@ -347,7 +358,7 @@ class ApiService {
     try {
       const response = await fetch(`${API_URL}/api/contacts`, {
         method: 'POST',
-        headers: this.getHeaders(true),
+        headers: await this.getHeaders(true, true),
         body: JSON.stringify(data),
       });
 
@@ -364,7 +375,7 @@ class ApiService {
     try {
       const response = await fetch(`${API_URL}/api/contacts/${id}`, {
         method: 'PUT',
-        headers: this.getHeaders(true),
+        headers: await this.getHeaders(true, true),
         body: JSON.stringify(data),
       });
 
@@ -381,7 +392,7 @@ class ApiService {
     try {
       const response = await fetch(`${API_URL}/api/contacts/${id}`, {
         method: 'DELETE',
-        headers: this.getHeaders(true),
+        headers: await this.getHeaders(true, true),
       });
 
       return this.handleResponse<void>(response);
@@ -403,7 +414,7 @@ class ApiService {
       ).toString() : '';
 
       const response = await fetch(`${API_URL}/api/visits${queryString}`, {
-        headers: this.getHeaders(true),
+        headers: await this.getHeaders(true, true),
       });
 
       return this.handleResponse<VisitListResponse>(response);
@@ -418,7 +429,7 @@ class ApiService {
   async getVisitStats(): Promise<ApiResponse<VisitStats>> {
     try {
       const response = await fetch(`${API_URL}/api/visits/stats`, {
-        headers: this.getHeaders(true),
+        headers: await this.getHeaders(true, true),
       });
 
       return this.handleResponse<VisitStats>(response);
@@ -433,7 +444,7 @@ class ApiService {
   async getVisit(id: string): Promise<ApiResponse<Visit>> {
     try {
       const response = await fetch(`${API_URL}/api/visits/${id}`, {
-        headers: this.getHeaders(true),
+        headers: await this.getHeaders(true, true),
       });
 
       return this.handleResponse<Visit>(response);
@@ -449,7 +460,7 @@ class ApiService {
     try {
       const response = await fetch(`${API_URL}/api/visits`, {
         method: 'POST',
-        headers: this.getHeaders(true),
+        headers: await this.getHeaders(true, true),
         body: JSON.stringify(data),
       });
 
@@ -466,7 +477,7 @@ class ApiService {
     try {
       const response = await fetch(`${API_URL}/api/visits/${id}`, {
         method: 'PUT',
-        headers: this.getHeaders(true),
+        headers: await this.getHeaders(true, true),
         body: JSON.stringify(data),
       });
 
@@ -483,7 +494,7 @@ class ApiService {
     try {
       const response = await fetch(`${API_URL}/api/visits/${id}`, {
         method: 'DELETE',
-        headers: this.getHeaders(true),
+        headers: await this.getHeaders(true, true),
       });
 
       return this.handleResponse<void>(response);

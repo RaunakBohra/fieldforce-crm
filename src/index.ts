@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { createDependencies, Dependencies } from './config/dependencies';
 import { securityHeaders } from './middleware/securityHeaders';
-import { csrfProtection } from './middleware/csrf';
+import { csrfProtection, getCsrfToken } from './middleware/csrf';
 import { logger } from './utils/logger';
 import authRoutes from './routes/auth';
 import contactRoutes from './routes/contacts';
@@ -125,6 +125,9 @@ app.get('/db-test', async (c) => {
 
 // Authentication routes (public)
 app.route('/api/auth', authRoutes);
+
+// CSRF token endpoint (public - no auth required)
+app.get('/api/csrf-token', getCsrfToken);
 
 // Contact management routes (protected)
 app.route('/api/contacts', contactRoutes);
