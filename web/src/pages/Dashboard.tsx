@@ -105,10 +105,10 @@ export default function Dashboard() {
           </div>
         </Card>
 
-        {/* Visits Stats */}
+        {/* Overview Stats - All in One Container */}
         <section className="mt-6">
-          <h2 className="text-lg font-semibold text-neutral-900 mb-4">Visits Overview</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-3">
+            {/* Visits */}
             <StatCard
               title="Today's Visits"
               value={stats?.visits.today ?? 0}
@@ -118,7 +118,7 @@ export default function Dashboard() {
               onClick={() => navigate('/visits')}
             />
             <StatCard
-              title="This Week"
+              title="This Week Visits"
               value={stats?.visits.thisWeek ?? 0}
               icon={MapPin}
               iconColor="text-primary-600"
@@ -126,20 +126,15 @@ export default function Dashboard() {
               onClick={() => navigate('/visits')}
             />
             <StatCard
-              title="This Month"
+              title="This Month Visits"
               value={stats?.visits.thisMonth ?? 0}
               icon={MapPin}
               iconColor="text-primary-600"
               valueColor="text-primary-700"
               onClick={() => navigate('/visits')}
             />
-          </div>
-        </section>
 
-        {/* Orders Stats */}
-        <section className="mt-6">
-          <h2 className="text-lg font-semibold text-neutral-900 mb-4">Orders Overview</h2>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            {/* Orders */}
             <StatCard
               title="Total Orders"
               value={stats?.orders.total ?? 0}
@@ -149,7 +144,7 @@ export default function Dashboard() {
               onClick={() => navigate('/orders')}
             />
             <StatCard
-              title="Pending"
+              title="Pending Orders"
               value={stats?.orders.pending ?? 0}
               icon={Clock}
               iconColor="text-warn-600"
@@ -157,7 +152,7 @@ export default function Dashboard() {
               onClick={() => navigate('/orders')}
             />
             <StatCard
-              title="Approved"
+              title="Approved Orders"
               value={stats?.orders.approved ?? 0}
               icon={CheckCircle2}
               iconColor="text-primary-600"
@@ -165,7 +160,7 @@ export default function Dashboard() {
               onClick={() => navigate('/orders')}
             />
             <StatCard
-              title="Delivered"
+              title="Delivered Orders"
               value={stats?.orders.delivered ?? 0}
               icon={Package}
               iconColor="text-success-600"
@@ -173,30 +168,26 @@ export default function Dashboard() {
               onClick={() => navigate('/orders')}
             />
             <StatCard
-              title="Cancelled"
+              title="Cancelled Orders"
               value={stats?.orders.cancelled ?? 0}
               icon={Package}
               iconColor="text-danger-600"
               valueColor="text-danger-600"
               onClick={() => navigate('/orders')}
             />
-          </div>
-        </section>
 
-        {/* Revenue & Payments Stats */}
-        <section className="mt-6">
-          <h2 className="text-lg font-semibold text-neutral-900 mb-4">Financial Overview</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Financials */}
             <StatCard
               title="Total Revenue"
               value={formatCurrency(stats?.revenue.total ?? 0)}
               icon={DollarSign}
               iconColor="text-primary-600"
               valueColor="text-primary-700"
-              subtitle="From delivered orders"
+              subtitle="Delivered orders"
+              onClick={() => navigate('/orders')}
             />
             <StatCard
-              title="Collected"
+              title="Collected Payments"
               value={formatCurrency(stats?.revenue.collected ?? 0)}
               icon={CreditCard}
               iconColor="text-success-600"
@@ -204,12 +195,12 @@ export default function Dashboard() {
               onClick={() => navigate('/payments')}
             />
             <StatCard
-              title="Outstanding"
+              title="Outstanding Payments"
               value={formatCurrency(stats?.revenue.outstanding ?? 0)}
               icon={TrendingUp}
               iconColor="text-warn-600"
               valueColor="text-warn-600"
-              onClick={() => navigate('/pending-payments')}
+              onClick={() => navigate('/payments/pending')}
             />
           </div>
         </section>
