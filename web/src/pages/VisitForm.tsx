@@ -6,6 +6,7 @@ import { MapPin, Navigation as NavigationIcon, Loader2, Camera as CameraIcon, X,
 import { PageContainer, ContentSection, Card } from '../components/layout';
 import { Camera } from '../components/Camera';
 import { compressImage, getImageSizeKB } from '../utils/imageCompression';
+import { isOnline, saveOfflineVisit, type OfflineVisit } from '../utils/offlineStorage';
 
 export function VisitForm() {
   const navigate = useNavigate();
@@ -176,6 +177,27 @@ export function VisitForm() {
     try {
       if (!selectedContactId) {
         setError('Please select a contact');
+        return;
+      }
+
+      // Check if online
+      if (!isOnline()) {
+        // Save offline and show message
+        const contact = contacts.find(c => c.id === selectedContactId);
+        const offlineVisit: OfflineVisit = {
+          id: `offline-${Date.now()}`,
+          contactId: selectedContactId,
+          contactName: contact?.name,
+          latitude: location?.latitude,
+          longitude: location?.longitude,
+          checkInTime: new Date().toISOString(),
+          status: 'DRAFT',
+          createdAt: Date.now(),
+        };
+
+        await saveOfflineVisit(offlineVisit);
+        alert('📱 Offline mode: Visit saved locally. Will sync when connection is restored.');
+        navigate('/visits');
         return;
       }
 

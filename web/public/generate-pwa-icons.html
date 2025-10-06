@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PWA Icon Generator</title>
+    <style>
+        body { font-family: system-ui; max-width: 800px; margin: 40px auto; padding: 20px; }
+        canvas { border: 1px solid #ddd; margin: 20px 0; }
+        .download-section { margin: 20px 0; }
+        button { background: #3730a3; color: white; padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; margin: 5px; }
+        button:hover { background: #4f46e5; }
+        .preview { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin: 20px 0; }
+        .preview-item { text-align: center; }
+        .info { background: #eef2ff; padding: 15px; border-radius: 8px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <h1>FieldForce CRM - PWA Icon Generator</h1>
+    
+    <div class="info">
+        <p><strong>Instructions:</strong></p>
+        <ol>
+            <li>Click "Generate Icons" to create PWA icons</li>
+            <li>Download both 192x192 and 512x512 icons</li>
+            <li>Place them in <code>web/public/</code> directory</li>
+            <li>Delete this HTML file after generating icons</li>
+        </ol>
+    </div>
+
+    <button onclick="generateIcons()">Generate Icons</button>
+
+    <div class="preview" id="preview" style="display: none;">
+        <div class="preview-item">
+            <h3>192x192 Icon</h3>
+            <canvas id="canvas192" width="192" height="192"></canvas>
+            <br>
+            <button onclick="downloadIcon('192')">Download 192x192</button>
+        </div>
+        <div class="preview-item">
+            <h3>512x512 Icon</h3>
+            <canvas id="canvas512" width="512" height="512"></canvas>
+            <br>
+            <button onclick="downloadIcon('512')">Download 512x512</button>
+        </div>
+    </div>
+
+    <script>
+        function generateIcons() {
+            generateIcon(192);
+            generateIcon(512);
+            document.getElementById('preview').style.display = 'grid';
+        }
+
+        function generateIcon(size) {
+            const canvas = document.getElementById(`canvas${size}`);
+            const ctx = canvas.getContext('2d');
+
+            // Background - Indigo gradient
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#3730a3');
+            gradient.addColorStop(1, '#1e3a8a');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+
+            // Icon design - Medical briefcase with location pin
+            ctx.fillStyle = '#ffffff';
+            
+            // Draw briefcase
+            const scale = size / 192;
+            const centerX = size / 2;
+            const centerY = size / 2;
+            
+            // Briefcase body
+            ctx.fillRect(centerX - 40 * scale, centerY - 20 * scale, 80 * scale, 50 * scale);
+            
+            // Briefcase handle
+            ctx.fillRect(centerX - 20 * scale, centerY - 30 * scale, 40 * scale, 10 * scale);
+            
+            // Medical cross
+            ctx.fillStyle = '#db2777'; // Accent pink
+            ctx.fillRect(centerX - 5 * scale, centerY - 10 * scale, 10 * scale, 30 * scale);
+            ctx.fillRect(centerX - 15 * scale, centerY, 30 * scale, 10 * scale);
+            
+            // Location pin (top right)
+            ctx.fillStyle = '#10b981'; // Success green
+            ctx.beginPath();
+            ctx.arc(centerX + 30 * scale, centerY - 30 * scale, 12 * scale, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(centerX + 30 * scale, centerY - 18 * scale);
+            ctx.lineTo(centerX + 30 * scale, centerY - 10 * scale);
+            ctx.lineTo(centerX + 25 * scale, centerY - 15 * scale);
+            ctx.fill();
+        }
+
+        function downloadIcon(size) {
+            const canvas = document.getElementById(`canvas${size}`);
+            const link = document.createElement('a');
+            link.download = `pwa-${size}x${size}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+    </script>
+</body>
+</html>

@@ -4,6 +4,7 @@ import { api } from '../services/api';
 import type { Contact, Product } from '../services/api';
 import { Save, ArrowLeft, Plus, Trash2 } from 'lucide-react';
 import { PageContainer, ContentSection, Card } from '../components/layout';
+import { isOnline, saveOfflineOrder, type OfflineOrder } from '../utils/offlineStorage';
 
 interface OrderItem {
   productId: string;
@@ -113,6 +114,28 @@ export function OrderForm() {
     setError('');
 
     try {
+      // Check if online
+      if (!isOnline()) {
+        // Save offline
+        const offlineOrder: OfflineOrder = {
+          id: `offline-${Date.now()}`,
+          contactId,
+          items: items.map(item => ({
+            productId: item.productId,
+            quantity: item.quantity,
+            unitPrice: item.price,
+          })),
+          total: calculateTotal(),
+          status: 'DRAFT',
+          createdAt: Date.now(),
+        };
+
+        await saveOfflineOrder(offlineOrder);
+        alert('📱 Offline mode: Order saved locally. Will sync when connection is restored.');
+        navigate('/orders');
+        return;
+      }
+
       const response = await api.createOrder({
         contactId,
         items: items.map(item => ({

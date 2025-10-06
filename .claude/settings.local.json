@@ -94,7 +94,16 @@
       "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_EK1XpFYRye6M@ep-ancient-art-a1aag2jx-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require\" npx tsx scripts/make-admin.ts iwbtracking@gmail.com)",
       "Bash(xargs:*)",
       "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_EK1XpFYRye6M@ep-ancient-art-a1aag2jx-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require\" npx prisma migrate dev --name add_territory_management)",
-      "Bash(git restore:*)"
+      "Bash(git restore:*)",
+      "Bash(mkdir:*)",
+      "Bash(mv:*)",
+      "Bash(echo:*)",
+      "Bash(npm audit:*)",
+      "Bash(npm update:*)",
+      "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_EK1XpFYRye6M@ep-ancient-art-a1aag2jx-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require\" npx prisma migrate dev --name optimize_database_indexes)",
+      "Bash(yes \"\")",
+      "Bash(./scripts/test-rbac-simple.sh:*)",
+      "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_EK1XpFYRye6M@ep-ancient-art-a1aag2jx-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require\" npx prisma migrate resolve --rolled-back 20251006235312_optimize_database_indexes)"
     ],
     "deny": [],
     "ask": []

@@ -1,7 +1,10 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { lazy, Suspense, type ReactElement } from 'react';
+import { lazy, Suspense, useEffect, type ReactElement } from 'react';
+import { syncOfflineData, isOnline } from './utils/offlineStorage';
+import OfflineIndicator from './components/OfflineIndicator';
+import { api } from './lib/api';
 
 // Lazy load pages for code splitting
 const Login = lazy(() => import('./pages/Login'));
@@ -55,10 +58,48 @@ function PageLoader() {
 }
 
 function App() {
+  useEffect(() => {
+    // Listen for sync requests from OfflineIndicator
+    const handleSyncRequest = async () => {
+      if (!isOnline()) return;
+
+      try {
+        const result = await syncOfflineData({
+          checkIn: api.checkInVisit,
+          createOrder: api.createOrder,
+        });
+
+        if (result.success > 0 || result.failed > 0) {
+          const message = `Sync complete: ${result.success} succeeded, ${result.failed} failed`;
+          console.log(message);
+
+          // Optionally trigger a re-render or show notification
+          if (result.success > 0) {
+            window.location.reload(); // Refresh to show synced data
+          }
+        }
+      } catch (error) {
+        console.error('Sync error:', error);
+      }
+    };
+
+    window.addEventListener('offline-sync-requested', handleSyncRequest);
+
+    // Auto-sync on app startup if online
+    if (isOnline()) {
+      handleSyncRequest();
+    }
+
+    return () => {
+      window.removeEventListener('offline-sync-requested', handleSyncRequest);
+    };
+  }, []);
+
   return (
     <ErrorBoundary>
       <AuthProvider>
         <BrowserRouter>
+          <OfflineIndicator />
           <Suspense fallback={<PageLoader />}>
             <Routes>
             <Route path="/login" element={<Login />} />
