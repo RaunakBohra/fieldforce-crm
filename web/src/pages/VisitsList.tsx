@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import type { Visit, VisitStats, VisitQueryParams } from '../services/api';
 import { useDebounce } from '../hooks/useDebounce';
-import { Pencil, Trash2, Plus, Search, MapPin, Calendar, Eye } from 'lucide-react';
+import { Pencil, Trash2, Plus, Search, MapPin, Calendar, Eye, Clock } from 'lucide-react';
 import { PageContainer, ContentSection, Card } from '../components/layout';
 import { StatusBadge, Pagination, TableSkeleton } from '../components/ui';
 import { formatDateTime, getVisitStatusColor, getVisitOutcomeColor, formatStatusLabel } from '../utils';
