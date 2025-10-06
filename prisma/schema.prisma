@@ -211,6 +211,7 @@ model Visit {
   // Optimized indexes for query performance
   @@index([fieldRepId, visitDate]) // Field rep's visits by date
   @@index([contactId, visitDate]) // Contact visit history
+  @@index([contactId, createdAt]) // Contact visit history by creation time (for territory analytics)
   @@index([fieldRepId, status, visitDate]) // Field rep's visits filtered by status
   @@index([fieldRepId, createdAt]) // Dashboard stats
 }
@@ -304,6 +305,7 @@ model Order {
   updatedAt DateTime @updatedAt
 
   @@index([orderNumber]) // Order lookup (unique constraint)
+  @@index([contactId, createdAt]) // Contact order history by creation time (for territory analytics)
   @@index([createdById, status, createdAt]) // Field rep's orders by status and date
   @@index([createdById, paymentStatus, status]) // Payment tracking and outstanding orders
   @@index([status, createdAt]) // Admin analytics queries

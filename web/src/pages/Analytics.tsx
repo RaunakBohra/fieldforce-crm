@@ -8,21 +8,23 @@ import { format, subDays, startOfMonth, endOfMonth } from 'date-fns';
 import { TrendingUp, DollarSign, CreditCard, MapPin } from 'lucide-react';
 import { formatCurrency } from '../utils';
 
-// Color palette matching theme
+// Color palette matching theme (indigo/pink theme)
 const COLORS = {
-  primary: '#2563eb', // primary-600 (blue)
-  secondary: '#f59e0b', // warn-500 (amber/yellow for warnings)
+  primary: '#4f46e5', // primary-600 (indigo)
+  accent: '#db2777', // accent-600 (pink)
   success: '#10b981', // success-500 (emerald)
   danger: '#ef4444', // danger-500 (red)
-  neutral: '#6b7280', // neutral-500 (gray)
+  warn: '#f97316', // warn-500 (orange)
+  neutral: '#64748b', // neutral-500 (slate)
 };
 
 const PAYMENT_MODE_COLORS = [
   COLORS.primary,
-  COLORS.secondary,
+  COLORS.accent,
   COLORS.success,
-  COLORS.neutral,
+  COLORS.warn,
   COLORS.danger,
+  COLORS.neutral,
 ];
 
 type DateRange = 'last7days' | 'last30days' | 'thisMonth' | 'custom';
