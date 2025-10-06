@@ -86,7 +86,7 @@ export default function PaymentForm() {
         {order && (
           <div className="bg-white p-6 rounded-lg shadow mb-6">
             <h2 className="text-xl font-semibold mb-2">Order: {order.orderNumber}</h2>
-            <p className="text-gray-600">Contact: {order.contact.name}</p>
+            {order.contact && <p className="text-gray-600">Contact: {order.contact.name}</p>}
             <p className="text-gray-600">
               Total: ₹{order.totalAmount.toLocaleString('en-IN')}
             </p>

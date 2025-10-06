@@ -276,6 +276,7 @@ export interface Order {
   };
   totalAmount: number;
   status: 'PENDING' | 'APPROVED' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'REJECTED';
+  paymentStatus?: 'UNPAID' | 'PARTIAL' | 'PAID';
   deliveryAddress?: string;
   deliveryCity?: string;
   deliveryState?: string;
@@ -878,22 +879,6 @@ class ApiService {
       });
 
       return this.handleResponse<Payment>(response);
-    } catch (error) {
-      if (error instanceof TypeError && error.message.includes('fetch')) {
-        throw new Error('Network error: Unable to connect to server');
-      }
-      throw error;
-    }
-  }
-
-  async getOrder(id: string): Promise<ApiResponse<Order>> {
-    try {
-      const response = await fetch(`${API_URL}/api/orders/${id}`, {
-        headers: await this.getHeaders(true, true),
-        credentials: 'include',
-      });
-
-      return this.handleResponse<Order>(response);
     } catch (error) {
       if (error instanceof TypeError && error.message.includes('fetch')) {
         throw new Error('Network error: Unable to connect to server');
