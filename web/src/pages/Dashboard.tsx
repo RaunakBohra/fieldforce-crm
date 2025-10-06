@@ -88,7 +88,7 @@ export default function Dashboard() {
   }
 
   return (
-    <PageContainer>
+    <PageContainer className="bg-hero">
       <ContentSection>
         {/* Compact Welcome Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-6">
@@ -105,9 +105,9 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Key Metrics Row */}
+        {/* Key Metrics Row - Premium Design */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
-          <Card className="bg-gradient-to-br from-primary-50 to-primary-100 border-primary-200">
+          <Card className="bg-gradient-to-br from-primary-50 to-primary-100 border-primary-200 hover-lift shadow-elevated transition-all">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-primary-700 mb-1">Today's Visits</p>
@@ -118,7 +118,7 @@ export default function Dashboard() {
             </div>
           </Card>
 
-          <Card className="bg-gradient-to-br from-warn-50 to-warn-100 border-warn-200">
+          <Card className="bg-gradient-to-br from-warn-50 to-warn-100 border-warn-200 hover-lift shadow-elevated transition-all">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-warn-700 mb-1">Pending Orders</p>
@@ -129,7 +129,7 @@ export default function Dashboard() {
             </div>
           </Card>
 
-          <Card className="bg-gradient-to-br from-success-50 to-success-100 border-success-200">
+          <Card className="bg-gradient-to-br from-success-50 to-success-100 border-success-200 hover-lift shadow-elevated transition-all">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-success-700 mb-1">Collected</p>
@@ -140,7 +140,7 @@ export default function Dashboard() {
             </div>
           </Card>
 
-          <Card className="bg-gradient-to-br from-danger-50 to-danger-100 border-danger-200">
+          <Card className="bg-gradient-to-br from-danger-50 to-danger-100 border-danger-200 hover-lift shadow-elevated transition-all">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-danger-700 mb-1">Outstanding</p>
@@ -152,13 +152,13 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        {/* Quick Actions */}
+        {/* Quick Actions - Premium Design */}
         <section className="mb-6">
           <h2 className="section-heading mb-4">Quick Actions</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
             <button
               onClick={() => navigate('/visits/new')}
-              className="btn-quick-action bg-primary-600 hover:bg-primary-700"
+              className="btn-quick-action bg-gradient-brand hover-lift glow-brand transition-all"
             >
               <MapPin className="w-6 h-6 mb-3 flex-shrink-0" />
               <div className="flex-1">
@@ -168,7 +168,7 @@ export default function Dashboard() {
             </button>
             <button
               onClick={() => navigate('/orders/new')}
-              className="btn-quick-action bg-warn-600 hover:bg-warn-700"
+              className="btn-quick-action bg-gradient-to-br from-warn-600 to-warn-700 hover-lift transition-all"
             >
               <ShoppingCart className="w-6 h-6 mb-3 flex-shrink-0" />
               <div className="flex-1">
@@ -178,7 +178,7 @@ export default function Dashboard() {
             </button>
             <button
               onClick={() => navigate('/payments')}
-              className="btn-quick-action bg-success-600 hover:bg-success-700"
+              className="btn-quick-action bg-gradient-to-br from-success-600 to-success-700 hover-lift transition-all"
             >
               <CreditCard className="w-6 h-6 mb-3 flex-shrink-0" />
               <div className="flex-1">
@@ -188,12 +188,12 @@ export default function Dashboard() {
             </button>
             <button
               onClick={() => navigate('/contacts/new')}
-              className="btn-quick-action bg-primary-600 hover:bg-primary-700"
+              className="btn-quick-action bg-gradient-accent hover-lift glow-accent transition-all"
             >
               <Users className="w-6 h-6 mb-3 flex-shrink-0" />
               <div className="flex-1">
                 <p className="font-semibold text-sm md:text-base mb-1">Add Contact</p>
-                <p className="text-xs text-primary-100">Create new contact</p>
+                <p className="text-xs text-accent-100">Create new contact</p>
               </div>
             </button>
           </div>
