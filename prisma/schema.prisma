@@ -107,6 +107,8 @@ model Contact {
   assignedTo      User?        @relation(fields: [assignedToId], references: [id])
   companyId       String?
   company         Company?     @relation(fields: [companyId], references: [id])
+  territoryId     String?
+  territory       Territory?   @relation(fields: [territoryId], references: [id])
 
   // Relations
   visits          Visit[]      // Visits to this contact
@@ -131,6 +133,8 @@ model Contact {
   @@index([assignedToId, isActive])                 // Field rep's active contacts
   @@index([nextVisitDate, assignedToId])            // Visit planning queries
   @@index([isActive, createdAt])                    // Recent active contacts
+  @@index([territoryId])                            // Territory lookup
+  @@index([territoryId, isActive])                  // Active contacts by territory
 }
 
 enum ContactType {
@@ -426,6 +430,7 @@ model Territory {
 
   // Relations
   users       User[]
+  contacts    Contact[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
