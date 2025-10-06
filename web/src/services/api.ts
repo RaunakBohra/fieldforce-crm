@@ -436,6 +436,7 @@ class ApiService {
     try {
       const response = await fetch(`${API_URL}/api/auth/me`, {
         headers: await this.getHeaders(true, true),
+        credentials: 'include',
       });
 
       return this.handleResponse<User>(response);
@@ -458,6 +459,7 @@ class ApiService {
 
       const response = await fetch(`${API_URL}/api/contacts${queryString}`, {
         headers: await this.getHeaders(true, true),
+        credentials: 'include',
       });
 
       return this.handleResponse<ContactListResponse>(response);
@@ -473,6 +475,7 @@ class ApiService {
     try {
       const response = await fetch(`${API_URL}/api/contacts/stats`, {
         headers: await this.getHeaders(true, true),
+        credentials: 'include',
       });
 
       return this.handleResponse<ContactStats>(response);
@@ -488,6 +491,7 @@ class ApiService {
     try {
       const response = await fetch(`${API_URL}/api/contacts/${id}`, {
         headers: await this.getHeaders(true, true),
+        credentials: 'include',
       });
 
       return this.handleResponse<Contact>(response);
@@ -504,6 +508,7 @@ class ApiService {
       const response = await fetch(`${API_URL}/api/contacts`, {
         method: 'POST',
         headers: await this.getHeaders(true, true),
+        credentials: 'include',
         body: JSON.stringify(data),
       });
 
@@ -521,6 +526,7 @@ class ApiService {
       const response = await fetch(`${API_URL}/api/contacts/${id}`, {
         method: 'PUT',
         headers: await this.getHeaders(true, true),
+        credentials: 'include',
         body: JSON.stringify(data),
       });
 
@@ -538,6 +544,7 @@ class ApiService {
       const response = await fetch(`${API_URL}/api/contacts/${id}`, {
         method: 'DELETE',
         headers: await this.getHeaders(true, true),
+        credentials: 'include',
       });
 
       return this.handleResponse<void>(response);
@@ -560,6 +567,7 @@ class ApiService {
 
       const response = await fetch(`${API_URL}/api/visits${queryString}`, {
         headers: await this.getHeaders(true, true),
+        credentials: 'include',
       });
 
       return this.handleResponse<VisitListResponse>(response);
@@ -575,6 +583,7 @@ class ApiService {
     try {
       const response = await fetch(`${API_URL}/api/visits/stats`, {
         headers: await this.getHeaders(true, true),
+        credentials: 'include',
       });
 
       return this.handleResponse<VisitStats>(response);
@@ -590,6 +599,7 @@ class ApiService {
     try {
       const response = await fetch(`${API_URL}/api/visits/${id}`, {
         headers: await this.getHeaders(true, true),
+        credentials: 'include',
       });
 
       return this.handleResponse<Visit>(response);
@@ -606,6 +616,7 @@ class ApiService {
       const response = await fetch(`${API_URL}/api/visits`, {
         method: 'POST',
         headers: await this.getHeaders(true, true),
+        credentials: 'include',
         body: JSON.stringify(data),
       });
 
@@ -623,6 +634,7 @@ class ApiService {
       const response = await fetch(`${API_URL}/api/visits/${id}`, {
         method: 'PUT',
         headers: await this.getHeaders(true, true),
+        credentials: 'include',
         body: JSON.stringify(data),
       });
 
@@ -640,6 +652,7 @@ class ApiService {
       const response = await fetch(`${API_URL}/api/visits/${id}`, {
         method: 'DELETE',
         headers: await this.getHeaders(true, true),
+        credentials: 'include',
       });
 
       return this.handleResponse<void>(response);
@@ -715,6 +728,7 @@ class ApiService {
       const response = await fetch(`${API_URL}/api/products`, {
         method: 'POST',
         headers: await this.getHeaders(true, true),
+        credentials: 'include',
         body: JSON.stringify(data),
       });
 
@@ -732,6 +746,7 @@ class ApiService {
       const response = await fetch(`${API_URL}/api/products/${id}`, {
         method: 'PUT',
         headers: await this.getHeaders(true, true),
+        credentials: 'include',
         body: JSON.stringify(data),
       });
 
@@ -755,6 +770,7 @@ class ApiService {
 
       const response = await fetch(`${API_URL}/api/orders${queryString}`, {
         headers: await this.getHeaders(true, true),
+        credentials: 'include',
       });
 
       return this.handleResponse<OrderListResponse>(response);
@@ -770,6 +786,7 @@ class ApiService {
     try {
       const response = await fetch(`${API_URL}/api/orders/stats`, {
         headers: await this.getHeaders(true, true),
+        credentials: 'include',
       });
 
       return this.handleResponse<OrderStats>(response);
@@ -785,6 +802,7 @@ class ApiService {
     try {
       const response = await fetch(`${API_URL}/api/orders/${id}`, {
         headers: await this.getHeaders(true, true),
+        credentials: 'include',
       });
 
       return this.handleResponse<Order>(response);
@@ -801,6 +819,7 @@ class ApiService {
       const response = await fetch(`${API_URL}/api/orders`, {
         method: 'POST',
         headers: await this.getHeaders(true, true),
+        credentials: 'include',
         body: JSON.stringify(data),
       });
 
@@ -818,6 +837,7 @@ class ApiService {
       const response = await fetch(`${API_URL}/api/orders/${id}/status`, {
         method: 'PUT',
         headers: await this.getHeaders(true, true),
+        credentials: 'include',
         body: JSON.stringify(data),
       });
 
@@ -835,6 +855,7 @@ class ApiService {
       const response = await fetch(`${API_URL}/api/orders/${id}`, {
         method: 'DELETE',
         headers: await this.getHeaders(true, true),
+        credentials: 'include',
       });
 
       return this.handleResponse<void>(response);
@@ -852,6 +873,7 @@ class ApiService {
       const response = await fetch(`${API_URL}/api/payments`, {
         method: 'POST',
         headers: await this.getHeaders(true, true),
+        credentials: 'include',
         body: JSON.stringify(data),
       });
 
@@ -868,6 +890,7 @@ class ApiService {
     try {
       const response = await fetch(`${API_URL}/api/orders/${id}`, {
         headers: await this.getHeaders(true, true),
+        credentials: 'include',
       });
 
       return this.handleResponse<Order>(response);
