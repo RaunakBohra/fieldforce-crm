@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Navigation } from '../components/Navigation';
+import { Search, Filter, X } from 'lucide-react';
+import { useDebounce } from '../hooks/useDebounce';
 
 interface Payment {
   id: string;
@@ -29,13 +31,19 @@ export default function PaymentsList() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState({
     paymentMode: '',
     startDate: '',
     endDate: '',
+    minAmount: '',
+    maxAmount: '',
   });
   const { token } = useAuth();
   const navigate = useNavigate();
+
+  // Debounce search to reduce API calls
+  const debouncedSearch = useDebounce(searchTerm, 500);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -45,7 +53,7 @@ export default function PaymentsList() {
   useEffect(() => {
     fetchPayments();
     fetchStats();
-  }, [filter, currentPage]);
+  }, [filter, currentPage, debouncedSearch]);
 
   const fetchPayments = async () => {
     try {
@@ -55,6 +63,9 @@ export default function PaymentsList() {
       if (filter.paymentMode) params.append('paymentMode', filter.paymentMode);
       if (filter.startDate) params.append('startDate', filter.startDate);
       if (filter.endDate) params.append('endDate', filter.endDate);
+      if (filter.minAmount) params.append('minAmount', filter.minAmount);
+      if (filter.maxAmount) params.append('maxAmount', filter.maxAmount);
+      if (debouncedSearch) params.append('search', debouncedSearch);
 
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://crm-api.raunakbohra.com'}/api/payments?${params}`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -104,6 +115,20 @@ export default function PaymentsList() {
       minimumFractionDigits: 0,
     }).format(amount);
   };
+
+  const resetFilters = () => {
+    setSearchTerm('');
+    setFilter({
+      paymentMode: '',
+      startDate: '',
+      endDate: '',
+      minAmount: '',
+      maxAmount: '',
+    });
+    setCurrentPage(1);
+  };
+
+  const hasActiveFilters = searchTerm || filter.paymentMode || filter.startDate || filter.endDate || filter.minAmount || filter.maxAmount;
 
   if (loading) {
     return (
@@ -180,35 +205,106 @@ export default function PaymentsList() {
         )}
 
         {/* Filters */}
-        <div className="bg-white p-4 rounded-lg shadow mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <input
-              type="date"
-              value={filter.startDate}
-              onChange={(e) => setFilter({ ...filter, startDate: e.target.value })}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-              placeholder="Start Date"
-            />
-            <input
-              type="date"
-              value={filter.endDate}
-              onChange={(e) => setFilter({ ...filter, endDate: e.target.value })}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-              placeholder="End Date"
-            />
-            <select
-              value={filter.paymentMode}
-              onChange={(e) => setFilter({ ...filter, paymentMode: e.target.value })}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-            >
-              <option value="">All Payment Modes</option>
-              <option value="CASH">Cash</option>
-              <option value="UPI">UPI</option>
-              <option value="NEFT">NEFT</option>
-              <option value="RTGS">RTGS</option>
-              <option value="CHEQUE">Cheque</option>
-              <option value="CARD">Card</option>
-            </select>
+        <div className="bg-white p-6 rounded-lg shadow mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Filter className="w-5 h-5 text-gray-600" />
+              <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
+              {hasActiveFilters && (
+                <span className="px-2 py-1 text-xs font-semibold rounded-full bg-teal-100 text-teal-800">
+                  Active
+                </span>
+              )}
+            </div>
+            {hasActiveFilters && (
+              <button
+                onClick={resetFilters}
+                className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                <X className="w-4 h-4" />
+                Reset Filters
+              </button>
+            )}
+          </div>
+
+          <div className="space-y-4">
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search by contact name, order, payment, or reference number..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+              />
+            </div>
+
+            {/* Filter Row 1: Dates and Payment Mode */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                <input
+                  type="date"
+                  value={filter.startDate}
+                  onChange={(e) => setFilter({ ...filter, startDate: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                <input
+                  type="date"
+                  value={filter.endDate}
+                  onChange={(e) => setFilter({ ...filter, endDate: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Payment Mode</label>
+                <select
+                  value={filter.paymentMode}
+                  onChange={(e) => setFilter({ ...filter, paymentMode: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                >
+                  <option value="">All Modes</option>
+                  <option value="CASH">Cash</option>
+                  <option value="UPI">UPI</option>
+                  <option value="NEFT">NEFT</option>
+                  <option value="RTGS">RTGS</option>
+                  <option value="CHEQUE">Cheque</option>
+                  <option value="CARD">Card</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Filter Row 2: Amount Range */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Min Amount (₹)</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="100"
+                  value={filter.minAmount}
+                  onChange={(e) => setFilter({ ...filter, minAmount: e.target.value })}
+                  placeholder="e.g., 1000"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Max Amount (₹)</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="100"
+                  value={filter.maxAmount}
+                  onChange={(e) => setFilter({ ...filter, maxAmount: e.target.value })}
+                  placeholder="e.g., 100000"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+            </div>
           </div>
         </div>
 
