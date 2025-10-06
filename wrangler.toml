@@ -6,7 +6,9 @@ main = "src/index.ts"
 compatibility_date = "2025-01-01"
 
 # Cloudflare Account
-account_id = "610762493d34333f1a6d72a037b345cf"
+# ⚠️ TODO: Update with correct account ID from Cloudflare Dashboard
+# Get from: https://dash.cloudflare.com -> Workers & Pages -> Overview (right sidebar)
+account_id = "610762493d34333f1a6d72a037b345cf"  # VERIFY THIS VALUE
 
 # Environment Variables (public only)
 [vars]

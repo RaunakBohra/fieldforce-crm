@@ -48,7 +48,8 @@
       "Bash(then)",
       "Bash(fi)",
       "Bash(npm run build:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Read(//Users/raunakbohra/Desktop/**)"
     ],
     "deny": [],
     "ask": []

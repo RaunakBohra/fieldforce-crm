@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { createDependencies, Dependencies } from './config/dependencies';
 import { securityHeaders } from './middleware/securityHeaders';
+import { csrfProtection } from './middleware/csrf';
 import { logger } from './utils/logger';
 import authRoutes from './routes/auth';
 import contactRoutes from './routes/contacts';
@@ -61,6 +62,10 @@ app.use('/*', async (c, next) => {
   c.set('deps', deps);
   await next();
 });
+
+// CSRF protection middleware (after dependency injection)
+// Protects against Cross-Site Request Forgery attacks
+app.use('/api/*', csrfProtection);
 
 /**
  * Public Routes

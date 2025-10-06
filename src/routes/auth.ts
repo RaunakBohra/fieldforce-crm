@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { signupSchema, loginSchema } from '../validators/authSchemas';
 import { authMiddleware } from '../middleware/auth';
+import { getCsrfToken } from '../middleware/csrf';
 import { loginRateLimiter, signupRateLimiter } from '../middleware/rateLimiter';
 import { logger, getLogContext } from '../utils/logger';
 import { Bindings } from '../index';
@@ -124,6 +125,31 @@ auth.get('/me', authMiddleware, async (c) => {
   return c.json({
     success: true,
     data: result.data,
+  });
+});
+
+/**
+ * GET /csrf-token
+ * Get CSRF token for client
+ * Public endpoint (no auth required)
+ */
+auth.get('/csrf-token', getCsrfToken);
+
+/**
+ * POST /logout
+ * Invalidate user session
+ * Requires valid JWT token
+ */
+auth.post('/logout', authMiddleware, async (c) => {
+  // For JWT-based auth, logout is client-side (remove token)
+  // But we log the event for audit purposes
+  const user = c.get('user');
+
+  logger.info('User logged out', { ...getLogContext(c), userId: user?.userId });
+
+  return c.json({
+    success: true,
+    message: 'Logged out successfully'
   });
 });
 
