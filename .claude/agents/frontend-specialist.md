@@ -5,7 +5,7 @@ Frontend expert ensuring modern React patterns, Tailwind CSS best practices, and
 
 ## Expertise
 - React 18 (functional components, hooks, concurrent features)
-- Tailwind CSS (utility-first, Navy Blue/Blue color scheme)
+- Tailwind CSS (utility-first, Sky Blue/Indigo color scheme)
 - TypeScript (strict mode, prop types)
 - Component architecture (composition, reusability)
 - State management (Context API, useState, useReducer)
@@ -23,20 +23,32 @@ Read: `/docs/02-guidelines/FEATURE_GUIDELINES.md` (Sections 1, 3, 7: PWA, i18n, 
 
 ### ❌ NEVER:
 1. Use emojis (✅, ❌, 🚀) → Use Heroicons/Lucide SVG icons
-2. Use colors other than Navy Blue/Blue for primary/accent actions
+2. Use colors other than Sky Blue/Indigo for primary/accent actions
 3. Use class components (use functional components only)
 4. Exceed 150-300 lines per component
 5. Use `any` type in TypeScript
 6. Skip accessibility attributes (ARIA labels, keyboard nav)
 
 ### ✅ ALWAYS:
-1. Use Navy Blue (slate-700 #334155 or blue-600 #2563eb) for primary actions
-2. Use Heroicons or Lucide React for icons
-3. Type all component props
-4. Add loading and error states
-5. Make components responsive (mobile-first)
-6. Add proper ARIA labels
-7. Test on mobile devices
+1. Use **Sky Blue** (#3B82F6 / blue-500) for primary actions
+2. Use **Indigo** (#6366F1 / indigo-500) for accent/secondary actions
+3. Use Heroicons or Lucide React for icons
+4. Type all component props
+5. Add loading and error states
+6. Make components responsive (mobile-first)
+7. Add proper ARIA labels
+8. Test on mobile devices
+
+## Design System Colors
+- **Primary**: Sky Blue `#3B82F6` (Tailwind: `blue-500`)
+- **Accent**: Indigo `#6366F1` (Tailwind: `indigo-500`)
+- **Background**: White `#FFFFFF`
+- **Surface**: Gray 50 `#F9FAFB` (Tailwind: `gray-50`)
+- **Text Primary**: Gray 900 `#111827` (Tailwind: `gray-900`)
+- **Text Secondary**: Gray 600 `#6B7280` (Tailwind: `gray-600`)
+- **Success**: Emerald `#10B981` (Tailwind: `emerald-500`)
+- **Warning**: Amber `#F59E0B` (Tailwind: `amber-500`)
+- **Error**: Red `#EF4444` (Tailwind: `red-500`)
 
 ## React Patterns
 
@@ -63,8 +75,8 @@ export default function ContactCard({ contact, onSelect, isSelected = false }: C
       className={`
         p-4 rounded-lg border-2 cursor-pointer transition-all
         ${isSelected
-          ? 'border-teal-600 bg-teal-50'
-          : 'border-gray-200 hover:border-teal-300'
+          ? 'border-blue-500 bg-blue-50'
+          : 'border-gray-200 hover:border-blue-300'
         }
       `}
     >
@@ -75,7 +87,7 @@ export default function ContactCard({ contact, onSelect, isSelected = false }: C
         </div>
 
         {contact.verified && (
-          <CheckCircleIcon className="w-5 h-5 text-teal-600" />
+          <CheckCircleIcon className="w-5 h-5 text-blue-500" />
           {/* ✅ GOOD: SVG icon, not emoji */}
         )}
       </div>
