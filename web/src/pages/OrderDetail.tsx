@@ -3,19 +3,19 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { api, type Order } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import {
-  ArrowLeftIcon,
-  PencilIcon,
-  XMarkIcon,
-  CheckIcon,
-  TruckIcon,
-  ClockIcon,
-  UserIcon,
-  PhoneIcon,
-  MapPinIcon,
-  CurrencyDollarIcon,
-  DocumentTextIcon,
-  BellIcon,
-} from '@heroicons/react/24/outline';
+  ArrowLeft as ArrowLeftIcon,
+  Pencil as PencilIcon,
+  X as XMarkIcon,
+  Check as CheckIcon,
+  Truck as TruckIcon,
+  Clock as ClockIcon,
+  User as UserIcon,
+  Phone as PhoneIcon,
+  MapPin as MapPinIcon,
+  DollarSign as CurrencyDollarIcon,
+  FileText as DocumentTextIcon,
+  Bell as BellIcon,
+} from 'lucide-react';
 
 export function OrderDetail() {
   const { id } = useParams<{ id: string }>();

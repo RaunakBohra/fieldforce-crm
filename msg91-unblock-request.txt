@@ -1,0 +1,30 @@
+Subject: Request to Unblock IP Address - Development Testing
+
+Dear MSG91 Support Team,
+
+I am writing to request the unblocking of my IP address that was blocked due to rate limiting during development testing.
+
+Account Details:
+- Auth Key: 460963AsJWGjhc68e48e5eP1
+- Widget ID: 356a6763534a353431353234
+- Email Domain: qtoedo.mailer91.com
+
+Blocked IP Address: 27.34.67.46
+
+Reason for Block:
+I was conducting development testing of your OTP widget integration and made multiple test requests in a short period, which triggered your fraud detection system.
+
+Request:
+1. Please unblock IP: 27.34.67.46
+2. If possible, whitelist this IP for development/testing purposes
+
+I understand the importance of fraud prevention and will ensure to:
+- Use test mode when available
+- Limit the frequency of test requests
+- Implement proper rate limiting in my application
+
+Thank you for your assistance.
+
+Best regards,
+[Your Name]
+[Your Contact Email]

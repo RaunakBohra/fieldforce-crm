@@ -114,6 +114,7 @@ export interface CreateContactData {
   clinicName?: string;
   licenseNumber?: string;
   territory?: string;
+  territoryId?: string;
   creditLimit?: number;
   paymentTerms?: string;
   visitFrequency?: string;
@@ -131,6 +132,7 @@ export interface ContactQueryParams {
   contactCategory?: 'DISTRIBUTION' | 'MEDICAL';
   contactType?: string;
   city?: string;
+  territoryId?: string;
   isActive?: boolean;
   search?: string;
 }
@@ -245,6 +247,7 @@ export interface Product {
   price: number;
   stock: number;
   imageUrl?: string;
+  thumbnailUrl?: string;
   imageObjectKey?: string;
   isActive: boolean;
   createdAt: string;

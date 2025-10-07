@@ -11,6 +11,7 @@ import { IQueueService } from '../core/ports/IQueueService';
 import { logger } from '../utils/logger';
 // SESEmailService disabled - nodemailer not compatible with Cloudflare Workers
 // import { SESEmailService } from '../infrastructure/email/SESEmailService';
+import { MSG91EmailService } from '../infrastructure/email/MSG91EmailService';
 import { CloudflareKVCacheService } from '../infrastructure/cache/CloudflareKVCacheService';
 import { R2StorageService } from '../infrastructure/storage/R2StorageService';
 // SQS import moved to dynamic import to avoid global scope issues
@@ -42,21 +43,35 @@ export function createDependencies(env: Bindings): Dependencies {
   // Infrastructure layer - Database
   const prisma = getPrisma(env.DATABASE_URL);
 
-  // Infrastructure layer - Email (disabled - nodemailer not compatible with CF Workers)
-  // TODO: Replace with Cloudflare Email Routing or Resend.com API
-  const email: IEmailService = {
-    async sendEmail() {
-      logger.warn('Email service not configured');
-      return { success: false, error: 'Email service not available' };
-    },
-    async sendTemplatedEmail() {
-      logger.warn('Email service not configured');
-      return { success: false, error: 'Email service not available' };
-    },
-    async verifyConnection() {
-      return false;
-    },
-  };
+  // Infrastructure layer - Email (MSG91 Email API - cloud-agnostic)
+  let email: IEmailService;
+
+  if (env.MSG91_AUTH_KEY && env.MSG91_EMAIL_FROM) {
+    // Use MSG91 Email Service (primary)
+    email = new MSG91EmailService(
+      env.MSG91_AUTH_KEY,
+      env.MSG91_EMAIL_FROM,
+      env.MSG91_EMAIL_FROM_NAME || 'Field Force CRM',
+      env.MSG91_EMAIL_DOMAIN || 'qtoedo.mailer91.com'
+    );
+    logger.info('[Dependencies] MSG91 Email Service initialized');
+  } else {
+    // Fallback: No email service configured
+    logger.warn('[Dependencies] Email service not configured - MSG91 credentials missing');
+    email = {
+      async sendEmail() {
+        logger.warn('Email service not configured');
+        return { success: false, error: 'Email service not available' };
+      },
+      async sendTemplatedEmail() {
+        logger.warn('Email service not configured');
+        return { success: false, error: 'Email service not available' };
+      },
+      async verifyConnection() {
+        return false;
+      },
+    };
+  }
 
   // Infrastructure layer - Cache (Cloudflare KV - free tier available)
   const cache = new CloudflareKVCacheService(

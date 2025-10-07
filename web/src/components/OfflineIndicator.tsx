@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Wifi, WifiOff, RefreshCw, CheckCircle2, XCircle } from 'lucide-react';
+import { Wifi, WifiOff, RefreshCw } from 'lucide-react';
 import { isOnline, setupOnlineStatusListener, getStorageStats } from '../utils/offlineStorage';
 
 export default function OfflineIndicator() {
   const [online, setOnline] = useState(isOnline());
-  const [syncing, setSyncing] = useState(false);
-  const [lastSync, setLastSync] = useState<Date | null>(null);
+  const [syncing] = useState(false);
+  const [lastSync] = useState<Date | null>(null);
   const [pendingData, setPendingData] = useState({ visits: 0, orders: 0, queuedRequests: 0 });
-  const [showDetails, setShowDetails] = useState(false);
 
   useEffect(() => {
     // Setup online/offline listeners
@@ -57,7 +56,7 @@ export default function OfflineIndicator() {
 
   const totalPending = pendingData.visits + pendingData.orders + pendingData.queuedRequests;
 
-  if (!showDetails && online && totalPending === 0) {
+  if (online && totalPending === 0) {
     // Don't show indicator when online with no pending data
     return null;
   }

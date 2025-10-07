@@ -21,9 +21,11 @@ export type VisitOutcome =
   | 'INFORMATION_ONLY';
 
 export type OrderStatus =
+  | 'DRAFT'
   | 'PENDING'
   | 'APPROVED'
   | 'PROCESSING'
+  | 'DISPATCHED'
   | 'SHIPPED'
   | 'DELIVERED'
   | 'CANCELLED'
@@ -71,9 +73,11 @@ export function getVisitOutcomeColor(outcome: VisitOutcome): string {
  */
 export function getOrderStatusColor(status: OrderStatus): string {
   const colors: Record<OrderStatus, string> = {
+    DRAFT: 'bg-neutral-100 text-neutral-800',
     PENDING: 'bg-warn-100 text-warn-800',
     APPROVED: 'bg-primary-100 text-primary-800',
     PROCESSING: 'bg-purple-100 text-purple-800',
+    DISPATCHED: 'bg-indigo-100 text-indigo-800',
     SHIPPED: 'bg-indigo-100 text-indigo-800',
     DELIVERED: 'bg-success-100 text-success-800',
     CANCELLED: 'bg-danger-100 text-danger-800',

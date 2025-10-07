@@ -15,8 +15,8 @@ interface FormData {
 declare global {
   interface Window {
     initSendOTP: (config: any) => void;
-    sendOtp: (identifier: string, onSuccess: (data: any) => void, onError: (error: any) => void) => void;
-    verifyOtp: (otp: string, onSuccess: (data: any) => void, onError: (error: any) => void) => void;
+    sendOtp: (identifier: string, success?: (data: any) => void, failure?: (error: any) => void) => void;
+    verifyOtp: (otp: string, success?: (data: any) => void, failure?: (error: any) => void, reqId?: string) => void;
   }
 }
 
@@ -241,8 +241,8 @@ export default function SignupWithEmailOTP() {
       console.log('✅ Account created successfully');
 
       // Auto-login: Store token
-      if (response.token) {
-        localStorage.setItem('token', response.token);
+      if (response.data?.token) {
+        localStorage.setItem('token', response.data.token);
       }
 
       // Redirect to dashboard

@@ -15,6 +15,7 @@ import analyticsRoutes from './routes/analytics';
 import userRoutes from './routes/users';
 import reportRoutes from './routes/reports';
 import territoryRoutes from './routes/territories';
+import otpRoutes from './routes/otp';
 import { authMiddleware } from './middleware/auth';
 
 /**
@@ -34,6 +35,13 @@ export type Bindings = {
   AWS_SES_SMTP_USER?: string;
   AWS_SES_SMTP_PASSWORD?: string;
   EMAIL_FROM?: string;
+
+  // MSG91 Services (Email + SMS/OTP)
+  MSG91_AUTH_KEY?: string;
+  MSG91_EMAIL_DOMAIN?: string;
+  MSG91_EMAIL_FROM?: string;
+  MSG91_EMAIL_FROM_NAME?: string;
+  MSG91_TEMPLATE_ID?: string; // Optional: for OTP template
 
   // Cache service (Cloudflare KV - free tier available)
   KV: KVNamespace;
@@ -66,7 +74,7 @@ app.use('/*', securityHeaders);
 app.use(
   '/*',
   cors({
-    origin: (origin) => {
+    origin: (origin, c) => {
       // Production origins (only HTTPS)
       const productionOrigins = [
         'https://crm.raunakbohra.com',
@@ -77,11 +85,12 @@ app.use(
       const developmentOrigins = [
         'http://localhost:3000',
         'http://localhost:5173',
+        'http://localhost:5174',
         'http://localhost:8787',
       ];
 
-      // Get environment
-      const environment = (origin ? new URL(origin).searchParams.get('env') : null) || 'production';
+      // Get environment from env vars
+      const environment = c?.env?.ENVIRONMENT || 'development';
       const isProduction = environment === 'production';
 
       // In production, only allow HTTPS origins
@@ -112,7 +121,7 @@ app.use(
         return origin;
       }
 
-      return developmentOrigins[0]; // fallback to localhost
+      return developmentOrigins[1]; // fallback to localhost:5173
     },
     credentials: true,
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -164,6 +173,9 @@ app.get('/health', (c) => {
 
 // Authentication routes (public)
 app.route('/api/auth', authRoutes);
+
+// OTP verification routes (public - for phone authentication)
+app.route('/api/otp', otpRoutes);
 
 // CSRF token endpoint (public - no auth required)
 app.get('/api/csrf-token', getCsrfToken);

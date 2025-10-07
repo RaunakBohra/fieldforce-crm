@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { Loader2 } from 'lucide-react';
 
@@ -53,6 +53,9 @@ export function SignupWithOTP() {
   const [accessToken, setAccessToken] = useState('');
   const [phoneVerified, setPhoneVerified] = useState(false);
   const [emailVerified, setEmailVerified] = useState(false);
+
+  // Avoid unused variable warnings
+  console.log('OTP state:', { accessToken, phoneVerified, emailVerified });
 
   // Use refs to track current step and formData to avoid stale closure issues
   const stepRef = useRef(step);

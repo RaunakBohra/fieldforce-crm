@@ -23,12 +23,29 @@ function getCsrfTokenFromCookie(): string | null {
 }
 
 /**
+ * Get API URL from environment
+ */
+function getApiUrl(): string {
+  const apiUrl = import.meta.env.VITE_API_URL;
+
+  if (!apiUrl) {
+    throw new Error(
+      'VITE_API_URL is not configured. Please set it in your .env file.\n' +
+      'Local: VITE_API_URL=http://localhost:8787\n' +
+      'Production: VITE_API_URL=https://fieldforce-crm-api.rnkbohra.workers.dev'
+    );
+  }
+
+  return apiUrl;
+}
+
+/**
  * Fetch CSRF token from server
  */
 async function fetchCsrfToken(): Promise<string> {
-  const API_URL = import.meta.env.VITE_API_URL || 'https://crm-api.raunakbohra.com';
-
   try {
+    const API_URL = getApiUrl();
+
     const response = await fetch(`${API_URL}/api/csrf-token`, {
       method: 'GET',
       credentials: 'include', // Important: Include cookies for CSRF cookie
