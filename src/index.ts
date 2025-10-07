@@ -42,6 +42,7 @@ export type Bindings = {
   MSG91_EMAIL_FROM?: string;
   MSG91_EMAIL_FROM_NAME?: string;
   MSG91_TEMPLATE_ID?: string; // Optional: for OTP template
+  COMPANY_NAME?: string; // Company name for emails
 
   // Cache service (Cloudflare KV - free tier available)
   KV: KVNamespace;

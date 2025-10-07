@@ -3,6 +3,7 @@ import { getPrisma } from '../utils/db';
 import { AuthService } from '../services/authService';
 import { ContactService } from '../services/contactService';
 import { VisitService } from '../services/visitService';
+import { EmailNotificationService } from '../services/emailNotificationService';
 import { Bindings } from '../index';
 import { IEmailService } from '../core/ports/IEmailService';
 import { ICacheService } from '../core/ports/ICacheService';
@@ -28,6 +29,7 @@ export interface Dependencies {
   contactService: ContactService;
   visitService: VisitService;
   email: IEmailService;
+  emailNotifications: EmailNotificationService;
   cache: ICacheService;
   storage: IStorageService;
   queue?: IQueueService; // Optional: AWS SQS (free tier: 1M requests/month)
@@ -96,6 +98,14 @@ export function createDependencies(env: Bindings): Dependencies {
 
   const visitService = new VisitService(prisma);
 
+  // Email notifications service
+  const emailNotifications = new EmailNotificationService(
+    email,
+    env.MSG91_EMAIL_FROM || 'noreply@fieldforce.com',
+    env.MSG91_EMAIL_FROM_NAME || 'Field Force CRM',
+    env.COMPANY_NAME || 'Your Company'
+  );
+
   // Optional: AWS SQS Queue Service (free tier: 1M requests/month)
   // Note: SQS disabled for now due to Cloudflare Workers global scope restrictions
   // AWS SDK initialization causes "Disallowed operation in global scope" error
@@ -108,6 +118,7 @@ export function createDependencies(env: Bindings): Dependencies {
     contactService,
     visitService,
     email,
+    emailNotifications,
     cache,
     storage,
     queue,
@@ -140,8 +151,16 @@ export function createAWSDependencies(env: Record<string, string>): Dependencies
   // const cache = new RedisCacheService(env.REDIS_URL);
   // const queue = new SQSQueueService(env.SQS_QUEUE_URL);
 
+  // Note: Simplified example - would need full implementation
   return {
     prisma,
     authService,
+    contactService: new ContactService(prisma),
+    visitService: new VisitService(prisma),
+    email: {} as IEmailService,
+    emailNotifications: {} as EmailNotificationService,
+    cache: {} as ICacheService,
+    storage: {} as IStorageService,
+    kv: null,
   };
 }

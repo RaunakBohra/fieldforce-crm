@@ -126,6 +126,63 @@ payments.post('/', async (c) => {
       userId: user.userId,
     });
 
+    // Send payment confirmation email (async, don't wait)
+    const contact = await deps.prisma.contact.findUnique({
+      where: { id: data.contactId },
+      select: { name: true, email: true },
+    });
+
+    if (contact?.email) {
+      // Calculate outstanding balance
+      const allOrders = await deps.prisma.order.findMany({
+        where: { contactId: data.contactId },
+        select: { totalAmount: true, paymentStatus: true },
+      });
+
+      const totalOutstanding = allOrders
+        .filter((o) => o.paymentStatus !== 'PAID')
+        .reduce((sum, o) => sum + parseFloat(o.totalAmount.toString()), 0);
+
+      const allPayments = await deps.prisma.payment.findMany({
+        where: { contactId: data.contactId, status: 'COMPLETED' },
+        select: { amount: true },
+      });
+
+      const totalPaidForContact = allPayments.reduce(
+        (sum, p) => sum + parseFloat(p.amount.toString()),
+        0
+      );
+
+      const remainingBalance = Math.max(0, totalOutstanding);
+
+      deps.emailNotifications
+        .sendPaymentReceived({
+          paymentNumber: payment.paymentNumber,
+          paymentDate: payment.paymentDate.toLocaleDateString('en-IN', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          }),
+          contactName: contact.name,
+          contactEmail: contact.email,
+          amount: payment.amount.toString(),
+          paymentMode: payment.paymentMode,
+          transactionRef: payment.referenceNumber || undefined,
+          orderNumber: payment.order?.id || undefined,
+          totalOutstanding: totalOutstanding.toFixed(2),
+          remainingBalance: remainingBalance.toFixed(2),
+          repName: user.name || 'Your Representative',
+          repPhone: user.phone || 'N/A',
+          companyName: 'Field Force CRM',
+        })
+        .catch((err) => {
+          logger.error('Failed to send payment confirmation email', {
+            paymentId: payment.id,
+            error: err,
+          });
+        });
+    }
+
     return c.json({
       success: true,
       message: 'Payment recorded successfully',

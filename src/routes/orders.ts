@@ -321,6 +321,41 @@ orders.post('/', async (c) => {
       userId: user.userId,
     });
 
+    // Send order confirmation email (async, don't wait)
+    if (order.contact.email) {
+      deps.emailNotifications
+        .sendOrderConfirmation({
+          orderNumber: order.orderNumber,
+          orderDate: new Date().toLocaleDateString('en-IN', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          }),
+          contactName: order.contact.name,
+          contactEmail: order.contact.email,
+          totalAmount: order.totalAmount.toString(),
+          paymentStatus: order.paymentStatus,
+          deliveryAddress: order.deliveryAddress || 'N/A',
+          notes: order.notes || undefined,
+          items: order.items.map((item) => ({
+            productName: item.product.name,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice.toString(),
+            totalPrice: item.totalPrice.toString(),
+          })),
+          repName: user.name || 'Your Representative',
+          repPhone: user.phone || 'N/A',
+          companyName: 'Field Force CRM',
+          orderUrl: `${c.req.url.replace('/api/orders', '')}/orders/${order.id}`,
+        })
+        .catch((err) => {
+          logger.error('Failed to send order confirmation email', {
+            orderId: order.id,
+            error: err,
+          });
+        });
+    }
+
     return c.json(
       {
         success: true,
