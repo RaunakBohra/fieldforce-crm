@@ -9,6 +9,8 @@ import { api } from './services/api';
 // Lazy load pages for code splitting
 const Login = lazy(() => import('./pages/Login'));
 const Signup = lazy(() => import('./pages/Signup'));
+const SignupWithOTP = lazy(() => import('./pages/SignupWithOTP').then(m => ({ default: m.SignupWithOTP })));
+const SignupWithEmailOTP = lazy(() => import('./pages/SignupWithEmailOTP'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const ThemePreview = lazy(() => import('./pages/ThemePreview'));
 const ContactsList = lazy(() => import('./pages/ContactsList').then(m => ({ default: m.ContactsList })));
@@ -105,6 +107,8 @@ function App() {
             <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/signup-otp" element={<SignupWithOTP />} />
+            <Route path="/signup-email-otp" element={<SignupWithEmailOTP />} />
             <Route path="/themes" element={<ThemePreview />} />
             <Route path="/theme-comparison" element={<ThemeComparison />} />
             <Route

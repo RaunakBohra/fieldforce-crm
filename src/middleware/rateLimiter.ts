@@ -129,14 +129,14 @@ export function rateLimiter(config: RateLimitConfig) {
 // Strict rate limit for login endpoint (prevent brute force)
 export const loginRateLimiter = rateLimiter({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 attempts per 15 minutes
+  max: 20, // 20 attempts per 15 minutes (increased for testing)
   message: 'Too many login attempts. Please try again in 15 minutes.',
 });
 
 // Moderate rate limit for signup endpoint (prevent spam)
 export const signupRateLimiter = rateLimiter({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 3, // 3 signups per hour
+  max: 10, // 10 signups per hour (increased for testing)
   message: 'Too many signup attempts. Please try again in 1 hour.',
 });
 
