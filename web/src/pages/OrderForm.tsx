@@ -6,6 +6,7 @@ import { Save, ArrowLeft, Plus, Trash2, Scan } from 'lucide-react';
 import { PageContainer, ContentSection, Card } from '../components/layout';
 import { isOnline, saveOfflineOrder, type OfflineOrder } from '../utils/offlineStorage';
 import { BarcodeScanner } from '../components/BarcodeScanner';
+import { Select, showToast } from '../components/ui';
 
 interface OrderItem {
   productId: string;
@@ -23,8 +24,6 @@ export function OrderForm() {
   // Data
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
-  const [contactSearch, setContactSearch] = useState('');
-  const [productSearch, setProductSearch] = useState('');
 
   // Form state
   const [contactId, setContactId] = useState('');
@@ -32,23 +31,13 @@ export function OrderForm() {
   const [notes, setNotes] = useState('');
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchContacts();
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [contactSearch]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchProducts();
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [productSearch]);
+    fetchContacts();
+    fetchProducts();
+  }, []);
 
   const fetchContacts = async () => {
     try {
-      const params: any = { page: 1, limit: 50 };
-      if (contactSearch) params.search = contactSearch;
+      const params: any = { page: 1, limit: 100 };
       const response = await api.getContacts(params);
       if (response.success && response.data) {
         setContacts(response.data.contacts);
@@ -60,8 +49,7 @@ export function OrderForm() {
 
   const fetchProducts = async () => {
     try {
-      const params: any = { page: 1, limit: 50, isActive: true };
-      if (productSearch) params.search = productSearch;
+      const params: any = { page: 1, limit: 100, isActive: true };
       const response = await api.getProducts(params);
       if (response.success && response.data) {
         setProducts(response.data.products);
@@ -127,7 +115,7 @@ export function OrderForm() {
         }
 
         // Show success feedback
-        alert(`Added: ${product.name}`);
+        showToast.success(`Added: ${product.name}`);
       } else {
         setError('Product not found for this barcode');
       }
@@ -171,7 +159,7 @@ export function OrderForm() {
         };
 
         await saveOfflineOrder(offlineOrder);
-        alert('📱 Offline mode: Order saved locally. Will sync when connection is restored.');
+        showToast.info('Offline mode', 'Order saved locally. Will sync when connection is restored.');
         navigate('/orders');
         return;
       }
@@ -187,6 +175,7 @@ export function OrderForm() {
       });
 
       if (response.success) {
+        showToast.success('Order created successfully');
         navigate('/orders');
       } else {
         setError(response.error || 'Failed to create order');
@@ -228,29 +217,23 @@ export function OrderForm() {
           {/* Contact Selection */}
           <Card>
               <h2 className="text-lg font-semibold text-neutral-900 mb-4">Select Contact</h2>
-              <input
-                type="text"
-                placeholder="Search contacts..."
-                value={contactSearch}
-                onChange={(e) => setContactSearch(e.target.value)}
-                className="input-field mb-3"
-              />
-              <select
+              <Select
                 value={contactId}
-                onChange={(e) => setContactId(e.target.value)}
-                className="select-field"
+                onChange={(value) => setContactId(String(value))}
+                options={contacts.map((c) => ({
+                  id: c.id,
+                  label: c.name,
+                  sublabel: `${c.contactType}${c.city ? ` • ${c.city}` : ''}`,
+                }))}
+                placeholder="Search and select contact..."
+                loading={loading}
+                error={error && !contactId ? 'Please select a contact' : ''}
                 required
-              >
-                <option value="">Choose a contact...</option>
-                {contacts.map((contact) => (
-                  <option key={contact.id} value={contact.id}>
-                    {contact.name} ({contact.contactType})
-                  </option>
-                ))}
-              </select>
-              {contacts.length === 0 && contactSearch && (
-                <p className="mt-2 text-sm text-neutral-500">No contacts found matching "{contactSearch}"</p>
-              )}
+                aria-label="Contact selection"
+                onCreate={(query) => {
+                  navigate(`/contacts/new?name=${encodeURIComponent(query)}`);
+                }}
+              />
             </Card>
 
             {/* Order Items */}
@@ -277,14 +260,6 @@ export function OrderForm() {
                 </div>
               </div>
 
-              <input
-                type="text"
-                placeholder="Search products..."
-                value={productSearch}
-                onChange={(e) => setProductSearch(e.target.value)}
-                className="input-field mb-4"
-              />
-
               {items.length === 0 ? (
                 <p className="text-neutral-500 text-center py-8">No products added yet. Click "Add Product" to begin.</p>
               ) : (
@@ -293,19 +268,19 @@ export function OrderForm() {
                     <div key={index} className="grid grid-cols-12 gap-4 items-start p-4 border border-neutral-200 rounded-md">
                       <div className="col-span-5">
                         <label className="block text-sm font-medium text-neutral-700 mb-1">Product</label>
-                        <select
+                        <Select
                           value={item.productId}
-                          onChange={(e) => updateItem(index, 'productId', e.target.value)}
-                          className="select-field"
+                          onChange={(value) => updateItem(index, 'productId', String(value))}
+                          options={products.map((p) => ({
+                            id: p.id,
+                            label: p.name,
+                            sublabel: `₹${p.price}${p.stock !== undefined ? ` • Stock: ${p.stock}` : ''}`,
+                            disabled: p.stock === 0,
+                          }))}
+                          placeholder="Search and select product..."
                           required
-                        >
-                          <option value="">Select product...</option>
-                          {products.map((product) => (
-                            <option key={product.id} value={product.id}>
-                              {product.name} - ₹{product.price}
-                            </option>
-                          ))}
-                        </select>
+                          aria-label={`Product selection for item ${index + 1}`}
+                        />
                       </div>
                       <div className="col-span-2">
                         <label className="block text-sm font-medium text-neutral-700 mb-1">Quantity</label>

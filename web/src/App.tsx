@@ -5,6 +5,7 @@ import { lazy, Suspense, useEffect, type ReactElement } from 'react';
 import { syncOfflineData, isOnline } from './utils/offlineStorage';
 import OfflineIndicator from './components/OfflineIndicator';
 import { api } from './services/api';
+import { ToastContainer } from './components/ui/Toast';
 
 // Lazy load pages for code splitting
 const Login = lazy(() => import('./pages/Login'));
@@ -102,6 +103,7 @@ function App() {
     <ErrorBoundary>
       <AuthProvider>
         <BrowserRouter>
+          <ToastContainer />
           <OfflineIndicator />
           <Suspense fallback={<PageLoader />}>
             <Routes>
