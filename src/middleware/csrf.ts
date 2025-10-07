@@ -56,22 +56,6 @@ async function generateCsrfToken(secret: string): Promise<string> {
   return `${randomToken}.${signature}`;
 }
 
-/**
- * Get cookie attributes based on environment
- */
-function getCookieAttributes(env?: string): string {
-  const isProduction = env === 'production';
-
-  if (isProduction) {
-    // Production: Cross-domain cookies with explicit domain
-    // SameSite=None requires Secure flag (HTTPS only)
-    return 'Path=/; SameSite=None; Secure; Max-Age=3600';
-  } else {
-    // Development: Same-site cookies (localhost)
-    // SameSite=Lax works for localhost without Secure flag
-    return 'Path=/; SameSite=Lax; Max-Age=3600';
-  }
-}
 
 /**
  * Verify CSRF token authenticity
@@ -99,16 +83,15 @@ export async function csrfProtection(
 ) {
   const method = c.req.method;
   const secret = c.env.JWT_SECRET; // Reuse JWT secret for CSRF HMAC
-  const environment = c.env.ENVIRONMENT || 'development';
 
   // Safe methods: just set the token cookie
   if (['GET', 'HEAD', 'OPTIONS'].includes(method)) {
     const token = await generateCsrfToken(secret);
-    const cookieAttributes = getCookieAttributes(environment);
 
     // Set CSRF token in cookie (HttpOnly=false so JS can read it)
+    // SameSite=None; Secure works for both local (via wrangler dev) and production
     c.header('Set-Cookie',
-      `${CSRF_COOKIE_NAME}=${token}; ${cookieAttributes}`
+      `${CSRF_COOKIE_NAME}=${token}; Path=/; SameSite=None; Secure; Max-Age=3600`
     );
 
     // Also expose in response header for SPA to access
@@ -181,13 +164,11 @@ export async function csrfProtection(
  */
 export async function getCsrfToken(c: Context<{ Bindings: Bindings }>) {
   const secret = c.env.JWT_SECRET;
-  const environment = c.env.ENVIRONMENT || 'development';
   const token = await generateCsrfToken(secret);
-  const cookieAttributes = getCookieAttributes(environment);
 
-  // Set cookie
+  // Set cookie with SameSite=None; Secure for cross-origin support
   c.header('Set-Cookie',
-    `${CSRF_COOKIE_NAME}=${token}; ${cookieAttributes}`
+    `${CSRF_COOKIE_NAME}=${token}; Path=/; SameSite=None; Secure; Max-Age=3600`
   );
 
   return c.json({
