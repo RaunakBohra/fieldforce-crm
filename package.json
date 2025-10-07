@@ -28,6 +28,7 @@
     "@prisma/adapter-neon": "^5.0.0",
     "@prisma/client": "^5.0.0",
     "@types/validator": "^13.15.3",
+    "axios": "^1.12.2",
     "bcryptjs": "^2.4.3",
     "date-fns": "^4.1.0",
     "hono": "^4.0.0",

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
-import { Save, ArrowLeft, Wand2, Scan, Camera as CameraIcon, X, Upload } from 'lucide-react';
+import { Save, ArrowLeft, Wand2, Scan, Camera as CameraIcon, X, Upload, Bell } from 'lucide-react';
 import { PageContainer, ContentSection, Card } from '../components/layout';
 import { BarcodeScanner } from '../components/BarcodeScanner';
 import { Camera } from '../components/Camera';
@@ -27,6 +27,9 @@ export function ProductForm() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [generatingSku, setGeneratingSku] = useState(false);
+  const [showNotifyModal, setShowNotifyModal] = useState(false);
+  const [createdProductId, setCreatedProductId] = useState<string | null>(null);
+  const [sendingNotification, setSendingNotification] = useState(false);
 
   useEffect(() => {
     fetchCategories();
@@ -128,7 +131,10 @@ export function ProductForm() {
             setUploadingImage(false);
           }
         }
-        navigate('/products');
+
+        // Store product ID and show notification modal
+        setCreatedProductId(response.data.id);
+        setShowNotifyModal(true);
       } else {
         setError(response.error || 'Failed to create product');
       }
@@ -138,6 +144,31 @@ export function ProductForm() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSendNotification = async () => {
+    if (!createdProductId) return;
+
+    setSendingNotification(true);
+    try {
+      const response = await api.notifyProductLaunch(createdProductId);
+      if (response.success) {
+        alert(`Product launch notification sent to ${response.data?.successCount || 0} user(s)`);
+        navigate('/products');
+      } else {
+        alert(response.error || 'Failed to send notification');
+      }
+    } catch (err) {
+      console.error('Failed to send notification:', err);
+      alert('Failed to send notification');
+    } finally {
+      setSendingNotification(false);
+    }
+  };
+
+  const handleSkipNotification = () => {
+    setShowNotifyModal(false);
+    navigate('/products');
   };
 
   return (
@@ -378,6 +409,43 @@ export function ProductForm() {
           onCapture={handleImageCapture}
           onClose={() => setShowCamera(false)}
         />
+      )}
+
+      {showNotifyModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-3 bg-primary-100 rounded-full">
+                <Bell className="text-primary-600" size={24} />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-neutral-900">Product Created!</h3>
+                <p className="text-sm text-neutral-600">Would you like to notify users?</p>
+              </div>
+            </div>
+
+            <p className="text-neutral-700 mb-6">
+              Send new product alert to all active users via SMS?
+            </p>
+
+            <div className="flex gap-3">
+              <button
+                onClick={handleSendNotification}
+                disabled={sendingNotification}
+                className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-500 disabled:opacity-50"
+              >
+                {sendingNotification ? 'Sending...' : 'Send Notification'}
+              </button>
+              <button
+                onClick={handleSkipNotification}
+                disabled={sendingNotification}
+                className="flex-1 px-4 py-2 bg-neutral-200 text-neutral-700 rounded-md hover:bg-neutral-300 disabled:opacity-50"
+              >
+                Skip
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </PageContainer>
   );

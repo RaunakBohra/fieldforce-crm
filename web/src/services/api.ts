@@ -371,6 +371,8 @@ export interface Order {
   deliveryPincode?: string;
   expectedDeliveryDate?: string;
   actualDeliveryDate?: string;
+  dueDate?: string;
+  creditPeriod?: number;
   notes?: string;
   cancellationReason?: string;
   items: OrderItem[];
@@ -1910,6 +1912,60 @@ class ApiService {
       });
 
       return this.handleResponse<{ user: User }>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  // ============================================================================
+  // Notification APIs (Day 18)
+  // ============================================================================
+
+  async sendPaymentReminder(orderId: string, channel: 'SMS' | 'WHATSAPP'): Promise<ApiResponse<{
+    orderId: string;
+    orderNumber: string;
+    contactName: string;
+    outstandingAmount: number;
+    daysPending: number;
+    channel: string;
+    delivered: boolean;
+  }>> {
+    try {
+      const response = await fetch(`${API_URL}/api/orders/${orderId}/send-reminder`, {
+        method: 'POST',
+        headers: await this.getHeaders(true, true),
+        credentials: 'include',
+        body: JSON.stringify({ channel }),
+      });
+
+      return this.handleResponse(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  async notifyProductLaunch(productId: string): Promise<ApiResponse<{
+    productId: string;
+    productName: string;
+    totalUsers: number;
+    successCount: number;
+    errorCount: number;
+    sentToUserIds: string[];
+  }>> {
+    try {
+      const response = await fetch(`${API_URL}/api/products/${productId}/notify-launch`, {
+        method: 'POST',
+        headers: await this.getHeaders(true, true),
+        credentials: 'include',
+      });
+
+      return this.handleResponse(response);
     } catch (error) {
       if (error instanceof TypeError && error.message.includes('fetch')) {
         throw new Error('Network error: Unable to connect to server');

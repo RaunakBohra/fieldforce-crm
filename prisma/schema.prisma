@@ -265,7 +265,8 @@ model Product {
   thumbnailUrl String? // 300x300 thumbnail (R2)
 
   // Relations
-  orderItems OrderItem[]
+  orderItems           OrderItem[]
+  launchNotifications ProductLaunchNotification[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -304,9 +305,14 @@ model Order {
   notes              String? @db.Text
   cancellationReason String?
 
+  // Payment Terms (Day 18)
+  dueDate      DateTime? // Auto-calculated: actualDeliveryDate + creditPeriod
+  creditPeriod Int       @default(30) // Credit period in days
+
   // Relations
   items    OrderItem[]
   payments Payment[]
+  reminders PaymentReminder[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -459,4 +465,34 @@ enum TerritoryType {
   CITY
   DISTRICT
   ZONE
+}
+
+// ============================================================================
+// DAY 18: Notification System
+// ============================================================================
+
+model PaymentReminder {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  channel   String // SMS, WHATSAPP, EMAIL
+  sentAt    DateTime @default(now())
+  delivered Boolean  @default(false)
+  response  Json? // API response from MSG91
+  createdAt DateTime @default(now())
+
+  @@index([orderId])
+  @@index([sentAt])
+}
+
+model ProductLaunchNotification {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  sentTo    String[] // Array of user IDs
+  channel   String // SMS, EMAIL
+  sentAt    DateTime @default(now())
+
+  @@index([productId])
+  @@index([sentAt])
 }

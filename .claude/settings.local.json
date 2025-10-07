@@ -120,7 +120,12 @@
       "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjbWdmdHRwcXcwMDAwaHozNjhzZWJrd25zIiwiZW1haWwiOiJ0ZXN0QGV4YW1wbGUuY29tIiwicm9sZSI6IkFETUlOIiwiZXhwIjoxNzU5ODAxMzE2fQ.7rev_8dA3-QHGfJz63cJooVuu-OJUqDPNr-2syU8wHY\")",
       "Bash(/Users/raunakbohra/Desktop/medical-CRM/test-cache-direct.sh)",
       "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_EK1XpFYRye6M@ep-ancient-art-a1aag2jx-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require\" npx tsx scripts/check-user.ts)",
-      "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_EK1XpFYRye6M@ep-ancient-art-a1aag2jx-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require\" npx prisma migrate dev --name add_product_barcode_images)"
+      "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_EK1XpFYRye6M@ep-ancient-art-a1aag2jx-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require\" npx prisma migrate dev --name add_product_barcode_images)",
+      "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_EK1XpFYRye6M@ep-ancient-art-a1aag2jx-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require\" npx prisma migrate dev --name add_order_workflow --create-only)",
+      "Bash(git -C /Users/raunakbohra/Desktop/medical-CRM status)",
+      "Bash(git -C /Users/raunakbohra/Desktop/medical-CRM diff /Users/raunakbohra/Desktop/medical-CRM/prisma/schema.prisma)",
+      "Bash(git -C /Users/raunakbohra/Desktop/medical-CRM add prisma/migrations/20250107120000_add_order_workflow/ prisma/schema.prisma src/utils/orderNumberGenerator.ts src/routes/orders.ts src/validators/orderSchemas.ts web/src/pages/OrderDetail.tsx web/src/App.tsx web/src/pages/OrdersList.tsx web/src/services/api.ts)",
+      "Bash(git -C /Users/raunakbohra/Desktop/medical-CRM commit -m \"$(cat <<''EOF''\nfeat(day17): Add advanced order workflow\n\nDatabase Changes:\n- Add DRAFT, DISPATCHED to OrderStatus enum\n- Add notes (TEXT) and cancellationReason fields to Order\n- Migration: 20250107120000_add_order_workflow\n\nBackend:\n- Order number generator (ORD-YYYY-sequential format)\n- Order creation sets status=DRAFT, auto-generates number\n- PATCH /orders/:id - Edit validation (DRAFT/PENDING only)\n- POST /orders/:id/cancel - Cancel with reason\n- PATCH /orders/:id/status - Status transitions with validation\n\nFrontend:\n- OrderDetail page with full order view\n- Action buttons: Edit, Cancel, Change Status\n- Cancel modal with reason dropdown\n- Status change buttons (manager only)\n- Route: /orders/:id\n\nOrder Workflow: DRAFT → PENDING → APPROVED → DISPATCHED → DELIVERED\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
     ],
     "deny": [],
     "ask": []

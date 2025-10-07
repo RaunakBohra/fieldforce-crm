@@ -91,6 +91,14 @@ export function OrdersList() {
     const order = orders[index];
     if (!order) return null;
 
+    // Calculate outstanding amount and days overdue
+    const totalPaid = order.payments?.reduce((sum, p) => sum + Number(p.amount), 0) || 0;
+    const outstandingAmount = Number(order.totalAmount) - totalPaid;
+    const isOverdue = order.dueDate && new Date(order.dueDate) < new Date() && outstandingAmount > 0;
+    const daysOverdue = isOverdue
+      ? Math.floor((new Date().getTime() - new Date(order.dueDate!).getTime()) / (1000 * 60 * 60 * 24))
+      : 0;
+
     return (
       <div style={style} className="border-b border-neutral-200 hover:bg-neutral-50" {...ariaAttributes}>
         <div className="grid grid-cols-8 gap-4 px-6 py-4">
@@ -114,12 +122,17 @@ export function OrdersList() {
               formatLabel
             />
           </div>
-          <div className="col-span-1 flex items-center">
+          <div className="col-span-1 flex flex-col gap-1">
             <StatusBadge
               label={(order as any).paymentStatus || 'UNPAID'}
               className={getPaymentStatusColor((order as any).paymentStatus || 'UNPAID')}
               formatLabel
             />
+            {isOverdue && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-danger-100 text-danger-800">
+                OVERDUE ({daysOverdue}d)
+              </span>
+            )}
           </div>
           <div className="col-span-1 flex items-center text-sm text-neutral-500">
             {formatDate(order.createdAt)}

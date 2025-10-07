@@ -256,4 +256,43 @@ app.onError((err, c) => {
   );
 });
 
-export default app;
+/**
+ * Cloudflare Workers Export
+ * Default export for HTTP requests and scheduled events
+ */
+export default {
+  async fetch(request: Request, env: Bindings, ctx: ExecutionContext) {
+    return app.fetch(request, env, ctx);
+  },
+
+  async scheduled(event: ScheduledEvent, env: Bindings, ctx: ExecutionContext) {
+    // Import payment reminders job
+    const { sendPaymentReminders } = await import('./jobs/paymentReminders');
+    const { createDependencies } = await import('./config/dependencies');
+
+    try {
+      logger.info('[Cron] Starting payment reminders job', {
+        scheduledTime: new Date(event.scheduledTime).toISOString(),
+        cron: event.cron,
+      });
+
+      // Create dependencies
+      const deps = createDependencies(env);
+
+      // Run payment reminders job
+      const result = await sendPaymentReminders(deps.prisma, env);
+
+      logger.info('[Cron] Payment reminders job completed', {
+        totalOverdueOrders: result.totalOverdueOrders,
+        remindersSent: result.remindersSent,
+        errors: result.errors,
+      });
+
+      // Disconnect Prisma client
+      await deps.prisma.$disconnect();
+    } catch (error) {
+      logger.error('[Cron] Payment reminders job failed', error);
+      throw error;
+    }
+  },
+};

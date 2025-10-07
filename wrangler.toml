@@ -45,6 +45,11 @@ node_compat = true
 [dev]
 port = 8787  # Fixed port for development server
 
+# Cron Triggers (requires PAID Workers plan)
+# Runs at 3:30 AM UTC = 9:00 AM IST (Payment Reminders)
+[triggers]
+crons = ["30 3 * * *"]
+
 # Development environment
 [env.dev]
 name = "fieldforce-crm-api-dev"

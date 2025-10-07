@@ -7,6 +7,7 @@ import { z } from 'zod';
 import type { Bindings } from '../index';
 import type { Dependencies } from '../config/dependencies';
 import { generateSKU } from '../utils/skuGenerator';
+import { sendSMS, getMSG91Config } from '../utils/msg91';
 
 /**
  * Product Routes
@@ -536,6 +537,140 @@ products.delete('/:id/image', requireManager, async (c) => {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to delete image',
     }, 500);
+  }
+});
+
+/**
+ * POST /api/products/:id/notify-launch
+ * Send product launch notification to all active users
+ * Manager only
+ */
+products.post('/:id/notify-launch', requireManager, async (c) => {
+  const productId = c.req.param('id');
+  const deps = c.get('deps');
+  const user = c.get('user');
+
+  try {
+    logger.info('Send product launch notification request', {
+      ...getLogContext(c),
+      productId,
+    });
+
+    // Get product details
+    const product = await deps.prisma.product.findUnique({
+      where: { id: productId },
+    });
+
+    if (!product) {
+      return c.json({ success: false, error: 'Product not found' }, 404);
+    }
+
+    if (!product.isActive) {
+      return c.json(
+        {
+          success: false,
+          error: 'Cannot send notification for inactive product',
+        },
+        400
+      );
+    }
+
+    // Get all active users with phone numbers
+    const users = await deps.prisma.user.findMany({
+      where: {
+        phone: {
+          not: null,
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        phone: true,
+        email: true,
+      },
+    });
+
+    if (users.length === 0) {
+      return c.json(
+        {
+          success: false,
+          error: 'No users with phone numbers found',
+        },
+        400
+      );
+    }
+
+    // Prepare message
+    const message = `New product alert! ${product.name} now available at Rs.${Number(
+      product.price
+    ).toFixed(2)}. Order now. -FieldForce CRM`;
+
+    // Get MSG91 config
+    const msg91Config = getMSG91Config(deps.env);
+
+    let successCount = 0;
+    let errorCount = 0;
+    const sentToUserIds: string[] = [];
+
+    // Send SMS to each user
+    for (const recipient of users) {
+      if (!recipient.phone) continue;
+
+      const result = await sendSMS(recipient.phone, message, msg91Config);
+
+      if (result.success) {
+        successCount++;
+        sentToUserIds.push(recipient.id);
+      } else {
+        errorCount++;
+        logger.error('Failed to send product launch SMS', {
+          userId: recipient.id,
+          phone: recipient.phone,
+          error: result.message,
+        });
+      }
+    }
+
+    // Create ProductLaunchNotification record
+    await deps.prisma.productLaunchNotification.create({
+      data: {
+        productId: product.id,
+        sentTo: sentToUserIds,
+        channel: 'SMS',
+        sentAt: new Date(),
+      },
+    });
+
+    logger.info('Product launch notifications sent', {
+      productId,
+      productName: product.name,
+      totalUsers: users.length,
+      successCount,
+      errorCount,
+      userId: user.userId,
+    });
+
+    return c.json(
+      {
+        success: true,
+        message: `Product launch notification sent to ${successCount} user(s)`,
+        data: {
+          productId: product.id,
+          productName: product.name,
+          totalUsers: users.length,
+          successCount,
+          errorCount,
+          sentToUserIds,
+        },
+      },
+      200
+    );
+  } catch (error: unknown) {
+    logger.error('Send product launch notification failed', error, {
+      ...getLogContext(c),
+      productId,
+    });
+    throw error;
   }
 });
 

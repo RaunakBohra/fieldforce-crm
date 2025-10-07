@@ -13,6 +13,7 @@ import type { Bindings } from '../index';
 import { getOrSetCache, getUserStatsCacheKey } from '../utils/cache';
 import type { Dependencies } from '../config/dependencies';
 import { generateOrderNumber } from '../utils/orderNumberGenerator';
+import { sendSMS, sendWhatsApp, getMSG91Config } from '../utils/msg91';
 
 /**
  * Order Routes
@@ -688,6 +689,152 @@ orders.delete('/:id', async (c) => {
     );
   } catch (error: unknown) {
     logger.error('Cancel order failed', error, {
+      ...getLogContext(c),
+      orderId,
+    });
+    throw error;
+  }
+});
+
+/**
+ * POST /api/orders/:id/send-reminder
+ * Send payment reminder for an order (Manual)
+ * Manager only
+ */
+orders.post('/:id/send-reminder', requireManager, async (c) => {
+  const orderId = c.req.param('id');
+  const deps = c.get('deps');
+  const user = c.get('user');
+
+  try {
+    // Get request body
+    const body = await c.req.json();
+    const { channel } = body;
+
+    if (!channel || !['SMS', 'WHATSAPP'].includes(channel)) {
+      return c.json(
+        {
+          success: false,
+          error: 'Invalid channel. Must be SMS or WHATSAPP',
+        },
+        400
+      );
+    }
+
+    logger.info('Send payment reminder request', {
+      ...getLogContext(c),
+      orderId,
+      channel,
+    });
+
+    // Get order with contact and payments
+    const order = await deps.prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        contact: true,
+        payments: true,
+      },
+    });
+
+    if (!order) {
+      return c.json({ success: false, error: 'Order not found' }, 404);
+    }
+
+    // Calculate outstanding amount
+    const totalPaid = order.payments.reduce(
+      (sum, payment) => sum + Number(payment.amount),
+      0
+    );
+    const outstandingAmount = Number(order.totalAmount) - totalPaid;
+
+    if (outstandingAmount <= 0) {
+      return c.json(
+        {
+          success: false,
+          error: 'No outstanding amount for this order',
+        },
+        400
+      );
+    }
+
+    if (!order.contact.phone) {
+      return c.json(
+        {
+          success: false,
+          error: 'Contact phone number not available',
+        },
+        400
+      );
+    }
+
+    // Calculate days pending (if dueDate exists)
+    let daysPending = 0;
+    if (order.dueDate) {
+      const today = new Date();
+      const dueDate = new Date(order.dueDate);
+      daysPending = Math.floor(
+        (today.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24)
+      );
+    }
+
+    // Prepare message
+    const contactName = order.contact.name;
+    const message =
+      daysPending > 0
+        ? `Hi ${contactName}, payment of Rs.${outstandingAmount.toFixed(
+            2
+          )} for Order ${order.orderNumber} is overdue by ${daysPending} days. Please pay soon. -FieldForce CRM`
+        : `Hi ${contactName}, payment of Rs.${outstandingAmount.toFixed(
+            2
+          )} for Order ${order.orderNumber} is pending. Please pay soon. -FieldForce CRM`;
+
+    // Get MSG91 config
+    const msg91Config = getMSG91Config(deps.env);
+
+    // Send reminder
+    let result;
+    if (channel === 'SMS') {
+      result = await sendSMS(order.contact.phone, message, msg91Config);
+    } else {
+      result = await sendWhatsApp(order.contact.phone, message, msg91Config);
+    }
+
+    // Create PaymentReminder record
+    await deps.prisma.paymentReminder.create({
+      data: {
+        orderId: order.id,
+        channel,
+        sentAt: new Date(),
+        delivered: result.success,
+        response: result.response || {},
+      },
+    });
+
+    logger.info('Payment reminder sent', {
+      orderId,
+      channel,
+      success: result.success,
+      userId: user.userId,
+    });
+
+    return c.json(
+      {
+        success: result.success,
+        message: result.message,
+        data: {
+          orderId: order.id,
+          orderNumber: order.orderNumber,
+          contactName,
+          outstandingAmount,
+          daysPending,
+          channel,
+          delivered: result.success,
+        },
+      },
+      result.success ? 200 : 500
+    );
+  } catch (error: unknown) {
+    logger.error('Send payment reminder failed', error, {
       ...getLogContext(c),
       orderId,
     });

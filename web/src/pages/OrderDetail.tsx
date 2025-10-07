@@ -14,6 +14,7 @@ import {
   MapPinIcon,
   CurrencyDollarIcon,
   DocumentTextIcon,
+  BellIcon,
 } from '@heroicons/react/24/outline';
 
 export function OrderDetail() {
@@ -26,6 +27,9 @@ export function OrderDetail() {
   const [actionLoading, setActionLoading] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
+  const [showReminderModal, setShowReminderModal] = useState(false);
+  const [reminderChannel, setReminderChannel] = useState<'SMS' | 'WHATSAPP'>('SMS');
+  const [sendingReminder, setSendingReminder] = useState(false);
 
   const isManager = user?.role === 'MANAGER' || user?.role === 'ADMIN';
 
@@ -82,6 +86,25 @@ export function OrderDetail() {
       alert(err instanceof Error ? err.message : 'Failed to cancel order');
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  const handleSendReminder = async () => {
+    if (!order) return;
+
+    try {
+      setSendingReminder(true);
+      const response = await api.sendPaymentReminder(order.id, reminderChannel);
+      if (response.success) {
+        setShowReminderModal(false);
+        alert(`Payment reminder sent successfully via ${reminderChannel}`);
+      } else {
+        alert(response.error || 'Failed to send reminder');
+      }
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to send reminder');
+    } finally {
+      setSendingReminder(false);
     }
   };
 
@@ -382,6 +405,17 @@ export function OrderDetail() {
                   </button>
                 ))}
 
+                {/* Payment Reminder Button (Manager only) */}
+                {isManager && outstanding > 0 && (
+                  <button
+                    onClick={() => setShowReminderModal(true)}
+                    className="w-full flex items-center justify-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-500 transition-colors"
+                  >
+                    <BellIcon className="h-5 w-5 mr-2" />
+                    Send Payment Reminder
+                  </button>
+                )}
+
                 {/* Cancel Button */}
                 {canCancel && (
                   <button
@@ -440,6 +474,79 @@ export function OrderDetail() {
                 className="flex-1 px-4 py-2 bg-danger-600 text-white rounded-lg hover:bg-danger-500 disabled:opacity-50"
               >
                 {actionLoading ? 'Cancelling...' : 'Confirm Cancel'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Payment Reminder Modal */}
+      {showReminderModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-3 bg-primary-100 rounded-full">
+                <BellIcon className="h-6 w-6 text-primary-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-neutral-900">Send Payment Reminder</h3>
+                <p className="text-sm text-neutral-600">Notify customer about outstanding payment</p>
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <p className="text-sm text-neutral-700 mb-3">
+                Outstanding Amount: <span className="font-semibold text-danger-600">${outstanding.toFixed(2)}</span>
+              </p>
+              <label className="block text-sm font-medium text-neutral-700 mb-2">
+                Select Channel *
+              </label>
+              <div className="space-y-2">
+                <label className="flex items-center p-3 border border-neutral-300 rounded-lg cursor-pointer hover:bg-neutral-50">
+                  <input
+                    type="radio"
+                    name="channel"
+                    value="SMS"
+                    checked={reminderChannel === 'SMS'}
+                    onChange={(e) => setReminderChannel(e.target.value as 'SMS' | 'WHATSAPP')}
+                    className="mr-3"
+                  />
+                  <div>
+                    <p className="text-sm font-medium text-neutral-900">SMS</p>
+                    <p className="text-xs text-neutral-600">Send via text message</p>
+                  </div>
+                </label>
+                <label className="flex items-center p-3 border border-neutral-300 rounded-lg cursor-pointer hover:bg-neutral-50">
+                  <input
+                    type="radio"
+                    name="channel"
+                    value="WHATSAPP"
+                    checked={reminderChannel === 'WHATSAPP'}
+                    onChange={(e) => setReminderChannel(e.target.value as 'SMS' | 'WHATSAPP')}
+                    className="mr-3"
+                  />
+                  <div>
+                    <p className="text-sm font-medium text-neutral-900">WhatsApp</p>
+                    <p className="text-xs text-neutral-600">Send via WhatsApp message</p>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div className="flex space-x-3">
+              <button
+                onClick={() => setShowReminderModal(false)}
+                disabled={sendingReminder}
+                className="flex-1 px-4 py-2 border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSendReminder}
+                disabled={sendingReminder}
+                className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-500 disabled:opacity-50"
+              >
+                {sendingReminder ? 'Sending...' : 'Send Reminder'}
               </button>
             </div>
           </div>
