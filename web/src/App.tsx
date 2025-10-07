@@ -19,6 +19,7 @@ const ContactForm = lazy(() => import('./pages/ContactForm').then(m => ({ defaul
 const VisitsList = lazy(() => import('./pages/VisitsList').then(m => ({ default: m.VisitsList })));
 const VisitForm = lazy(() => import('./pages/VisitForm').then(m => ({ default: m.VisitForm })));
 const VisitDetails = lazy(() => import('./pages/VisitDetails').then(m => ({ default: m.VisitDetails })));
+const VisitPlanning = lazy(() => import('./pages/VisitPlanning').then(m => ({ default: m.VisitPlanning })));
 const ProductsList = lazy(() => import('./pages/ProductsList').then(m => ({ default: m.ProductsList })));
 const ProductForm = lazy(() => import('./pages/ProductForm').then(m => ({ default: m.ProductForm })));
 const OrdersList = lazy(() => import('./pages/OrdersList').then(m => ({ default: m.OrdersList })));
@@ -174,6 +175,14 @@ function App() {
               element={
                 <PrivateRoute>
                   <VisitForm />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/visits/plan"
+              element={
+                <PrivateRoute>
+                  <VisitPlanning />
                 </PrivateRoute>
               }
             />

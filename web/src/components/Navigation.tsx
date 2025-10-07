@@ -13,7 +13,8 @@ import {
   FileText,
   MapIcon,
   LogOut,
-  MoreHorizontal
+  MoreHorizontal,
+  Calendar
 } from 'lucide-react';
 
 export function Navigation() {
@@ -110,7 +111,7 @@ export function Navigation() {
               <button
                 onClick={() => setMoreOpen(!moreOpen)}
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all text-sm font-medium ${
-                  isActive('/products') || isActive('/payments') || isActive('/analytics') || isActive('/reports') || isActive('/territories') || isActive('/users')
+                  isActive('/visits/plan') || isActive('/products') || isActive('/payments') || isActive('/analytics') || isActive('/reports') || isActive('/territories') || isActive('/users')
                     ? 'bg-white text-primary-800 shadow-md'
                     : 'text-white hover:bg-primary-700'
                 }`}
@@ -120,6 +121,18 @@ export function Navigation() {
               </button>
               {moreOpen && (
                 <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl py-2 text-neutral-900 z-50">
+                  <button
+                    onClick={() => { navigate('/visits/plan'); setMoreOpen(false); }}
+                    className={`w-full text-left px-4 py-2.5 text-sm hover:bg-neutral-100 flex items-center gap-3 ${
+                      isActive('/visits/plan') ? 'bg-neutral-50 text-primary-700 font-medium' : ''
+                    }`}
+                  >
+                    <Calendar className="w-4 h-4" />
+                    Visit Planning
+                  </button>
+
+                  <div className="my-1 border-t border-neutral-200"></div>
+
                   <button
                     onClick={() => { navigate('/products'); setMoreOpen(false); }}
                     className={`w-full text-left px-4 py-2.5 text-sm hover:bg-neutral-100 flex items-center gap-3 ${
