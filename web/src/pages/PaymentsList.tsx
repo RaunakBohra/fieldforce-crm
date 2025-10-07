@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { List } from 'react-window';
 import { api } from '../services/api';
-import type { PaymentStats, PaymentQueryParams } from '../services/api';
+import type { Payment, PaymentStats, PaymentQueryParams } from '../services/api';
 import { Search, Filter, DollarSign, Plus, FileText } from 'lucide-react';
 import { useDebounce } from '../hooks/useDebounce';
 import { useIsMobile } from '../hooks/useMediaQuery';
@@ -10,19 +10,6 @@ import { PageContainer, ContentSection, Card } from '../components/layout';
 import { StatusBadge, Pagination, TableSkeleton } from '../components/ui';
 import { formatCurrency, formatDate } from '../utils';
 import { exportPaymentsToPDF } from '../utils/exportUtils';
-
-interface Payment {
-  id: string;
-  paymentNumber: string;
-  amount: number;
-  paymentMode: string;
-  paymentDate: string;
-  referenceNumber?: string;
-  order?: {
-    orderNumber: string;
-    contact: { name: string };
-  };
-}
 
 export default function PaymentsList() {
   const isMobile = useIsMobile();

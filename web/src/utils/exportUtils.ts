@@ -1,6 +1,7 @@
 import Papa from 'papaparse';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import type { Visit, Order, Contact, Payment } from '../services/api';
 
 /**
  * Export data to CSV file
@@ -35,7 +36,7 @@ export function exportToCSV<T extends Record<string, any>>(
  * Export visits to CSV
  * @param visits - Array of visit objects
  */
-export function exportVisitsToCSV(visits: any[]): void {
+export function exportVisitsToCSV(visits: Visit[]): void {
   const exportData = visits.map(visit => ({
     'Visit ID': visit.id,
     'Date': new Date(visit.checkInTime).toLocaleString(),
@@ -63,7 +64,7 @@ export function exportVisitsToCSV(visits: any[]): void {
  * Export orders to CSV
  * @param orders - Array of order objects
  */
-export function exportOrdersToCSV(orders: any[]): void {
+export function exportOrdersToCSV(orders: Order[]): void {
   const exportData = orders.map(order => ({
     'Order ID': order.id,
     'Date': new Date(order.createdAt).toLocaleString(),
@@ -87,37 +88,10 @@ export function exportOrdersToCSV(orders: any[]): void {
 }
 
 /**
- * Export contacts to CSV
- * @param contacts - Array of contact objects
- */
-export function exportContactsToCSV(contacts: any[]): void {
-  const exportData = contacts.map(contact => ({
-    'Contact ID': contact.id,
-    'Name': contact.name,
-    'Type': contact.contactType,
-    'Email': contact.email || 'N/A',
-    'Phone': contact.phone || 'N/A',
-    'Organization': contact.organization || 'N/A',
-    'Designation': contact.designation || 'N/A',
-    'Specialization': contact.specialization || 'N/A',
-    'Address': contact.address || 'N/A',
-    'City': contact.city || 'N/A',
-    'State': contact.state || 'N/A',
-    'Pincode': contact.pincode || 'N/A',
-    'Status': contact.isActive ? 'Active' : 'Inactive',
-    'Tags': contact.tags?.join(', ') || 'N/A',
-    'Created': new Date(contact.createdAt).toLocaleDateString(),
-  }));
-
-  const filename = `contacts_export_${new Date().toISOString().split('T')[0]}.csv`;
-  exportToCSV(exportData, filename);
-}
-
-/**
  * Export payments to PDF
  * @param payments - Array of payment objects
  */
-export function exportPaymentsToPDF(payments: any[]): void {
+export function exportPaymentsToPDF(payments: Payment[]): void {
   if (payments.length === 0) {
     alert('No payments to export');
     return;
@@ -145,9 +119,9 @@ export function exportPaymentsToPDF(payments: any[]): void {
     new Date(payment.paymentDate).toLocaleDateString(),
     payment.order?.contact?.name || 'N/A',
     `₹${payment.amount.toFixed(2)}`,
-    payment.method,
+    payment.paymentMode,
     payment.status,
-    payment.reference || 'N/A',
+    payment.referenceNumber || 'N/A',
   ]);
 
   autoTable(doc, {
@@ -193,7 +167,7 @@ export function exportPaymentsToPDF(payments: any[]): void {
  * Export visit report to PDF (detailed)
  * @param visits - Array of visit objects
  */
-export function exportVisitReportToPDF(visits: any[]): void {
+export function exportVisitReportToPDF(visits: Visit[]): void {
   if (visits.length === 0) {
     alert('No visits to export');
     return;
