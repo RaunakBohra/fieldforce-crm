@@ -4,7 +4,7 @@ import { api } from '../services/api';
 import type { User } from '../services/api';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { PageContainer, ContentSection, Card } from '../components/layout';
-import { StatusBadge, TableSkeleton, Pagination } from '../components/ui';
+import { StatusBadge, TableSkeleton, Pagination, showToast } from '../components/ui';
 import { Plus, Search, Users as UsersIcon, UserPlus } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -60,19 +60,23 @@ export function UsersList() {
   };
 
   const handleDeactivate = async (userId: string) => {
-    if (!window.confirm('Are you sure you want to deactivate this user?')) return;
-
-    try {
-      const response = await api.deactivateUser(userId);
-      if (response.success) {
-        alert('User deactivated successfully');
-        fetchUsers();
-      } else {
-        alert(response.error || 'Failed to deactivate user');
+    showToast.confirm(
+      'Deactivate user?',
+      'Are you sure you want to deactivate this user? They will no longer be able to access the system.',
+      async () => {
+        try {
+          const response = await api.deactivateUser(userId);
+          if (response.success) {
+            showToast.success('User deactivated successfully');
+            fetchUsers();
+          } else {
+            showToast.error(response.error || 'Failed to deactivate user');
+          }
+        } catch (error: any) {
+          showToast.error(error.message || 'Failed to deactivate user');
+        }
       }
-    } catch (error: any) {
-      alert(error.message || 'Failed to deactivate user');
-    }
+    );
   };
 
   const getRoleBadgeColor = (role: string) => {

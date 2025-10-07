@@ -4,7 +4,7 @@ import { api } from '../services/api';
 import type { Territory } from '../services/api';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { PageContainer, ContentSection, Card } from '../components/layout';
-import { StatusBadge, TableSkeleton, Pagination } from '../components/ui';
+import { StatusBadge, TableSkeleton, Pagination, showToast } from '../components/ui';
 import { Plus, Search, MapPin } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -62,19 +62,23 @@ export function TerritoriesList() {
   };
 
   const handleDelete = async (territoryId: string, territoryName: string) => {
-    if (!window.confirm(`Are you sure you want to delete "${territoryName}"? This cannot be undone.`)) return;
-
-    try {
-      const response = await api.deleteTerritory(territoryId);
-      if (response.success) {
-        alert('Territory deleted successfully');
-        fetchTerritories();
-      } else {
-        alert(response.error || 'Failed to delete territory');
+    showToast.confirm(
+      'Delete territory?',
+      `Are you sure you want to delete "${territoryName}"? This action cannot be undone.`,
+      async () => {
+        try {
+          const response = await api.deleteTerritory(territoryId);
+          if (response.success) {
+            showToast.success('Territory deleted successfully');
+            fetchTerritories();
+          } else {
+            showToast.error(response.error || 'Failed to delete territory');
+          }
+        } catch (error: any) {
+          showToast.error(error.message || 'Failed to delete territory');
+        }
       }
-    } catch (error: any) {
-      alert(error.message || 'Failed to delete territory');
-    }
+    );
   };
 
   const getTypeBadgeColor = (type: string) => {

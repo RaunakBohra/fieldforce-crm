@@ -450,12 +450,12 @@ export function ContactForm() {
             <h2 className="text-lg font-semibold text-neutral-900 mb-4">Visit Planning</h2>
 
             {/* Visit History - Only shown in edit mode */}
-            {isEditMode && formData.lastVisitDate && (
+            {isEditMode && (formData as any).lastVisitDate && (
               <div className="mb-4 p-3 bg-primary-50 border border-primary-200 rounded-lg">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium text-primary-900">Last Visit:</span>
                   <span className="text-sm text-primary-700">
-                    {new Date(formData.lastVisitDate).toLocaleDateString('en-US', {
+                    {new Date((formData as any).lastVisitDate).toLocaleDateString('en-US', {
                       year: 'numeric',
                       month: 'short',
                       day: 'numeric',
