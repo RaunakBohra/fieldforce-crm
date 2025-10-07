@@ -114,7 +114,13 @@
       "Read(//Users/raunakbohra/Library/Preferences/.wrangler/logs/**)",
       "Bash(/Users/raunakbohra/Desktop/medical-CRM/test-cache.sh:*)",
       "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_EK1XpFYRye6M@ep-ancient-art-a1aag2jx-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require\" npx tsx scripts/create-test-user.ts)",
-      "Bash(tee:*)"
+      "Bash(tee:*)",
+      "Bash(npx tsx:*)",
+      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjbWdmdHRwcXcwMDAwaHozNjhzZWJrd25zIiwiZW1haWwiOiJ0ZXN0QGV4YW1wbGUuY29tIiwicm9sZSI6IkFETUlOIiwiZXhwIjoxNzU5ODAxMTQxfQ.FXv5Zebd5MYNmOiKWc-Dv-fGCW6Zt80D0yGzI8dqJBo\")",
+      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjbWdmdHRwcXcwMDAwaHozNjhzZWJrd25zIiwiZW1haWwiOiJ0ZXN0QGV4YW1wbGUuY29tIiwicm9sZSI6IkFETUlOIiwiZXhwIjoxNzU5ODAxMzE2fQ.7rev_8dA3-QHGfJz63cJooVuu-OJUqDPNr-2syU8wHY\")",
+      "Bash(/Users/raunakbohra/Desktop/medical-CRM/test-cache-direct.sh)",
+      "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_EK1XpFYRye6M@ep-ancient-art-a1aag2jx-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require\" npx tsx scripts/check-user.ts)",
+      "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_EK1XpFYRye6M@ep-ancient-art-a1aag2jx-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require\" npx prisma migrate dev --name add_product_barcode_images)"
     ],
     "deny": [],
     "ask": []

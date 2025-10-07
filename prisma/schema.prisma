@@ -259,6 +259,11 @@ model Product {
   stock       Int     @default(0)
   isActive    Boolean @default(true)
 
+  // Barcode and Images (Day 16)
+  barcode      String? // EAN-13, Code-128, etc.
+  imageUrl     String? // Full-size product image (R2)
+  thumbnailUrl String? // 300x300 thumbnail (R2)
+
   // Relations
   orderItems OrderItem[]
 
@@ -267,6 +272,7 @@ model Product {
 
   @@index([sku]) // SKU lookup (unique constraint handles this)
   @@index([isActive, category]) // Active products by category
+  @@index([barcode]) // Barcode scanner lookup
 }
 
 model Order {
