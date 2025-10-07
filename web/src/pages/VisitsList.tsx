@@ -185,10 +185,13 @@ export function VisitsList() {
             </p>
           ) : null}
 
-          {visit.locationName && (
+          {(visit.locationName || (visit.latitude && visit.longitude)) && (
             <p className="text-neutral-700 flex items-center gap-1.5">
               <MapPin className="w-4 h-4 text-neutral-400" />
-              <span><span className="font-medium">Location:</span> {visit.locationName}</span>
+              <span>
+                <span className="font-medium">Location:</span>{' '}
+                {visit.locationName || `${visit.latitude?.toFixed(4)}, ${visit.longitude?.toFixed(4)}`}
+              </span>
             </p>
           )}
         </div>
@@ -251,10 +254,19 @@ export function VisitsList() {
             {visit.locationName ? (
               <div className="flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-neutral-400" />
-                <span className="text-sm text-neutral-900">{visit.locationName}</span>
+                <span className="text-sm text-neutral-900 truncate max-w-[200px]" title={visit.locationName}>
+                  {visit.locationName}
+                </span>
+              </div>
+            ) : visit.latitude && visit.longitude ? (
+              <div className="flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-neutral-400" />
+                <span className="text-sm text-neutral-700 truncate max-w-[200px]" title={`${visit.latitude}, ${visit.longitude}`}>
+                  {visit.latitude.toFixed(4)}, {visit.longitude.toFixed(4)}
+                </span>
               </div>
             ) : (
-              <span className="text-sm text-neutral-500">-</span>
+              <span className="text-sm text-neutral-500">No location</span>
             )}
           </div>
           <div className="col-span-1 flex items-center justify-end gap-4">
