@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
-import type { DashboardStats, DashboardActivity, TopPerformer, TerritoryPerformance } from '../services/api';
+import type { DashboardStats, DashboardActivity, TopPerformer, TerritoryPerformance, UpcomingVisit, OverdueVisit } from '../services/api';
 import {
   MapPin,
   ShoppingCart,
@@ -10,7 +10,9 @@ import {
   Clock,
   CheckCircle2,
   Users,
-  Globe
+  Globe,
+  Calendar,
+  AlertCircle
 } from 'lucide-react';
 import { PageContainer, ContentSection, Card } from '../components/layout';
 import { StatusBadge, LoadingSpinner } from '../components/ui';
@@ -24,8 +26,14 @@ export default function Dashboard() {
   const [activities, setActivities] = useState<DashboardActivity[]>([]);
   const [topPerformers, setTopPerformers] = useState<TopPerformer[]>([]);
   const [territoryStats, setTerritoryStats] = useState<TerritoryPerformance[]>([]);
+  const [upcomingVisits, setUpcomingVisits] = useState<UpcomingVisit[]>([]);
+  const [overdueVisits, setOverdueVisits] = useState<OverdueVisit[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [rescheduleModalOpen, setRescheduleModalOpen] = useState(false);
+  const [selectedContact, setSelectedContact] = useState<OverdueVisit | null>(null);
+  const [newVisitDate, setNewVisitDate] = useState('');
+  const [rescheduleLoading, setRescheduleLoading] = useState(false);
 
   const isAdmin = user?.role === 'ADMIN' || user?.role === 'MANAGER';
 
@@ -44,11 +52,13 @@ export default function Dashboard() {
         setLoading(false); // Show stats immediately
       }
 
-      // Load secondary data in background (activities, performers, and territory stats)
-      const [activitiesRes, performersRes, territoryRes] = await Promise.all([
+      // Load secondary data in background (activities, performers, territory stats, and visit planning)
+      const [activitiesRes, performersRes, territoryRes, upcomingRes, overdueRes] = await Promise.all([
         api.getRecentActivity(),
         isAdmin ? api.getTopPerformers() : Promise.resolve({ success: false, data: null }),
         isAdmin ? api.getTerritoryPerformance() : Promise.resolve({ success: false, data: null }),
+        api.getUpcomingVisits(7),
+        api.getOverdueVisits(),
       ]);
 
       if (activitiesRes.success && activitiesRes.data) {
@@ -62,9 +72,72 @@ export default function Dashboard() {
       if (territoryRes.success && territoryRes.data) {
         setTerritoryStats(territoryRes.data.territories.slice(0, 5)); // Top 5 territories
       }
+
+      if (upcomingRes.success && upcomingRes.data) {
+        setUpcomingVisits(upcomingRes.data);
+      }
+
+      if (overdueRes.success && overdueRes.data) {
+        setOverdueVisits(overdueRes.data);
+      }
     } catch (error: any) {
       setError(error.message || 'Failed to load dashboard');
       setLoading(false);
+    }
+  };
+
+  const handleReschedule = (contact: OverdueVisit) => {
+    setSelectedContact(contact);
+    setNewVisitDate('');
+    setRescheduleModalOpen(true);
+  };
+
+  const handleRescheduleSubmit = async () => {
+    if (!selectedContact || !newVisitDate) return;
+
+    try {
+      setRescheduleLoading(true);
+      const result = await api.updateContact(selectedContact.id, {
+        nextVisitDate: newVisitDate,
+      });
+
+      if (result.success) {
+        setRescheduleModalOpen(false);
+        setSelectedContact(null);
+        setNewVisitDate('');
+
+        // Refresh overdue visits
+        const overdueRes = await api.getOverdueVisits();
+        if (overdueRes.success && overdueRes.data) {
+          setOverdueVisits(overdueRes.data);
+        }
+
+        // Refresh upcoming visits
+        const upcomingRes = await api.getUpcomingVisits(7);
+        if (upcomingRes.success && upcomingRes.data) {
+          setUpcomingVisits(upcomingRes.data);
+        }
+      }
+    } catch (error: any) {
+      console.error('Failed to reschedule visit:', error);
+    } finally {
+      setRescheduleLoading(false);
+    }
+  };
+
+  const formatRelativeDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    if (date.toDateString() === today.toDateString()) {
+      return 'Today';
+    } else if (date.toDateString() === tomorrow.toDateString()) {
+      return 'Tomorrow';
+    } else {
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     }
   };
 
@@ -201,6 +274,117 @@ export default function Dashboard() {
                 <p className="text-xs text-accent-100">Create new contact</p>
               </div>
             </button>
+          </div>
+        </section>
+
+        {/* Visit Planning Widgets */}
+        <section className="mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Upcoming Visits Card */}
+            <Card className="bg-gradient-to-br from-primary-50 to-white border-primary-200">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-neutral-900 flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-primary-600" />
+                  Upcoming Visits (Next 7 Days)
+                </h2>
+              </div>
+
+              {upcomingVisits.length === 0 ? (
+                <div className="text-center py-8">
+                  <Calendar className="w-12 h-12 text-neutral-300 mx-auto mb-3" />
+                  <p className="text-neutral-500">No visits scheduled</p>
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                  {upcomingVisits.slice(0, 5).map((visit) => (
+                    <div
+                      key={visit.id}
+                      className="flex items-center justify-between p-3 bg-white rounded-lg border border-primary-100 hover:border-primary-300 hover:shadow-sm transition-all"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-neutral-900 truncate">{visit.name}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-sm text-primary-600 font-medium">
+                            {formatRelativeDate(visit.nextVisitDate)}
+                          </span>
+                          <span className="text-xs text-neutral-500">
+                            {visit.contactType}
+                          </span>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => navigate(`/visits/new?contactId=${visit.id}`)}
+                        className="ml-3 px-3 py-1.5 bg-primary-600 text-white text-sm rounded-lg hover:bg-primary-700 transition-colors flex-shrink-0"
+                      >
+                        Check In
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {upcomingVisits.length > 0 && (
+                <button
+                  onClick={() => navigate('/contacts')}
+                  className="w-full mt-4 text-sm text-primary-600 hover:text-primary-700 font-medium text-center py-2 hover:bg-primary-50 rounded-lg transition-colors"
+                >
+                  View All Contacts →
+                </button>
+              )}
+            </Card>
+
+            {/* Overdue Visits Card */}
+            <Card className="bg-gradient-to-br from-danger-50 to-white border-danger-200">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-neutral-900 flex items-center gap-2">
+                  <AlertCircle className="w-5 h-5 text-danger-600" />
+                  Overdue Visits
+                </h2>
+              </div>
+
+              {overdueVisits.length === 0 ? (
+                <div className="text-center py-8">
+                  <CheckCircle2 className="w-12 h-12 text-success-500 mx-auto mb-3" />
+                  <p className="text-success-600 font-medium">All visits up to date!</p>
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                  {overdueVisits.slice(0, 5).map((visit) => (
+                    <div
+                      key={visit.id}
+                      className="flex items-center justify-between p-3 bg-white rounded-lg border border-danger-100 hover:border-danger-300 hover:shadow-sm transition-all"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-neutral-900 truncate">{visit.name}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-danger-100 text-danger-700">
+                            {visit.daysPending} {visit.daysPending === 1 ? 'day' : 'days'} overdue
+                          </span>
+                          <span className="text-xs text-neutral-500">
+                            {visit.contactType}
+                          </span>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleReschedule(visit)}
+                        className="ml-3 px-3 py-1.5 bg-danger-600 text-white text-sm rounded-lg hover:bg-danger-700 transition-colors flex-shrink-0"
+                      >
+                        Reschedule
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {overdueVisits.length > 0 && (
+                <button
+                  onClick={() => navigate('/contacts')}
+                  className="w-full mt-4 text-sm text-danger-600 hover:text-danger-700 font-medium text-center py-2 hover:bg-danger-50 rounded-lg transition-colors"
+                >
+                  View All Overdue →
+                </button>
+              )}
+            </Card>
           </div>
         </section>
 
@@ -483,6 +667,67 @@ export default function Dashboard() {
             </div>
           )}
         </Card>
+
+        {/* Reschedule Modal */}
+        {rescheduleModalOpen && selectedContact && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-neutral-900">
+                  Reschedule Visit
+                </h3>
+                <button
+                  onClick={() => setRescheduleModalOpen(false)}
+                  className="text-neutral-400 hover:text-neutral-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="mb-6">
+                <p className="text-neutral-700 mb-1">
+                  <span className="font-medium">Contact:</span> {selectedContact.name}
+                </p>
+                <p className="text-sm text-danger-600">
+                  Currently {selectedContact.daysPending} {selectedContact.daysPending === 1 ? 'day' : 'days'} overdue
+                </p>
+              </div>
+
+              <div className="mb-6">
+                <label htmlFor="newVisitDate" className="block text-sm font-medium text-neutral-700 mb-2">
+                  New Visit Date
+                </label>
+                <input
+                  type="date"
+                  id="newVisitDate"
+                  value={newVisitDate}
+                  onChange={(e) => setNewVisitDate(e.target.value)}
+                  min={new Date().toISOString().split('T')[0]}
+                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setRescheduleModalOpen(false)}
+                  className="flex-1 px-4 py-2 border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 transition-colors"
+                  disabled={rescheduleLoading}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleRescheduleSubmit}
+                  disabled={!newVisitDate || rescheduleLoading}
+                  className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {rescheduleLoading ? 'Saving...' : 'Save'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </ContentSection>
     </PageContainer>
   );

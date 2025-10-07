@@ -73,6 +73,23 @@ export interface ContactStats {
   byType: Record<string, number>;
 }
 
+export interface UpcomingVisit {
+  id: string;
+  name: string;
+  contactType: string;
+  nextVisitDate: string;
+  lastVisitDate: string | null;
+}
+
+export interface OverdueVisit {
+  id: string;
+  name: string;
+  contactType: string;
+  nextVisitDate: string;
+  lastVisitDate: string | null;
+  daysPending: number;
+}
+
 export interface ContactListResponse {
   contacts: Contact[];
   total: number;
@@ -858,6 +875,39 @@ class ApiService {
       });
 
       return this.handleResponse<void>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  async getUpcomingVisits(days?: number): Promise<ApiResponse<UpcomingVisit[]>> {
+    try {
+      const queryString = days ? `?days=${days}` : '';
+      const response = await fetch(`${API_URL}/api/contacts/upcoming-visits${queryString}`, {
+        headers: await this.getHeaders(true, true),
+        credentials: 'include',
+      });
+
+      return this.handleResponse<UpcomingVisit[]>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  async getOverdueVisits(): Promise<ApiResponse<OverdueVisit[]>> {
+    try {
+      const response = await fetch(`${API_URL}/api/contacts/overdue-visits`, {
+        headers: await this.getHeaders(true, true),
+        credentials: 'include',
+      });
+
+      return this.handleResponse<OverdueVisit[]>(response);
     } catch (error) {
       if (error instanceof TypeError && error.message.includes('fetch')) {
         throw new Error('Network error: Unable to connect to server');

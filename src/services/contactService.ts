@@ -495,4 +495,137 @@ export class ContactService {
       };
     }
   }
+
+  /**
+   * Get contacts with upcoming visits in the next N days
+   */
+  async getUpcomingVisits(userId: string, days: number = 7): Promise<{
+    success: boolean;
+    data?: Array<{
+      id: string;
+      name: string;
+      contactType: string;
+      nextVisitDate: string;
+      lastVisitDate: string | null;
+    }>;
+    error?: string;
+  }> {
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const endDate = new Date(today);
+      endDate.setDate(endDate.getDate() + days);
+
+      const contacts = await this.prisma.contact.findMany({
+        where: {
+          assignedToId: userId,
+          isActive: true,
+          nextVisitDate: {
+            gte: today,
+            lte: endDate,
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+          contactType: true,
+          nextVisitDate: true,
+          lastVisitDate: true,
+        },
+        orderBy: {
+          nextVisitDate: 'asc',
+        },
+        take: 10,
+      });
+
+      const formattedContacts = contacts.map(contact => ({
+        id: contact.id,
+        name: contact.name,
+        contactType: contact.contactType,
+        nextVisitDate: contact.nextVisitDate?.toISOString() || '',
+        lastVisitDate: contact.lastVisitDate?.toISOString() || null,
+      }));
+
+      return {
+        success: true,
+        data: formattedContacts,
+      };
+    } catch (error: unknown) {
+      logger.error('Failed to get upcoming visits', error, { userId });
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to get upcoming visits',
+      };
+    }
+  }
+
+  /**
+   * Get contacts with overdue visits
+   */
+  async getOverdueVisits(userId: string): Promise<{
+    success: boolean;
+    data?: Array<{
+      id: string;
+      name: string;
+      contactType: string;
+      nextVisitDate: string;
+      lastVisitDate: string | null;
+      daysPending: number;
+    }>;
+    error?: string;
+  }> {
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const contacts = await this.prisma.contact.findMany({
+        where: {
+          assignedToId: userId,
+          isActive: true,
+          nextVisitDate: {
+            lt: today,
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+          contactType: true,
+          nextVisitDate: true,
+          lastVisitDate: true,
+        },
+        orderBy: {
+          nextVisitDate: 'asc',
+        },
+        take: 10,
+      });
+
+      const formattedContacts = contacts.map(contact => {
+        const nextVisit = contact.nextVisitDate || today;
+        const daysPending = Math.floor(
+          (today.getTime() - nextVisit.getTime()) / (1000 * 60 * 60 * 24)
+        );
+
+        return {
+          id: contact.id,
+          name: contact.name,
+          contactType: contact.contactType,
+          nextVisitDate: contact.nextVisitDate?.toISOString() || '',
+          lastVisitDate: contact.lastVisitDate?.toISOString() || null,
+          daysPending,
+        };
+      });
+
+      return {
+        success: true,
+        data: formattedContacts,
+      };
+    } catch (error: unknown) {
+      logger.error('Failed to get overdue visits', error, { userId });
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to get overdue visits',
+      };
+    }
+  }
 }
