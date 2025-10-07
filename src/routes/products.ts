@@ -6,6 +6,7 @@ import { logger, getLogContext } from '../utils/logger';
 import { z } from 'zod';
 import type { Bindings } from '../index';
 import type { Dependencies } from '../config/dependencies';
+import { generateSKU } from '../utils/skuGenerator';
 
 /**
  * Product Routes
@@ -178,6 +179,60 @@ products.get('/categories/list', async (c) => {
   }
 });
 
+/**
+ * GET /api/products/generate-sku
+ * Generate next available SKU in MMYY-XXXX format
+ */
+products.get('/generate-sku', async (c) => {
+  const deps = c.get('deps');
+
+  try {
+    logger.info('Generate SKU request', getLogContext(c));
+
+    const sku = await generateSKU(deps.prisma);
+
+    return c.json({
+      success: true,
+      data: { sku },
+    }, 200);
+  } catch (error: unknown) {
+    logger.error('Generate SKU failed', error, getLogContext(c));
+    throw error;
+  }
+});
+
+/**
+ * GET /api/products/barcode/:barcode
+ * Lookup product by barcode (for barcode scanner)
+ */
+products.get('/barcode/:barcode', async (c) => {
+  const deps = c.get('deps');
+  const barcode = c.req.param('barcode');
+
+  try {
+    logger.info('Barcode lookup request', {
+      ...getLogContext(c),
+      barcode,
+    });
+
+    const product = await deps.prisma.product.findFirst({
+      where: { barcode },
+    });
+
+    if (!product) {
+      return c.json({ success: false, error: 'Product not found' }, 404);
+    }
+
+    return c.json({ success: true, data: product }, 200);
+  } catch (error: unknown) {
+    logger.error('Barcode lookup failed', error, {
+      ...getLogContext(c),
+      barcode,
+    });
+    throw error;
+  }
+});
+
 // Product creation schema
 const createProductSchema = z.object({
   name: z.string().min(1, 'Product name is required'),
@@ -311,6 +366,176 @@ products.put('/:id', requireManager, async (c) => {
       productId,
     });
     throw error;
+  }
+});
+
+/**
+ * POST /api/products/:id/image
+ * Upload product image to R2 storage
+ * Accepts base64 encoded image data
+ */
+products.post('/:id/image', requireManager, async (c) => {
+  const deps = c.get('deps');
+  const productId = c.req.param('id');
+
+  try {
+    const body = await c.req.json();
+    const { image } = body;
+
+    if (!image || typeof image !== 'string') {
+      return c.json({ success: false, error: 'Image data is required' }, 400);
+    }
+
+    logger.info('Upload product image request', {
+      ...getLogContext(c),
+      productId,
+      imageSize: image.length,
+    });
+
+    // Check if product exists
+    const product = await deps.prisma.product.findUnique({
+      where: { id: productId },
+    });
+
+    if (!product) {
+      return c.json({ success: false, error: 'Product not found' }, 404);
+    }
+
+    // Extract base64 data (supports data URLs like "data:image/jpeg;base64,...")
+    const base64Data = image.includes(',') ? image.split(',')[1] : image;
+    if (!base64Data) {
+      return c.json({ success: false, error: 'Invalid image format' }, 400);
+    }
+
+    // Convert base64 to binary
+    const binaryData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+
+    // Generate R2 keys
+    const fullImageKey = `products/${productId}/image.jpg`;
+    const thumbnailKey = `products/${productId}/thumb.jpg`;
+
+    // Upload full image to R2
+    const bucket = c.env.BUCKET;
+    await bucket.put(fullImageKey, binaryData, {
+      httpMetadata: {
+        contentType: 'image/jpeg',
+        cacheControl: 'public, max-age=31536000',
+      },
+    });
+
+    // Create thumbnail (simple resize - in production, use proper image processing)
+    // For now, we'll use the same image for thumbnail
+    // TODO: Implement proper thumbnail generation with sharp library
+    await bucket.put(thumbnailKey, binaryData, {
+      httpMetadata: {
+        contentType: 'image/jpeg',
+        cacheControl: 'public, max-age=31536000',
+      },
+    });
+
+    // Generate public URLs (use CDN_URL if configured, otherwise use a placeholder)
+    // In production, configure CDN_URL in wrangler.toml or set up custom R2 domain
+    const cdnUrl = c.env.CDN_URL || 'https://r2.your-domain.com';
+    const imageUrl = `${cdnUrl}/${fullImageKey}`;
+    const thumbnailUrl = `${cdnUrl}/${thumbnailKey}`;
+
+    // Update product with image URLs
+    const updatedProduct = await deps.prisma.product.update({
+      where: { id: productId },
+      data: {
+        imageUrl,
+        thumbnailUrl,
+      },
+    });
+
+    logger.info('Product image uploaded successfully', {
+      productId,
+      imageUrl,
+      thumbnailUrl,
+      size: binaryData.length,
+    });
+
+    return c.json({
+      success: true,
+      message: 'Product image uploaded successfully',
+      data: updatedProduct,
+    }, 200);
+  } catch (error: unknown) {
+    logger.error('Upload product image failed', error, {
+      ...getLogContext(c),
+      productId,
+    });
+    return c.json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to upload image',
+    }, 500);
+  }
+});
+
+/**
+ * DELETE /api/products/:id/image
+ * Delete product image from R2 storage
+ */
+products.delete('/:id/image', requireManager, async (c) => {
+  const deps = c.get('deps');
+  const productId = c.req.param('id');
+
+  try {
+    logger.info('Delete product image request', {
+      ...getLogContext(c),
+      productId,
+    });
+
+    // Check if product exists
+    const product = await deps.prisma.product.findUnique({
+      where: { id: productId },
+    });
+
+    if (!product) {
+      return c.json({ success: false, error: 'Product not found' }, 404);
+    }
+
+    if (!product.imageUrl && !product.thumbnailUrl) {
+      return c.json({ success: false, error: 'Product has no image to delete' }, 404);
+    }
+
+    // Delete from R2
+    const bucket = c.env.BUCKET;
+    const fullImageKey = `products/${productId}/image.jpg`;
+    const thumbnailKey = `products/${productId}/thumb.jpg`;
+
+    await Promise.all([
+      bucket.delete(fullImageKey),
+      bucket.delete(thumbnailKey),
+    ]);
+
+    // Clear image URLs in database
+    const updatedProduct = await deps.prisma.product.update({
+      where: { id: productId },
+      data: {
+        imageUrl: null,
+        thumbnailUrl: null,
+      },
+    });
+
+    logger.info('Product image deleted successfully', {
+      productId,
+    });
+
+    return c.json({
+      success: true,
+      message: 'Product image deleted successfully',
+      data: updatedProduct,
+    }, 200);
+  } catch (error: unknown) {
+    logger.error('Delete product image failed', error, {
+      ...getLogContext(c),
+      productId,
+    });
+    return c.json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to delete image',
+    }, 500);
   }
 });
 
