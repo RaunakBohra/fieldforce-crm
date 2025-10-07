@@ -16,6 +16,8 @@ export function ContactForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [territories, setTerritories] = useState<Array<{ id: string; name: string; code: string; type: string }>>([]);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [formData, setFormData] = useState<CreateContactData>({
     contactCategory: 'MEDICAL',
     name: searchParams.get('name') || '',
@@ -57,6 +59,64 @@ export function ContactForm() {
     }
   };
 
+  // Validation functions
+  const validateField = (field: string, value: any): string => {
+    switch (field) {
+      case 'name':
+        if (!value || value.trim() === '') return 'Name is required';
+        if (value.length < 2) return 'Name must be at least 2 characters';
+        if (value.length > 100) return 'Name must be less than 100 characters';
+        return '';
+
+      case 'phone':
+        if (value && !/^[0-9]{10}$/.test(value.replace(/\s/g, ''))) {
+          return 'Phone must be a valid 10-digit number';
+        }
+        return '';
+
+      case 'email':
+        if (value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+          return 'Please enter a valid email address';
+        }
+        return '';
+
+      case 'pincode':
+        if (value && !/^[0-9]{6}$/.test(value)) {
+          return 'Pincode must be 6 digits';
+        }
+        return '';
+
+      case 'gstNumber':
+        if (value && !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(value)) {
+          return 'Invalid GST number format';
+        }
+        return '';
+
+      default:
+        return '';
+    }
+  };
+
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    // Required fields
+    errors.name = validateField('name', formData.name);
+
+    // Optional fields with format validation
+    if (formData.phone) errors.phone = validateField('phone', formData.phone);
+    if (formData.email) errors.email = validateField('email', formData.email);
+    if (formData.pincode) errors.pincode = validateField('pincode', formData.pincode);
+
+    // Remove empty error messages
+    Object.keys(errors).forEach(key => {
+      if (!errors[key]) delete errors[key];
+    });
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleCategoryChange = (category: 'DISTRIBUTION' | 'MEDICAL') => {
     setFormData({
       ...formData,
@@ -68,6 +128,18 @@ export function ContactForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    // Validate form before submission
+    if (!validateForm()) {
+      showToast.error('Please fix the errors in the form');
+      // Mark all fields as touched to show errors
+      const allTouched: Record<string, boolean> = {};
+      Object.keys(formData).forEach(key => {
+        allTouched[key] = true;
+      });
+      setTouched(allTouched);
+      return;
+    }
 
     try {
       setLoading(true);
@@ -98,6 +170,19 @@ export function ContactForm() {
 
   const handleChange = (field: keyof CreateContactData, value: CreateContactData[keyof CreateContactData]) => {
     setFormData({ ...formData, [field]: value });
+
+    // Clear error for this field when user starts typing
+    if (fieldErrors[field]) {
+      setFieldErrors({ ...fieldErrors, [field]: '' });
+    }
+  };
+
+  const handleBlur = (field: string) => {
+    setTouched({ ...touched, [field]: true });
+    const error = validateField(field, formData[field as keyof CreateContactData]);
+    if (error) {
+      setFieldErrors({ ...fieldErrors, [field]: error });
+    }
   };
 
   const getContactTypes = () => {
@@ -184,10 +269,14 @@ export function ContactForm() {
                   type="text"
                   value={formData.name}
                   onChange={(e) => handleChange('name', e.target.value)}
+                  onBlur={() => handleBlur('name')}
                   required
-                  className="input-field"
+                  className={`input-field ${touched.name && fieldErrors.name ? 'border-danger-500 focus:ring-danger-500' : ''}`}
                   placeholder="Enter contact name"
                 />
+                {touched.name && fieldErrors.name && (
+                  <p className="mt-1 text-sm text-danger-600">{fieldErrors.name}</p>
+                )}
               </div>
 
               <div>
@@ -250,9 +339,13 @@ export function ContactForm() {
                   type="tel"
                   value={formData.phone || ''}
                   onChange={(e) => handleChange('phone', e.target.value)}
+                  onBlur={() => handleBlur('phone')}
                   placeholder="10-digit mobile number"
-                  className="input-field"
+                  className={`input-field ${touched.phone && fieldErrors.phone ? 'border-danger-500 focus:ring-danger-500' : ''}`}
                 />
+                {touched.phone && fieldErrors.phone && (
+                  <p className="mt-1 text-sm text-danger-600">{fieldErrors.phone}</p>
+                )}
               </div>
 
               <div>
@@ -263,9 +356,13 @@ export function ContactForm() {
                   type="email"
                   value={formData.email || ''}
                   onChange={(e) => handleChange('email', e.target.value)}
+                  onBlur={() => handleBlur('email')}
                   placeholder="contact@example.com"
-                  className="input-field"
+                  className={`input-field ${touched.email && fieldErrors.email ? 'border-danger-500 focus:ring-danger-500' : ''}`}
                 />
+                {touched.email && fieldErrors.email && (
+                  <p className="mt-1 text-sm text-danger-600">{fieldErrors.email}</p>
+                )}
               </div>
 
               <div>
@@ -335,9 +432,13 @@ export function ContactForm() {
                     type="text"
                     value={formData.pincode || ''}
                     onChange={(e) => handleChange('pincode', e.target.value)}
+                    onBlur={() => handleBlur('pincode')}
                     placeholder="6 digits"
-                    className="input-field"
+                    className={`input-field ${touched.pincode && fieldErrors.pincode ? 'border-danger-500 focus:ring-danger-500' : ''}`}
                   />
+                  {touched.pincode && fieldErrors.pincode && (
+                    <p className="mt-1 text-sm text-danger-600">{fieldErrors.pincode}</p>
+                  )}
                 </div>
               </div>
             </div>
