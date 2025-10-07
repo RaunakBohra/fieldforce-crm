@@ -34,8 +34,11 @@ export const requireRole = (allowedRoles: UserRole[]) => {
     const user = c.get('user');
 
     // Check if user is authenticated
-    if (!user || !user.id) {
-      logger.warn('Unauthorized access attempt - no user context', getLogContext(c));
+    if (!user || !user.userId) {
+      logger.warn('Unauthorized access attempt - no user context', {
+        ...getLogContext(c),
+        userId: user?.userId || 'missing',
+      });
       return c.json({
         error: 'Unauthorized',
         message: 'Authentication required',

@@ -378,8 +378,14 @@ analytics.get('/territory-performance', requireManager, async (c) => {
     const endDate = endDateParam ? new Date(endDateParam) : new Date();
     const startDate = startDateParam ? new Date(startDateParam) : new Date(endDate.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-    // Create cache key based on date range
-    const cacheKey = `territory-performance:${startDate.toISOString()}:${endDate.toISOString()}`;
+    // Normalize dates to start/end of day for consistent cache keys
+    const normalizedStart = new Date(startDate);
+    normalizedStart.setHours(0, 0, 0, 0);
+    const normalizedEnd = new Date(endDate);
+    normalizedEnd.setHours(23, 59, 59, 999);
+
+    // Create cache key based on normalized date range
+    const cacheKey = `territory-performance:${normalizedStart.toISOString()}:${normalizedEnd.toISOString()}`;
 
     // Tier 1: Check in-memory cache (< 1ms, 1-minute TTL)
     const memCached = memoryCache.get(cacheKey);
