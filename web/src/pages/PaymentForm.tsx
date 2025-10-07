@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { api } from '../services/api';
 import type { Order } from '../services/api';
 import { PageContainer, ContentSection, Card } from '../components/layout';
+import { showToast } from '../components/ui';
 
 export default function PaymentForm() {
   const { orderId } = useParams();
@@ -64,7 +65,7 @@ export default function PaymentForm() {
       });
 
       if (response.success && response.data) {
-        alert(`Payment recorded successfully! Payment #: ${response.data.paymentNumber}`);
+        showToast.success('Payment recorded successfully', `Payment #: ${response.data.paymentNumber}`);
         navigate('/payments');
       } else {
         setError(response.error || 'Failed to record payment');

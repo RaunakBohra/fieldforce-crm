@@ -7,6 +7,7 @@ import { PageContainer, ContentSection, Card } from '../components/layout';
 import { Camera } from '../components/Camera';
 import { compressImage, getImageSizeKB } from '../utils/imageCompression';
 import { isOnline, saveOfflineVisit, type OfflineVisit } from '../utils/offlineStorage';
+import { Select, showToast } from '../components/ui';
 
 export function VisitForm() {
   const navigate = useNavigate();
@@ -17,7 +18,6 @@ export function VisitForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [contacts, setContacts] = useState<Contact[]>([]);
-  const [contactSearch, setContactSearch] = useState('');
 
   // Check-in state
   const [selectedContactId, setSelectedContactId] = useState('');
@@ -42,27 +42,16 @@ export function VisitForm() {
   const [photos, setPhotos] = useState<string[]>([]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchContacts();
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [contactSearch]);
-
-  useEffect(() => {
+    fetchContacts();
     fetchProducts();
-  }, []);
-
-  useEffect(() => {
     if (isCheckingOut) {
       fetchVisit();
     }
-    // GPS is now manual - no auto-capture
   }, [id]);
 
   const fetchContacts = async () => {
     try {
-      const params: any = { limit: 50, isActive: true };
-      if (contactSearch) params.search = contactSearch;
+      const params: any = { limit: 100, isActive: true };
       const response = await api.getContacts(params);
       if (response.success && response.data) {
         setContacts(response.data.contacts);
@@ -104,7 +93,7 @@ export function VisitForm() {
 
   const captureLocation = () => {
     if (!navigator.geolocation) {
-      alert('Geolocation is not supported by your browser');
+      showToast.error('Geolocation is not supported by your browser');
       return;
     }
 
@@ -116,14 +105,15 @@ export function VisitForm() {
           longitude: position.coords.longitude,
         });
         setFetchingLocation(false);
+        showToast.success('Location captured successfully');
       },
       (error) => {
         console.error('Error getting location:', error);
         setFetchingLocation(false);
         if (error.code === 1) {
-          alert('Location permission denied. Please enable location access in your browser settings.');
+          showToast.error('Location permission denied', 'Please enable location access in your browser settings.');
         } else {
-          alert('Failed to get location: ' + error.message);
+          showToast.error('Failed to get location', error.message);
         }
       },
       {
@@ -144,10 +134,11 @@ export function VisitForm() {
 
       if (photos.length < 2) {
         setPhotos([...photos, compressed]);
+        showToast.success('Photo added successfully');
       }
     } catch (err) {
       console.error('Photo compression error:', err);
-      alert('Failed to compress photo');
+      showToast.error('Failed to compress photo');
     }
   };
 
@@ -196,7 +187,7 @@ export function VisitForm() {
         };
 
         await saveOfflineVisit(offlineVisit);
-        alert('📱 Offline mode: Visit saved locally. Will sync when connection is restored.');
+        showToast.info('Offline mode', 'Visit saved locally. Will sync when connection is restored.');
         navigate('/visits');
         return;
       }
@@ -327,26 +318,23 @@ export function VisitForm() {
                 <label className="block text-sm font-medium text-neutral-700 mb-1">
                   Select Contact <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
-                  placeholder="Search contacts..."
-                  value={contactSearch}
-                  onChange={(e) => setContactSearch(e.target.value)}
-                  className="input-field mb-2"
-                />
-                <select
-                  required
+                <Select
                   value={selectedContactId}
-                  onChange={(e) => setSelectedContactId(e.target.value)}
-                  className="select-field"
-                >
-                  <option value="">Select a contact</option>
-                  {contacts.map((contact) => (
-                    <option key={contact.id} value={contact.id}>
-                      {contact.name} {contact.designation && `- ${contact.designation}`} {contact.city && `(${contact.city})`}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(value) => setSelectedContactId(String(value))}
+                  options={contacts.map((c) => ({
+                    id: c.id,
+                    label: c.name,
+                    sublabel: `${c.contactType}${c.designation ? ` - ${c.designation}` : ''}${c.city ? ` • ${c.city}` : ''}`,
+                  }))}
+                  placeholder="Search and select contact..."
+                  loading={loading}
+                  error={error && !selectedContactId ? 'Please select a contact' : ''}
+                  required
+                  aria-label="Contact selection for visit"
+                  onCreate={(query) => {
+                    navigate(`/contacts/new?name=${encodeURIComponent(query)}`);
+                  }}
+                />
               </div>
 
               {/* GPS Location */}
