@@ -54,7 +54,16 @@
       "Bash(npm install:*)",
       "Bash(npm run build:web:*)",
       "Bash(npx tsx:*)",
-      "Bash(screencapture:*)"
+      "Bash(screencapture:*)",
+      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjbWdlbGc5NXIwMDAwdWdoMjM1MXA5YjNhIiwiZW1haWwiOiJpd2J0cmFja2luZ0BnbWFpbC5jb20iLCJyb2xlIjoiQURNSU4iLCJleHAiOjE3NjA0NDE0ODB9.JwhLFbtqj4j39mRJ0dg-pjkLRDekjoND14JWw357Okg\")",
+      "WebFetch(domain:developers.mailersend.com)",
+      "Bash(__NEW_LINE__ curl -X POST http://localhost:8787/api/email-test/send )",
+      "Bash(xargs cat:*)",
+      "Read(//var/folders/mb/r5p9vmdj0z3c1_g8wnst89kw0000gn/T/TemporaryItems/NSIRD_screencaptureui_P9wkjw/**)",
+      "Bash(for:*)",
+      "Bash(do echo \"=== $file ===\")",
+      "Bash(done)",
+      "Bash(npx wrangler pages deploy:*)"
     ],
     "deny": [],
     "ask": []

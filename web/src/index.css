@@ -198,10 +198,20 @@
   .input-field {
     @apply w-full px-4 py-2.5
            border border-neutral-300 rounded-lg
+           bg-white text-neutral-900
            focus:ring-2 focus:ring-primary-600 focus:border-primary-600
            hover:border-neutral-400
            transition-all text-sm min-h-[44px]
            disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-neutral-100;
+  }
+
+  /* Fix browser autofill styles */
+  .input-field:-webkit-autofill,
+  .input-field:-webkit-autofill:hover,
+  .input-field:-webkit-autofill:focus {
+    -webkit-text-fill-color: #0f172a !important;
+    -webkit-box-shadow: 0 0 0 1000px white inset !important;
+    transition: background-color 5000s ease-in-out 0s;
   }
 
   /* Search Input Field */
@@ -216,11 +226,19 @@
   /* Select Dropdown */
   .select-field {
     @apply w-full px-4 py-2.5
-           border border-neutral-300 rounded-lg bg-white
+           border border-neutral-300 rounded-lg bg-white text-neutral-900
            focus:ring-2 focus:ring-primary-600 focus:border-primary-600
            hover:border-neutral-400
            transition-all text-sm min-h-[44px]
            disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-neutral-100;
+  }
+
+  /* Fix select autofill styles */
+  .select-field:-webkit-autofill,
+  .select-field:-webkit-autofill:hover,
+  .select-field:-webkit-autofill:focus {
+    -webkit-text-fill-color: #0f172a !important;
+    -webkit-box-shadow: 0 0 0 1000px white inset !important;
   }
 
   /* Textarea Field */

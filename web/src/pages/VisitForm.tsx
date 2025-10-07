@@ -8,6 +8,7 @@ import { Camera } from '../components/Camera';
 import { compressImage, getImageSizeKB } from '../utils/imageCompression';
 import { isOnline, saveOfflineVisit, type OfflineVisit } from '../utils/offlineStorage';
 import { Select, showToast } from '../components/ui';
+import { validators } from '../utils/validation';
 
 export function VisitForm() {
   const navigate = useNavigate();
@@ -40,6 +41,10 @@ export function VisitForm() {
   // Photo state
   const [showCamera, setShowCamera] = useState(false);
   const [photos, setPhotos] = useState<string[]>([]);
+
+  // Validation state
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     fetchContacts();
@@ -160,16 +165,61 @@ export function VisitForm() {
     setSamples(updated);
   };
 
+  const validateField = (field: string, value: any): string => {
+    switch (field) {
+      case 'contactId':
+        return validators.required(value, 'Contact');
+      default:
+        return '';
+    }
+  };
+
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+    errors.contactId = validateField('contactId', selectedContactId);
+
+    Object.keys(errors).forEach(key => {
+      if (!errors[key]) delete errors[key];
+    });
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleBlur = (field: string) => {
+    setTouched({ ...touched, [field]: true });
+    const value = field === 'contactId' ? selectedContactId : '';
+    const error = validateField(field, value);
+    if (error) {
+      setFieldErrors({ ...fieldErrors, [field]: error });
+    } else {
+      const newErrors = { ...fieldErrors };
+      delete newErrors[field];
+      setFieldErrors(newErrors);
+    }
+  };
+
+  const handleContactChange = (value: string) => {
+    setSelectedContactId(value);
+    if (fieldErrors.contactId) {
+      setFieldErrors({ ...fieldErrors, contactId: '' });
+    }
+  };
+
   const handleCheckIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
 
+    // Validate form
+    if (!validateForm()) {
+      showToast.error('Please select a contact');
+      setTouched({ contactId: true });
+      return;
+    }
+
+    setLoading(true);
+
     try {
-      if (!selectedContactId) {
-        setError('Please select a contact');
-        return;
-      }
 
       // Check if online
       if (!isOnline()) {
@@ -320,7 +370,7 @@ export function VisitForm() {
                 </label>
                 <Select
                   value={selectedContactId}
-                  onChange={(value) => setSelectedContactId(String(value))}
+                  onChange={(value) => handleContactChange(String(value))}
                   options={contacts.map((c) => ({
                     id: c.id,
                     label: c.name,
@@ -328,7 +378,7 @@ export function VisitForm() {
                   }))}
                   placeholder="Search and select contact..."
                   loading={loading}
-                  error={error && !selectedContactId ? 'Please select a contact' : ''}
+                  error={touched.contactId && fieldErrors.contactId ? fieldErrors.contactId : ''}
                   required
                   aria-label="Contact selection for visit"
                   onCreate={(query) => {

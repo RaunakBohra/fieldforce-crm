@@ -6,6 +6,7 @@ import { PageContainer, ContentSection, Card } from '../components/layout';
 import { showToast } from '../components/ui';
 import { MapPin, Save, X } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { validators } from '../utils/validation';
 
 export function TerritoryForm() {
   const navigate = useNavigate();
@@ -30,6 +31,10 @@ export function TerritoryForm() {
     parentId: '',
     isActive: true,
   });
+
+  // Validation state
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   // Redirect if not admin
   useEffect(() => {
@@ -90,19 +95,76 @@ export function TerritoryForm() {
     }
   };
 
+  const validateField = (field: string, value: any): string => {
+    switch (field) {
+      case 'name':
+        return validators.required(value, 'Name') || validators.minLength(value, 2, 'Name');
+      case 'code':
+        const requiredError = validators.required(value, 'Code');
+        if (requiredError) return requiredError;
+        if (!/^[A-Z0-9-_]+$/.test(value)) {
+          return 'Code must contain only uppercase letters, numbers, hyphens, and underscores';
+        }
+        return '';
+      case 'type':
+        return validators.required(value, 'Type');
+      case 'country':
+        return validators.required(value, 'Country');
+      case 'pincode':
+        if (value) return validators.pincode(value);
+        return '';
+      default:
+        return '';
+    }
+  };
+
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    errors.name = validateField('name', formData.name);
+    errors.code = validateField('code', formData.code);
+    errors.type = validateField('type', formData.type);
+    errors.country = validateField('country', formData.country);
+    if (formData.pincode) errors.pincode = validateField('pincode', formData.pincode);
+
+    Object.keys(errors).forEach(key => {
+      if (!errors[key]) delete errors[key];
+    });
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleBlur = (field: string) => {
+    setTouched({ ...touched, [field]: true });
+    const value = formData[field as keyof typeof formData];
+    const error = validateField(field, value);
+    if (error) {
+      setFieldErrors({ ...fieldErrors, [field]: error });
+    } else {
+      const newErrors = { ...fieldErrors };
+      delete newErrors[field];
+      setFieldErrors(newErrors);
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target;
+    const newValue = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
+    setFormData(prev => ({ ...prev, [name]: newValue }));
+    if (fieldErrors[name]) {
+      setFieldErrors({ ...fieldErrors, [name]: '' });
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    // Validation
-    if (!formData.name || !formData.code || !formData.type || !formData.country) {
-      setError('Name, code, type, and country are required');
-      return;
-    }
-
-    // Code format validation
-    if (!/^[A-Z0-9-_]+$/.test(formData.code)) {
-      setError('Code must contain only uppercase letters, numbers, hyphens, and underscores');
+    // Validate form
+    if (!validateForm()) {
+      showToast.error('Please fix the errors in the form');
+      setTouched({ name: true, code: true, type: true, country: true });
       return;
     }
 
@@ -149,16 +211,6 @@ export function TerritoryForm() {
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target;
-
-    if (type === 'checkbox') {
-      const checked = (e.target as HTMLInputElement).checked;
-      setFormData(prev => ({ ...prev, [name]: checked }));
-    } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
-    }
-  };
 
   if (currentUser && currentUser.role !== 'ADMIN') {
     return null;
@@ -215,10 +267,14 @@ export function TerritoryForm() {
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
+                  onBlur={() => handleBlur('name')}
                   required
-                  className="input-field"
+                  className={`input-field ${touched.name && fieldErrors.name ? 'border-danger-500 focus:ring-danger-500' : ''}`}
                   placeholder="Mumbai Central"
                 />
+                {touched.name && fieldErrors.name && (
+                  <p className="mt-1 text-sm text-danger-600">{fieldErrors.name}</p>
+                )}
               </div>
 
               {/* Code */}
@@ -232,15 +288,21 @@ export function TerritoryForm() {
                   name="code"
                   value={formData.code}
                   onChange={handleChange}
+                  onBlur={() => handleBlur('code')}
                   required
-                  className="input-field font-mono"
+                  className={`input-field font-mono ${touched.code && fieldErrors.code ? 'border-danger-500 focus:ring-danger-500' : ''}`}
                   placeholder="MH-MUM-CENT"
                   pattern="[A-Z0-9-_]+"
                   title="Uppercase letters, numbers, hyphens, and underscores only"
                 />
-                <p className="mt-1 text-sm text-neutral-500">
-                  Use uppercase letters, numbers, hyphens, and underscores (e.g., MH-MUM, NP-KTM)
-                </p>
+                {touched.code && fieldErrors.code && (
+                  <p className="mt-1 text-sm text-danger-600">{fieldErrors.code}</p>
+                )}
+                {!fieldErrors.code && (
+                  <p className="mt-1 text-sm text-neutral-500">
+                    Use uppercase letters, numbers, hyphens, and underscores (e.g., MH-MUM, NP-KTM)
+                  </p>
+                )}
               </div>
 
               {/* Description */}

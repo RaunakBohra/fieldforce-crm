@@ -7,6 +7,7 @@ import { PageContainer, ContentSection, Card } from '../components/layout';
 import { isOnline, saveOfflineOrder, type OfflineOrder } from '../utils/offlineStorage';
 import { BarcodeScanner } from '../components/BarcodeScanner';
 import { Select, showToast } from '../components/ui';
+import { validators } from '../utils/validation';
 
 interface OrderItem {
   productId: string;
@@ -29,6 +30,10 @@ export function OrderForm() {
   const [contactId, setContactId] = useState('');
   const [items, setItems] = useState<OrderItem[]>([]);
   const [notes, setNotes] = useState('');
+
+  // Validation state
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     fetchContacts();
@@ -61,10 +66,26 @@ export function OrderForm() {
 
   const addItem = () => {
     setItems([...items, { productId: '', quantity: 1, price: 0 }]);
+    // Clear items error when adding a new item
+    if (fieldErrors.items) {
+      setFieldErrors({ ...fieldErrors, items: '' });
+    }
   };
 
   const removeItem = (index: number) => {
-    setItems(items.filter((_, i) => i !== index));
+    const updated = items.filter((_, i) => i !== index);
+    setItems(updated);
+    // Re-validate items after removal
+    if (touched.items) {
+      const error = validateField('items', updated);
+      if (error) {
+        setFieldErrors({ ...fieldErrors, items: error });
+      } else {
+        const newErrors = { ...fieldErrors };
+        delete newErrors.items;
+        setFieldErrors(newErrors);
+      }
+    }
   };
 
   const updateItem = (index: number, field: keyof OrderItem, value: any) => {
@@ -81,10 +102,73 @@ export function OrderForm() {
     }
 
     setItems(updated);
+
+    // Clear items error when updating
+    if (fieldErrors.items) {
+      setFieldErrors({ ...fieldErrors, items: '' });
+    }
   };
 
   const calculateTotal = () => {
     return items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+  };
+
+  const validateField = (field: string, value: any): string => {
+    switch (field) {
+      case 'contactId':
+        return validators.required(value, 'Contact');
+      case 'items':
+        if (!value || value.length === 0) {
+          return 'Please add at least one product';
+        }
+        // Validate each item
+        for (let i = 0; i < value.length; i++) {
+          const item = value[i];
+          if (!item.productId) return `Product is required for item ${i + 1}`;
+          if (!item.quantity || item.quantity < 1) return `Quantity must be at least 1 for item ${i + 1}`;
+          if (!item.price || item.price <= 0) return `Price must be greater than 0 for item ${i + 1}`;
+        }
+        return '';
+      default:
+        return '';
+    }
+  };
+
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    errors.contactId = validateField('contactId', contactId);
+    errors.items = validateField('items', items);
+
+    Object.keys(errors).forEach(key => {
+      if (!errors[key]) delete errors[key];
+    });
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleBlur = (field: string) => {
+    setTouched({ ...touched, [field]: true });
+    let value;
+    if (field === 'contactId') value = contactId;
+    else if (field === 'items') value = items;
+
+    const error = validateField(field, value);
+    if (error) {
+      setFieldErrors({ ...fieldErrors, [field]: error });
+    } else {
+      const newErrors = { ...fieldErrors };
+      delete newErrors[field];
+      setFieldErrors(newErrors);
+    }
+  };
+
+  const handleContactChange = (value: string) => {
+    setContactId(value);
+    if (fieldErrors.contactId) {
+      setFieldErrors({ ...fieldErrors, contactId: '' });
+    }
   };
 
   const handleBarcodeScanned = async (barcode: string) => {
@@ -127,19 +211,16 @@ export function OrderForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
 
-    if (!contactId) {
-      setError('Please select a contact');
-      return;
-    }
-
-    if (items.length === 0) {
-      setError('Please add at least one product');
+    // Validate form
+    if (!validateForm()) {
+      showToast.error('Please fix the errors in the form');
+      setTouched({ contactId: true, items: true });
       return;
     }
 
     setLoading(true);
-    setError('');
 
     try {
       // Check if online
@@ -219,7 +300,7 @@ export function OrderForm() {
               <h2 className="text-lg font-semibold text-neutral-900 mb-4">Select Contact</h2>
               <Select
                 value={contactId}
-                onChange={(value) => setContactId(String(value))}
+                onChange={(value) => handleContactChange(String(value))}
                 options={contacts.map((c) => ({
                   id: c.id,
                   label: c.name,
@@ -227,7 +308,7 @@ export function OrderForm() {
                 }))}
                 placeholder="Search and select contact..."
                 loading={loading}
-                error={error && !contactId ? 'Please select a contact' : ''}
+                error={touched.contactId && fieldErrors.contactId ? fieldErrors.contactId : ''}
                 required
                 aria-label="Contact selection"
                 onCreate={(query) => {
@@ -259,6 +340,10 @@ export function OrderForm() {
                   </button>
                 </div>
               </div>
+
+              {touched.items && fieldErrors.items && items.length === 0 && (
+                <p className="mb-4 text-sm text-danger-600">{fieldErrors.items}</p>
+              )}
 
               {items.length === 0 ? (
                 <p className="text-neutral-500 text-center py-8">No products added yet. Click "Add Product" to begin.</p>

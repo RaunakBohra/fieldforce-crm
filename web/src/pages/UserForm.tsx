@@ -5,6 +5,7 @@ import { PageContainer, ContentSection, Card } from '../components/layout';
 import { showToast } from '../components/ui';
 import { UserPlus, Save, X } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { validators } from '../utils/validation';
 
 export function UserForm() {
   const navigate = useNavigate();
@@ -26,6 +27,10 @@ export function UserForm() {
     role: 'FIELD_REP' as 'ADMIN' | 'MANAGER' | 'FIELD_REP',
     territoryId: '',
   });
+
+  // Validation state
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   // Redirect if not admin
   useEffect(() => {
@@ -83,28 +88,76 @@ export function UserForm() {
     }
   };
 
+  const validateField = (field: string, value: any): string => {
+    switch (field) {
+      case 'name':
+        return validators.required(value, 'Name') || validators.minLength(value, 2, 'Name');
+      case 'email':
+        return validators.required(value, 'Email') || validators.email(value);
+      case 'password':
+        if (!isEditMode && !value) return 'Password is required';
+        if (value && value.length < 8) return 'Password must be at least 8 characters';
+        return '';
+      case 'confirmPassword':
+        if (formData.password && value !== formData.password) return 'Passwords do not match';
+        return '';
+      case 'phone':
+        if (value) return validators.phone(value);
+        return '';
+      case 'role':
+        return validators.required(value, 'Role');
+      default:
+        return '';
+    }
+  };
+
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    errors.name = validateField('name', formData.name);
+    errors.email = validateField('email', formData.email);
+    errors.password = validateField('password', formData.password);
+    errors.confirmPassword = validateField('confirmPassword', formData.confirmPassword);
+    if (formData.phone) errors.phone = validateField('phone', formData.phone);
+    errors.role = validateField('role', formData.role);
+
+    Object.keys(errors).forEach(key => {
+      if (!errors[key]) delete errors[key];
+    });
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleBlur = (field: string) => {
+    setTouched({ ...touched, [field]: true });
+    const value = formData[field as keyof typeof formData];
+    const error = validateField(field, value);
+    if (error) {
+      setFieldErrors({ ...fieldErrors, [field]: error });
+    } else {
+      const newErrors = { ...fieldErrors };
+      delete newErrors[field];
+      setFieldErrors(newErrors);
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (fieldErrors[name]) {
+      setFieldErrors({ ...fieldErrors, [name]: '' });
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    // Validation
-    if (!formData.name || !formData.email) {
-      setError('Name and email are required');
-      return;
-    }
-
-    if (!isEditMode && !formData.password) {
-      setError('Password is required');
-      return;
-    }
-
-    if (formData.password && formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-
-    if (formData.password && formData.password.length < 8) {
-      setError('Password must be at least 8 characters');
+    // Validate form
+    if (!validateForm()) {
+      showToast.error('Please fix the errors in the form');
+      setTouched({ name: true, email: true, password: true, confirmPassword: true, role: true });
       return;
     }
 
@@ -154,10 +207,6 @@ export function UserForm() {
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
 
   if (currentUser && currentUser.role !== 'ADMIN') {
     return null;
@@ -214,10 +263,14 @@ export function UserForm() {
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
+                  onBlur={() => handleBlur('name')}
                   required
-                  className="input-field"
+                  className={`input-field ${touched.name && fieldErrors.name ? 'border-danger-500 focus:ring-danger-500' : ''}`}
                   placeholder="John Doe"
                 />
+                {touched.name && fieldErrors.name && (
+                  <p className="mt-1 text-sm text-danger-600">{fieldErrors.name}</p>
+                )}
               </div>
 
               {/* Email */}
@@ -231,10 +284,14 @@ export function UserForm() {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
+                  onBlur={() => handleBlur('email')}
                   required
-                  className="input-field"
+                  className={`input-field ${touched.email && fieldErrors.email ? 'border-danger-500 focus:ring-danger-500' : ''}`}
                   placeholder="john.doe@example.com"
                 />
+                {touched.email && fieldErrors.email && (
+                  <p className="mt-1 text-sm text-danger-600">{fieldErrors.email}</p>
+                )}
               </div>
 
               {/* Phone */}
@@ -248,9 +305,13 @@ export function UserForm() {
                   name="phone"
                   value={formData.phone}
                   onChange={handleChange}
-                  className="input-field"
+                  onBlur={() => handleBlur('phone')}
+                  className={`input-field ${touched.phone && fieldErrors.phone ? 'border-danger-500 focus:ring-danger-500' : ''}`}
                   placeholder="+1234567890"
                 />
+                {touched.phone && fieldErrors.phone && (
+                  <p className="mt-1 text-sm text-danger-600">{fieldErrors.phone}</p>
+                )}
               </div>
 
               {/* Role */}
@@ -312,14 +373,20 @@ export function UserForm() {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
+                  onBlur={() => handleBlur('password')}
                   required={!isEditMode}
-                  className="input-field"
+                  className={`input-field ${touched.password && fieldErrors.password ? 'border-danger-500 focus:ring-danger-500' : ''}`}
                   placeholder="••••••••"
                   minLength={8}
                 />
-                <p className="mt-1 text-sm text-neutral-500">
-                  Must be at least 8 characters
-                </p>
+                {touched.password && fieldErrors.password && (
+                  <p className="mt-1 text-sm text-danger-600">{fieldErrors.password}</p>
+                )}
+                {!fieldErrors.password && (
+                  <p className="mt-1 text-sm text-neutral-500">
+                    Must be at least 8 characters
+                  </p>
+                )}
               </div>
 
               {/* Confirm Password */}
@@ -334,10 +401,14 @@ export function UserForm() {
                     name="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleChange}
+                    onBlur={() => handleBlur('confirmPassword')}
                     required={!isEditMode || !!formData.password}
-                    className="input-field"
+                    className={`input-field ${touched.confirmPassword && fieldErrors.confirmPassword ? 'border-danger-500 focus:ring-danger-500' : ''}`}
                     placeholder="••••••••"
                   />
+                  {touched.confirmPassword && fieldErrors.confirmPassword && (
+                    <p className="mt-1 text-sm text-danger-600">{fieldErrors.confirmPassword}</p>
+                  )}
                 </div>
               )}
 

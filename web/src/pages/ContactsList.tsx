@@ -390,13 +390,13 @@ export function ContactsList() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4">
               {/* Search */}
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" />
+                <Search className="icon-search" />
                 <input
                   type="text"
                   placeholder="Search contacts..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-all hover:border-neutral-400 text-sm min-h-[44px]"
+                  className="input-search"
                 />
               </div>
 
@@ -404,7 +404,7 @@ export function ContactsList() {
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value as any)}
-                className="px-4 py-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-all hover:border-neutral-400 text-sm min-h-[44px] bg-white"
+                className="select-field"
               >
                 <option value="ALL">All Categories</option>
                 <option value="DISTRIBUTION">Distribution</option>
@@ -415,7 +415,7 @@ export function ContactsList() {
               <select
                 value={visitStatusFilter}
                 onChange={(e) => setVisitStatusFilter(e.target.value as any)}
-                className="px-4 py-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-all hover:border-neutral-400 text-sm min-h-[44px] bg-white"
+                className="select-field"
               >
                 <option value="ALL">All Visit Status</option>
                 <option value="OVERDUE">Overdue Visits</option>
@@ -427,7 +427,7 @@ export function ContactsList() {
               <select
                 value={territoryFilter}
                 onChange={(e) => setTerritoryFilter(e.target.value)}
-                className="px-4 py-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-all hover:border-neutral-400 text-sm min-h-[44px] bg-white"
+                className="select-field"
               >
                 <option value="">All Territories</option>
                 {territories.map(territory => (
@@ -443,7 +443,7 @@ export function ContactsList() {
                 placeholder="Filter by city..."
                 value={cityFilter}
                 onChange={(e) => setCityFilter(e.target.value)}
-                className="px-4 py-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-all hover:border-neutral-400 text-sm min-h-[44px]"
+                className="input-field"
               />
             </div>
 

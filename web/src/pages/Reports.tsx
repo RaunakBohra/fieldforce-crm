@@ -165,7 +165,7 @@ export default function Reports() {
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="input-field"
               />
             </div>
             <div>
@@ -177,7 +177,7 @@ export default function Reports() {
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="input-field"
               />
             </div>
 
@@ -190,7 +190,7 @@ export default function Reports() {
                 <select
                   value={status}
                   onChange={(e) => setStatus(e.target.value)}
-                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="select-field"
                 >
                   <option value="">All Status</option>
                   <option value="SCHEDULED">Scheduled</option>
@@ -210,7 +210,7 @@ export default function Reports() {
                   <select
                     value={status}
                     onChange={(e) => setStatus(e.target.value)}
-                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="select-field"
                   >
                     <option value="">All Status</option>
                     <option value="PENDING">Pending</option>
@@ -226,7 +226,7 @@ export default function Reports() {
                   <select
                     value={paymentStatus}
                     onChange={(e) => setPaymentStatus(e.target.value)}
-                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="select-field"
                   >
                     <option value="">All Status</option>
                     <option value="UNPAID">Unpaid</option>
@@ -246,7 +246,7 @@ export default function Reports() {
                 <select
                   value={paymentMode}
                   onChange={(e) => setPaymentMode(e.target.value)}
-                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="select-field"
                 >
                   <option value="">All Modes</option>
                   <option value="CASH">Cash</option>

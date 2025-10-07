@@ -4,6 +4,7 @@ import { api } from '../services/api';
 import type { Order } from '../services/api';
 import { PageContainer, ContentSection, Card } from '../components/layout';
 import { showToast } from '../components/ui';
+import { validators } from '../utils/validation';
 
 export default function PaymentForm() {
   const { orderId } = useParams();
@@ -19,6 +20,10 @@ export default function PaymentForm() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Validation state
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (orderId) {
@@ -49,10 +54,66 @@ export default function PaymentForm() {
     }
   };
 
+  const validateField = (field: string, value: any): string => {
+    switch (field) {
+      case 'amount':
+        return validators.required(value, 'Amount') || validators.positiveNumber(value, 'Amount');
+      case 'paymentMode':
+        return validators.required(value, 'Payment mode');
+      case 'paymentDate':
+        return validators.required(value, 'Payment date');
+      default:
+        return '';
+    }
+  };
+
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    errors.amount = validateField('amount', formData.amount);
+    errors.paymentMode = validateField('paymentMode', formData.paymentMode);
+    errors.paymentDate = validateField('paymentDate', formData.paymentDate);
+
+    Object.keys(errors).forEach(key => {
+      if (!errors[key]) delete errors[key];
+    });
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleBlur = (field: string) => {
+    setTouched({ ...touched, [field]: true });
+    const value = formData[field as keyof typeof formData];
+    const error = validateField(field, value);
+    if (error) {
+      setFieldErrors({ ...fieldErrors, [field]: error });
+    } else {
+      const newErrors = { ...fieldErrors };
+      delete newErrors[field];
+      setFieldErrors(newErrors);
+    }
+  };
+
+  const handleChange = (field: keyof typeof formData, value: string) => {
+    setFormData({ ...formData, [field]: value });
+    if (fieldErrors[field]) {
+      setFieldErrors({ ...fieldErrors, [field]: '' });
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
+
+    // Validate form
+    if (!validateForm()) {
+      showToast.error('Please fix the errors in the form');
+      setTouched({ amount: true, paymentMode: true, paymentDate: true });
+      return;
+    }
+
+    setLoading(true);
 
     try {
       const response = await api.createPayment({
@@ -124,10 +185,14 @@ export default function PaymentForm() {
                 type="number"
                 step="0.01"
                 value={formData.amount}
-                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                className="input-field"
+                onChange={(e) => handleChange('amount', e.target.value)}
+                onBlur={() => handleBlur('amount')}
+                className={`input-field ${touched.amount && fieldErrors.amount ? 'border-danger-500 focus:ring-danger-500' : ''}`}
                 required
               />
+              {touched.amount && fieldErrors.amount && (
+                <p className="mt-1 text-sm text-danger-600">{fieldErrors.amount}</p>
+              )}
             </div>
 
             <div>
@@ -136,8 +201,9 @@ export default function PaymentForm() {
               </label>
               <select
                 value={formData.paymentMode}
-                onChange={(e) => setFormData({ ...formData, paymentMode: e.target.value })}
-                className="select-field"
+                onChange={(e) => handleChange('paymentMode', e.target.value)}
+                onBlur={() => handleBlur('paymentMode')}
+                className={`select-field ${touched.paymentMode && fieldErrors.paymentMode ? 'border-danger-500 focus:ring-danger-500' : ''}`}
                 required
               >
                 <option value="CASH">Cash</option>
@@ -147,6 +213,9 @@ export default function PaymentForm() {
                 <option value="CHEQUE">Cheque</option>
                 <option value="CARD">Card</option>
               </select>
+              {touched.paymentMode && fieldErrors.paymentMode && (
+                <p className="mt-1 text-sm text-danger-600">{fieldErrors.paymentMode}</p>
+              )}
             </div>
 
             <div>
@@ -156,10 +225,14 @@ export default function PaymentForm() {
               <input
                 type="date"
                 value={formData.paymentDate}
-                onChange={(e) => setFormData({ ...formData, paymentDate: e.target.value })}
-                className="input-field"
+                onChange={(e) => handleChange('paymentDate', e.target.value)}
+                onBlur={() => handleBlur('paymentDate')}
+                className={`input-field ${touched.paymentDate && fieldErrors.paymentDate ? 'border-danger-500 focus:ring-danger-500' : ''}`}
                 required
               />
+              {touched.paymentDate && fieldErrors.paymentDate && (
+                <p className="mt-1 text-sm text-danger-600">{fieldErrors.paymentDate}</p>
+              )}
             </div>
 
             <div>

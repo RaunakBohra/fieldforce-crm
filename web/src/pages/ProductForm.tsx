@@ -7,6 +7,7 @@ import { BarcodeScanner } from '../components/BarcodeScanner';
 import { Camera } from '../components/Camera';
 import { compressImage, getImageSizeKB } from '../utils/imageCompression';
 import { showToast } from '../components/ui';
+import { validators } from '../utils/validation';
 
 export function ProductForm() {
   const navigate = useNavigate();
@@ -16,6 +17,8 @@ export function ProductForm() {
   const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [formData, setFormData] = useState({
     name: '',
     sku: '',
@@ -34,6 +37,55 @@ export function ProductForm() {
   const [showNotifyModal, setShowNotifyModal] = useState(false);
   const [createdProductId, setCreatedProductId] = useState<string | null>(null);
   const [sendingNotification, setSendingNotification] = useState(false);
+
+  // Validation
+  const validateField = (field: string, value: any): string => {
+    switch (field) {
+      case 'name':
+        return validators.required(value, 'Product name') || validators.minLength(value, 2, 'Product name');
+      case 'sku':
+        return validators.required(value, 'SKU');
+      case 'category':
+        return validators.required(value, 'Category');
+      case 'price':
+        return validators.required(value, 'Price') || validators.positiveNumber(value, 'Price');
+      case 'stock':
+        return validators.number(value, 'Stock') || validators.min(value, 0, 'Stock');
+      default:
+        return '';
+    }
+  };
+
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+    errors.name = validateField('name', formData.name);
+    errors.sku = validateField('sku', formData.sku);
+    errors.category = validateField('category', formData.category);
+    errors.price = validateField('price', formData.price);
+    if (formData.stock) errors.stock = validateField('stock', formData.stock);
+
+    Object.keys(errors).forEach(key => {
+      if (!errors[key]) delete errors[key];
+    });
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleBlur = (field: string) => {
+    setTouched({ ...touched, [field]: true });
+    const error = validateField(field, formData[field as keyof typeof formData]);
+    if (error) {
+      setFieldErrors({ ...fieldErrors, [field]: error });
+    }
+  };
+
+  const handleChange = (field: keyof typeof formData, value: string) => {
+    setFormData({ ...formData, [field]: value });
+    if (fieldErrors[field]) {
+      setFieldErrors({ ...fieldErrors, [field]: '' });
+    }
+  };
 
   useEffect(() => {
     fetchCategories();
@@ -139,8 +191,16 @@ export function ProductForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
+
+    // Validate form
+    if (!validateForm()) {
+      showToast.error('Please fix the errors in the form');
+      setTouched({ name: true, sku: true, category: true, price: true, stock: true });
+      return;
+    }
+
+    setLoading(true);
 
     try {
       const productData = {
@@ -256,10 +316,14 @@ export function ProductForm() {
                 <input
                   type="text"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="input-field"
+                  onChange={(e) => handleChange('name', e.target.value)}
+                  onBlur={() => handleBlur('name')}
+                  className={`input-field ${touched.name && fieldErrors.name ? 'border-danger-500 focus:ring-danger-500' : ''}`}
                   required
                 />
+                {touched.name && fieldErrors.name && (
+                  <p className="mt-1 text-sm text-danger-600">{fieldErrors.name}</p>
+                )}
               </div>
 
               <div>
@@ -270,8 +334,9 @@ export function ProductForm() {
                   <input
                     type="text"
                     value={formData.sku}
-                    onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                    className="input-field flex-1"
+                    onChange={(e) => handleChange('sku', e.target.value)}
+                    onBlur={() => handleBlur('sku')}
+                    className={`input-field flex-1 ${touched.sku && fieldErrors.sku ? 'border-danger-500 focus:ring-danger-500' : ''}`}
                     placeholder="e.g., PROD-001"
                     required
                   />
@@ -285,6 +350,9 @@ export function ProductForm() {
                     {generatingSku ? 'Generating...' : 'Generate'}
                   </button>
                 </div>
+                {touched.sku && fieldErrors.sku && (
+                  <p className="mt-1 text-sm text-danger-600">{fieldErrors.sku}</p>
+                )}
               </div>
 
               <div>
@@ -316,8 +384,9 @@ export function ProductForm() {
                 </label>
                 <select
                   value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="select-field"
+                  onChange={(e) => handleChange('category', e.target.value)}
+                  onBlur={() => handleBlur('category')}
+                  className={`select-field ${touched.category && fieldErrors.category ? 'border-danger-500 focus:ring-danger-500' : ''}`}
                   required
                 >
                   <option value="">Select Category</option>
@@ -330,10 +399,14 @@ export function ProductForm() {
                   <input
                     type="text"
                     placeholder="Enter new category name"
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    onChange={(e) => handleChange('category', e.target.value)}
+                    onBlur={() => handleBlur('category')}
                     className="input-field mt-2"
                     required
                   />
+                )}
+                {touched.category && fieldErrors.category && (
+                  <p className="mt-1 text-sm text-danger-600">{fieldErrors.category}</p>
                 )}
               </div>
 
@@ -345,10 +418,14 @@ export function ProductForm() {
                   type="number"
                   step="0.01"
                   value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                  className="input-field"
+                  onChange={(e) => handleChange('price', e.target.value)}
+                  onBlur={() => handleBlur('price')}
+                  className={`input-field ${touched.price && fieldErrors.price ? 'border-danger-500 focus:ring-danger-500' : ''}`}
                   required
                 />
+                {touched.price && fieldErrors.price && (
+                  <p className="mt-1 text-sm text-danger-600">{fieldErrors.price}</p>
+                )}
               </div>
 
               <div>
@@ -358,10 +435,14 @@ export function ProductForm() {
                 <input
                   type="number"
                   value={formData.stock}
-                  onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
-                  className="input-field"
+                  onChange={(e) => handleChange('stock', e.target.value)}
+                  onBlur={() => handleBlur('stock')}
+                  className={`input-field ${touched.stock && fieldErrors.stock ? 'border-danger-500 focus:ring-danger-500' : ''}`}
                   required
                 />
+                {touched.stock && fieldErrors.stock && (
+                  <p className="mt-1 text-sm text-danger-600">{fieldErrors.stock}</p>
+                )}
               </div>
 
               <div className="md:col-span-2">
