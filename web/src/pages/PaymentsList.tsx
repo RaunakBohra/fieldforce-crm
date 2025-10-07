@@ -11,9 +11,17 @@ import { StatusBadge, Pagination, TableSkeleton } from '../components/ui';
 import { formatCurrency, formatDate } from '../utils';
 import { exportPaymentsToPDF } from '../utils/exportUtils';
 
+// Extended payment type with order relation
+type PaymentWithOrder = Payment & {
+  order?: {
+    orderNumber: string;
+    contact: { name: string };
+  };
+};
+
 export default function PaymentsList() {
   const isMobile = useIsMobile();
-  const [payments, setPayments] = useState<Payment[]>([]);
+  const [payments, setPayments] = useState<PaymentWithOrder[]>([]);
   const [stats, setStats] = useState<PaymentStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -100,7 +108,7 @@ export default function PaymentsList() {
   const hasActiveFilters = searchTerm || filter.paymentMode || filter.startDate || filter.endDate || filter.minAmount || filter.maxAmount;
 
   // Mobile Card View Component
-  const PaymentMobileCard = ({ payment }: { payment: Payment }) => (
+  const PaymentMobileCard = ({ payment }: { payment: PaymentWithOrder }) => (
     <div className="p-4 border-b border-neutral-200 hover:bg-neutral-50 active:bg-neutral-100 transition-colors">
       <div className="flex justify-between items-start mb-3">
         <div className="flex-1">

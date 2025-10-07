@@ -77,7 +77,7 @@ export function SignupWithOTP() {
         success: (data: MSG91VerifyResponse) => {
           console.log('✅ OTP Verification Success');
           // MSG91 widget returns token in different possible fields
-          const token = data.token || data.accessToken || data.authToken || data.message || data;
+          const token = data.token || data.accessToken || data.authToken || data.message || data.data?.authToken || '';
           console.log('📍 Current step from ref:', stepRef.current);
 
           if (token && typeof token === 'string') {

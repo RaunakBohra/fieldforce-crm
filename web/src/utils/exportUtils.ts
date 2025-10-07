@@ -39,13 +39,13 @@ export function exportToCSV<T extends Record<string, any>>(
 export function exportVisitsToCSV(visits: Visit[]): void {
   const exportData = visits.map(visit => ({
     'Visit ID': visit.id,
-    'Date': new Date(visit.checkInTime).toLocaleString(),
+    'Date': visit.checkInTime ? new Date(visit.checkInTime).toLocaleString() : 'N/A',
     'Contact Name': visit.contact?.name || 'N/A',
     'Contact Type': visit.contact?.contactType || 'N/A',
     'Location': visit.locationName || 'N/A',
     'Purpose': visit.purpose || 'N/A',
     'Outcome': visit.outcome || 'N/A',
-    'Duration (min)': visit.checkOutTime
+    'Duration (min)': (visit.checkOutTime && visit.checkInTime)
       ? Math.round((new Date(visit.checkOutTime).getTime() - new Date(visit.checkInTime).getTime()) / 60000)
       : 'Ongoing',
     'Products Discussed': visit.products?.join(', ') || 'None',
@@ -71,7 +71,6 @@ export function exportOrdersToCSV(orders: Order[]): void {
     'Contact Name': order.contact?.name || 'N/A',
     'Contact Type': order.contact?.contactType || 'N/A',
     'Contact Phone': order.contact?.phone || 'N/A',
-    'Contact City': order.contact?.city || 'N/A',
     'Total Amount': `₹${order.totalAmount.toFixed(2)}`,
     'Status': order.status,
     'Payment Status': order.paymentStatus || 'PENDING',
@@ -91,7 +90,7 @@ export function exportOrdersToCSV(orders: Order[]): void {
  * Export payments to PDF
  * @param payments - Array of payment objects
  */
-export function exportPaymentsToPDF(payments: Payment[]): void {
+export function exportPaymentsToPDF(payments: (Payment & { order?: { orderNumber: string; contact: { name: string } } })[]): void {
   if (payments.length === 0) {
     alert('No payments to export');
     return;
@@ -188,10 +187,10 @@ export function exportVisitReportToPDF(visits: Visit[]): void {
   // Table data
   const tableData = visits.map(visit => [
     visit.id.substring(0, 8),
-    new Date(visit.checkInTime).toLocaleDateString(),
+    visit.checkInTime ? new Date(visit.checkInTime).toLocaleDateString() : 'N/A',
     visit.contact?.name || 'N/A',
     visit.outcome || 'N/A',
-    visit.checkOutTime
+    (visit.checkOutTime && visit.checkInTime)
       ? `${Math.round((new Date(visit.checkOutTime).getTime() - new Date(visit.checkInTime).getTime()) / 60000)} min`
       : 'Ongoing',
   ]);

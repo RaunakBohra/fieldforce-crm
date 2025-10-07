@@ -72,7 +72,7 @@ export default function SignupWithEmailOTP() {
         exposeMethods: true,
         success: (data: MSG91VerifyResponse) => {
           console.log('✅ OTP Verification Success');
-          const token = data.message || data.token || data;
+          const token = data.message || data.token || data.accessToken || data.authToken || data.data?.authToken || '';
           console.log('📍 Current step from ref:', stepRef.current);
           handleOTPVerificationSuccess(token);
         },

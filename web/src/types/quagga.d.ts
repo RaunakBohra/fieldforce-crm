@@ -5,6 +5,16 @@
 
 declare module 'quagga' {
   /**
+   * Quagga's video constraints format
+   */
+  export interface QuaggaConstraints {
+    width?: number | { min?: number; ideal?: number; max?: number };
+    height?: number | { min?: number; ideal?: number; max?: number };
+    facingMode?: string;
+    aspectRatio?: number | { min?: number; ideal?: number; max?: number };
+  }
+
+  /**
    * Configuration for Quagga barcode scanner
    */
   export interface QuaggaConfig {
@@ -12,7 +22,7 @@ declare module 'quagga' {
       name?: string;
       type: string;
       target?: HTMLElement | string;
-      constraints?: MediaStreamConstraints;
+      constraints?: QuaggaConstraints;
     };
     decoder: {
       readers: string[];
