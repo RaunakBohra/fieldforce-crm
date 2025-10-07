@@ -12,6 +12,7 @@ export default defineConfig({
       'react-router-dom',
       'lucide-react',
       'date-fns',
+      'recharts', // Pre-bundle recharts to avoid runtime issues
     ],
     // Force pre-bundling of these packages
     force: false,
@@ -34,13 +35,13 @@ export default defineConfig({
         orientation: 'portrait',
         icons: [
           {
-            src: '/vite.svg',
+            src: '/pwa-192x192.svg',
             sizes: '192x192',
             type: 'image/svg+xml',
             purpose: 'any'
           },
           {
-            src: '/vite.svg',
+            src: '/pwa-512x512.svg',
             sizes: '512x512',
             type: 'image/svg+xml',
             purpose: 'any'
@@ -105,10 +106,6 @@ export default defineConfig({
             if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
               return 'vendor-react';
             }
-            // Charts library (large, rarely changes) - Keep together to avoid tree-shaking issues
-            if (id.includes('recharts') || id.includes('victory')) {
-              return 'vendor-charts';
-            }
             // PDF generation (large, rarely changes)
             if (id.includes('jspdf') || id.includes('html2canvas')) {
               return 'vendor-pdf';
@@ -121,7 +118,8 @@ export default defineConfig({
             if (id.includes('date-fns')) {
               return 'vendor-date';
             }
-            // Other vendor code
+            // Other vendor code (including recharts to prevent module registration issues)
+            // Note: Recharts has complex internal dependencies that break when split separately
             return 'vendor-misc';
           }
         }
@@ -129,7 +127,7 @@ export default defineConfig({
       // Prevent Recharts tree-shaking issues
       treeshake: {
         moduleSideEffects: (id) => {
-          // Don't tree-shake recharts to avoid breaking Activity export
+          // Preserve side effects for recharts modules to prevent Activity export error
           return id.includes('recharts');
         }
       }

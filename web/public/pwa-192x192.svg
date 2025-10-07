@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="192" height="192" viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3730a3;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1e3a8a;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="192" height="192" fill="url(#bgGradient)" rx="19.200000000000003"/>
+
+  <!-- Medical briefcase (centered) -->
+  <g transform="translate(96, 96)">
+    <!-- Briefcase body -->
+    <rect x="-38.400000000000006" y="-19.200000000000003" width="76.80000000000001" height="48"
+          fill="#ffffff" rx="3.84"/>
+
+    <!-- Briefcase handle -->
+    <rect x="-19.200000000000003" y="-28.799999999999997" width="38.400000000000006" height="9.600000000000001"
+          fill="#ffffff" rx="1.92"/>
+
+    <!-- Medical cross (pink accent) -->
+    <rect x="-4.800000000000001" y="-9.600000000000001" width="9.600000000000001" height="28.799999999999997"
+          fill="#db2777"/>
+    <rect x="-14.399999999999999" y="0" width="28.799999999999997" height="9.600000000000001"
+          fill="#db2777"/>
+  </g>
+
+  <!-- Location pin (top right corner) -->
+  <g transform="translate(144, 48)">
+    <circle cx="0" cy="0" r="11.52" fill="#10b981"/>
+    <circle cx="0" cy="0" r="5.76" fill="#ffffff"/>
+    <path d="M 0,11.52 L 0,23.04 L -4.800000000000001,17.28 Z" fill="#10b981"/>
+  </g>
+</svg>
