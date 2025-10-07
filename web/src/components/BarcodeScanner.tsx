@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+// @ts-ignore - quagga doesn't have type definitions
 import Quagga from 'quagga';
 import { X, Camera } from 'lucide-react';
 
@@ -32,7 +33,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
         },
         locate: true,
       },
-      (err) => {
+      (err: any) => {
         if (err) {
           console.error('Failed to initialize scanner:', err);
           setError('Unable to access camera. Please check permissions.');

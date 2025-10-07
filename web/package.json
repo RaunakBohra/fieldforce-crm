@@ -20,6 +20,7 @@
     "localforage": "^1.10.0",
     "lucide-react": "^0.544.0",
     "papaparse": "^5.5.3",
+    "quagga": "^0.12.1",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-router-dom": "^7.9.3",

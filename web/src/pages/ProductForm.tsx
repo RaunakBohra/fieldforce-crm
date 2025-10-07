@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
-import { Save, ArrowLeft } from 'lucide-react';
+import { Save, ArrowLeft, Wand2, Scan, Camera as CameraIcon, X, Upload } from 'lucide-react';
 import { PageContainer, ContentSection, Card } from '../components/layout';
+import { BarcodeScanner } from '../components/BarcodeScanner';
+import { Camera } from '../components/Camera';
+import { compressImage, getImageSizeKB } from '../utils/imageCompression';
 
 export function ProductForm() {
   const navigate = useNavigate();
@@ -12,11 +15,18 @@ export function ProductForm() {
   const [formData, setFormData] = useState({
     name: '',
     sku: '',
+    barcode: '',
     description: '',
     category: '',
     price: '',
     stock: '',
   });
+  const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
+  const [showCamera, setShowCamera] = useState(false);
+  const [productImage, setProductImage] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [generatingSku, setGeneratingSku] = useState(false);
 
   useEffect(() => {
     fetchCategories();
@@ -33,6 +43,62 @@ export function ProductForm() {
     }
   };
 
+  const handleGenerateSku = async () => {
+    setGeneratingSku(true);
+    try {
+      const response = await api.generateSku();
+      if (response.success && response.data) {
+        setFormData({ ...formData, sku: response.data.sku });
+      }
+    } catch (err) {
+      console.error('Failed to generate SKU:', err);
+      alert('Failed to generate SKU');
+    } finally {
+      setGeneratingSku(false);
+    }
+  };
+
+  const handleBarcodeScanned = (barcode: string) => {
+    setFormData({ ...formData, barcode });
+    setShowBarcodeScanner(false);
+  };
+
+  const handleImageCapture = async (photoDataUrl: string) => {
+    try {
+      const compressed = await compressImage(photoDataUrl);
+      setProductImage(compressed);
+      setImagePreview(compressed);
+      setShowCamera(false);
+    } catch (err) {
+      console.error('Failed to compress image:', err);
+      alert('Failed to process image');
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      try {
+        const dataUrl = reader.result as string;
+        const compressed = await compressImage(dataUrl);
+        setProductImage(compressed);
+        setImagePreview(compressed);
+      } catch (err) {
+        console.error('Failed to process image:', err);
+        alert('Failed to process image');
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const removeImage = () => {
+    setProductImage(null);
+    setImagePreview(null);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -42,13 +108,26 @@ export function ProductForm() {
       const response = await api.createProduct({
         name: formData.name,
         sku: formData.sku,
+        barcode: formData.barcode || undefined,
         description: formData.description || undefined,
         category: formData.category,
         price: parseFloat(formData.price),
         stock: parseInt(formData.stock),
       });
 
-      if (response.success) {
+      if (response.success && response.data) {
+        // Upload image if present
+        if (productImage) {
+          setUploadingImage(true);
+          try {
+            await api.uploadProductImage(response.data.id, productImage);
+          } catch (err) {
+            console.error('Failed to upload image:', err);
+            // Continue anyway - product is created
+          } finally {
+            setUploadingImage(false);
+          }
+        }
         navigate('/products');
       } else {
         setError(response.error || 'Failed to create product');
@@ -106,14 +185,48 @@ export function ProductForm() {
                 <label className="block text-sm font-medium text-neutral-700 mb-2">
                   SKU *
                 </label>
-                <input
-                  type="text"
-                  value={formData.sku}
-                  onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                  className="input-field"
-                  placeholder="e.g., PROD-001"
-                  required
-                />
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={formData.sku}
+                    onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+                    className="input-field flex-1"
+                    placeholder="e.g., PROD-001"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={handleGenerateSku}
+                    disabled={generatingSku}
+                    className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-500 disabled:opacity-50 flex items-center gap-2"
+                  >
+                    <Wand2 size={18} />
+                    {generatingSku ? 'Generating...' : 'Generate'}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Barcode
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={formData.barcode}
+                    onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
+                    className="input-field flex-1"
+                    placeholder="Scan or enter barcode"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowBarcodeScanner(true)}
+                    className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-500 flex items-center gap-2"
+                  >
+                    <Scan size={18} />
+                    Scan
+                  </button>
+                </div>
               </div>
 
               <div>
@@ -182,16 +295,64 @@ export function ProductForm() {
                   placeholder="Product description..."
                 />
               </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Product Image
+                </label>
+                {imagePreview ? (
+                  <div className="relative inline-block">
+                    <img
+                      src={imagePreview}
+                      alt="Product preview"
+                      className="w-48 h-48 object-cover rounded-md border border-neutral-300"
+                    />
+                    <button
+                      type="button"
+                      onClick={removeImage}
+                      className="absolute -top-2 -right-2 bg-danger-600 text-white p-1 rounded-full hover:bg-danger-500"
+                    >
+                      <X size={16} />
+                    </button>
+                    {productImage && (
+                      <p className="text-xs text-neutral-600 mt-1">
+                        Size: {getImageSizeKB(productImage)} KB
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setShowCamera(true)}
+                      className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-500 flex items-center gap-2"
+                    >
+                      <CameraIcon size={18} />
+                      Take Photo
+                    </button>
+                    <label className="px-4 py-2 bg-neutral-600 text-white rounded-md hover:bg-neutral-500 flex items-center gap-2 cursor-pointer">
+                      <Upload size={18} />
+                      Upload Image
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileUpload}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="mt-6 flex gap-4">
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || uploadingImage}
                 className="btn-primary flex-1"
               >
                 <Save size={20} />
-                {loading ? 'Creating...' : 'Create Product'}
+                {uploadingImage ? 'Uploading...' : loading ? 'Creating...' : 'Create Product'}
               </button>
               <button
                 type="button"
@@ -204,6 +365,20 @@ export function ProductForm() {
           </form>
         </Card>
       </ContentSection>
+
+      {showBarcodeScanner && (
+        <BarcodeScanner
+          onScan={handleBarcodeScanned}
+          onClose={() => setShowBarcodeScanner(false)}
+        />
+      )}
+
+      {showCamera && (
+        <Camera
+          onCapture={handleImageCapture}
+          onClose={() => setShowCamera(false)}
+        />
+      )}
     </PageContainer>
   );
 }

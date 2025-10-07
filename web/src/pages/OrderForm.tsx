@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import type { Contact, Product } from '../services/api';
-import { Save, ArrowLeft, Plus, Trash2 } from 'lucide-react';
+import { Save, ArrowLeft, Plus, Trash2, Scan } from 'lucide-react';
 import { PageContainer, ContentSection, Card } from '../components/layout';
 import { isOnline, saveOfflineOrder, type OfflineOrder } from '../utils/offlineStorage';
+import { BarcodeScanner } from '../components/BarcodeScanner';
 
 interface OrderItem {
   productId: string;
@@ -17,6 +18,7 @@ export function OrderForm() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
 
   // Data
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -95,6 +97,44 @@ export function OrderForm() {
 
   const calculateTotal = () => {
     return items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+  };
+
+  const handleBarcodeScanned = async (barcode: string) => {
+    setShowBarcodeScanner(false);
+    setError('');
+
+    try {
+      const response = await api.lookupProductByBarcode(barcode);
+      if (response.success && response.data) {
+        const product = response.data;
+
+        // Check if product already exists in items
+        const existingIndex = items.findIndex(item => item.productId === product.id);
+
+        if (existingIndex >= 0) {
+          // Increment quantity
+          const updatedItems = [...items];
+          updatedItems[existingIndex].quantity += 1;
+          setItems(updatedItems);
+        } else {
+          // Add new item
+          setItems([...items, {
+            productId: product.id,
+            product: product,
+            quantity: 1,
+            price: product.price,
+          }]);
+        }
+
+        // Show success feedback
+        alert(`Added: ${product.name}`);
+      } else {
+        setError('Product not found for this barcode');
+      }
+    } catch (err) {
+      const error = err as Error;
+      setError(error.message || 'Failed to lookup product');
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -217,14 +257,24 @@ export function OrderForm() {
             <Card>
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-lg font-semibold text-neutral-900">Order Items</h2>
-                <button
-                  type="button"
-                  onClick={addItem}
-                  className="flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-500"
-                >
-                  <Plus size={18} />
-                  Add Product
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowBarcodeScanner(true)}
+                    className="flex items-center gap-2 bg-accent-600 text-white px-4 py-2 rounded-md hover:bg-accent-500"
+                  >
+                    <Scan size={18} />
+                    Scan Product
+                  </button>
+                  <button
+                    type="button"
+                    onClick={addItem}
+                    className="flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-500"
+                  >
+                    <Plus size={18} />
+                    Add Product
+                  </button>
+                </div>
               </div>
 
               <input
@@ -343,6 +393,13 @@ export function OrderForm() {
             </div>
           </form>
       </ContentSection>
+
+      {showBarcodeScanner && (
+        <BarcodeScanner
+          onScan={handleBarcodeScanned}
+          onClose={() => setShowBarcodeScanner(false)}
+        />
+      )}
     </PageContainer>
   );
 }

@@ -222,10 +222,13 @@ export interface Product {
   id: string;
   name: string;
   sku: string;
+  barcode?: string;
   description?: string;
   category: string;
   price: number;
   stock: number;
+  imageUrl?: string;
+  imageObjectKey?: string;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -1090,6 +1093,7 @@ class ApiService {
   async createProduct(data: {
     name: string;
     sku: string;
+    barcode?: string;
     description?: string;
     category: string;
     price: number;
@@ -1122,6 +1126,71 @@ class ApiService {
       });
 
       return this.handleResponse<Product>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  async generateSku(): Promise<ApiResponse<{ sku: string }>> {
+    try {
+      const response = await fetch(`${API_URL}/api/products/generate-sku`, {
+        headers: await this.getHeaders(true, false),
+      });
+
+      return this.handleResponse<{ sku: string }>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  async lookupProductByBarcode(barcode: string): Promise<ApiResponse<Product>> {
+    try {
+      const response = await fetch(`${API_URL}/api/products/barcode/${encodeURIComponent(barcode)}`, {
+        headers: await this.getHeaders(true, false),
+      });
+
+      return this.handleResponse<Product>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  async uploadProductImage(productId: string, imageData: string): Promise<ApiResponse<{ imageUrl: string; imageObjectKey: string }>> {
+    try {
+      const response = await fetch(`${API_URL}/api/products/${productId}/image`, {
+        method: 'POST',
+        headers: await this.getHeaders(true, true),
+        credentials: 'include',
+        body: JSON.stringify({ image: imageData }),
+      });
+
+      return this.handleResponse<{ imageUrl: string; imageObjectKey: string }>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  async deleteProductImage(productId: string): Promise<ApiResponse<void>> {
+    try {
+      const response = await fetch(`${API_URL}/api/products/${productId}/image`, {
+        method: 'DELETE',
+        headers: await this.getHeaders(true, true),
+        credentials: 'include',
+      });
+
+      return this.handleResponse<void>(response);
     } catch (error) {
       if (error instanceof TypeError && error.message.includes('fetch')) {
         throw new Error('Network error: Unable to connect to server');

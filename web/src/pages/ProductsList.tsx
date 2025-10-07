@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import type { Product, ProductQueryParams } from '../services/api';
 import { useDebounce } from '../hooks/useDebounce';
-import { Search, Package, Edit2, Save, X, Plus } from 'lucide-react';
+import { Search, Package, Plus } from 'lucide-react';
 import { PageContainer, ContentSection, Card } from '../components/layout';
-import { Pagination, TableSkeleton } from '../components/ui';
+import { Pagination } from '../components/ui';
+import { ProductCard } from '../components/ProductCard';
 
 export function ProductsList() {
   const navigate = useNavigate();
@@ -13,8 +14,6 @@ export function ProductsList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [categories, setCategories] = useState<string[]>([]);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState<Partial<Product>>({});
 
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -70,34 +69,16 @@ export function ProductsList() {
     }
   };
 
-  const handleEdit = (product: Product) => {
-    setEditingId(product.id);
-    setEditForm({
-      name: product.name,
-      description: product.description,
-      price: product.price,
-      stock: product.stock,
-      category: product.category,
-    });
+  const handleEditProduct = (product: Product) => {
+    // Navigate to edit page - could be implemented later
+    // For now, just log
+    console.log('Edit product:', product.id);
   };
 
-  const handleCancel = () => {
-    setEditingId(null);
-    setEditForm({});
-  };
-
-  const handleSave = async (id: string) => {
-    try {
-      const response = await api.updateProduct(id, editForm);
-      if (response.success) {
-        fetchProducts();
-        setEditingId(null);
-        setEditForm({});
-      }
-    } catch (err) {
-      const error = err as Error;
-      alert(error.message || 'Failed to update product');
-    }
+  const handleProductClick = (product: Product) => {
+    // Navigate to product detail page - could be implemented later
+    // For now, just edit
+    handleEditProduct(product);
   };
 
   return (
@@ -172,147 +153,44 @@ export function ProductsList() {
           </div>
         )}
 
-        {/* Products Table */}
-        <div className="mt-6 bg-white rounded-lg border border-neutral-200 overflow-hidden">
-          {loading ? (
-            <TableSkeleton
-              rows={5}
-              columns={7}
-              headers={['Product Name', 'SKU', 'Description', 'Category', 'Price', 'Stock', 'Actions']}
-            />
-          ) : products.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 px-4 min-h-[400px]">
-              <Package className="w-16 h-16 text-neutral-400 mb-4" />
-              <h3 className="text-xl font-semibold text-neutral-900 mb-2">No Products Yet</h3>
-              <p className="text-neutral-600 text-center mb-6 max-w-md">
-                Build your product catalog by adding products. This will help you create orders more efficiently.
-              </p>
-              <button onClick={() => navigate('/products/new')} className="btn-primary">
-                <Plus className="w-4 h-4" />
-                <span>Add Product</span>
-              </button>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-neutral-200">
-            <thead className="bg-neutral-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Product Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">SKU</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Description</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Category</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Price</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Stock</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-neutral-200">
-              {products.map((product) => (
-                <tr key={product.id} className="hover:bg-neutral-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {editingId === product.id ? (
-                      <input
-                        type="text"
-                        value={editForm.name || ''}
-                        onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                        className="w-full px-2 py-1 border border-neutral-300 rounded focus:ring-2 focus:ring-primary-500"
-                      />
-                    ) : (
-                      <div className="text-sm font-medium text-neutral-900">{product.name}</div>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{product.sku}</td>
-                  <td className="px-6 py-4">
-                    {editingId === product.id ? (
-                      <input
-                        type="text"
-                        value={editForm.description || ''}
-                        onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                        className="w-full px-2 py-1 border border-neutral-300 rounded focus:ring-2 focus:ring-primary-500"
-                      />
-                    ) : (
-                      <div className="text-sm text-neutral-600 max-w-xs truncate">{product.description}</div>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {editingId === product.id ? (
-                      <select
-                        value={editForm.category || ''}
-                        onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
-                        className="px-2 py-1 border border-neutral-300 rounded focus:ring-2 focus:ring-primary-500"
-                      >
-                        {categories.map((cat) => (
-                          <option key={cat} value={cat}>{cat}</option>
-                        ))}
-                      </select>
-                    ) : (
-                      <span className="inline-block bg-primary-100 text-primary-800 text-xs px-2 py-1 rounded">
-                        {product.category}
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {editingId === product.id ? (
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={editForm.price || ''}
-                        onChange={(e) => setEditForm({ ...editForm, price: parseFloat(e.target.value) })}
-                        className="w-24 px-2 py-1 border border-neutral-300 rounded focus:ring-2 focus:ring-primary-500"
-                      />
-                    ) : (
-                      <div className="text-sm font-semibold text-neutral-900">₹{product.price}</div>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {editingId === product.id ? (
-                      <input
-                        type="number"
-                        value={editForm.stock || ''}
-                        onChange={(e) => setEditForm({ ...editForm, stock: parseInt(e.target.value) })}
-                        className="w-20 px-2 py-1 border border-neutral-300 rounded focus:ring-2 focus:ring-primary-500"
-                      />
-                    ) : (
-                      <span className={`text-sm font-bold ${product.stock > 100 ? 'text-success-600' : product.stock > 20 ? 'text-warn-600' : 'text-danger-600'}`}>
-                        {product.stock}
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    {editingId === product.id ? (
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleSave(product.id)}
-                          className="text-success-600 hover:text-success-900"
-                          title="Save"
-                        >
-                          <Save size={18} />
-                        </button>
-                        <button
-                          onClick={handleCancel}
-                          className="text-danger-600 hover:text-danger-500"
-                          title="Cancel"
-                        >
-                          <X size={18} />
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => handleEdit(product)}
-                        className="text-primary-600 hover:text-primary-900"
-                        title="Edit"
-                      >
-                        <Edit2 size={18} />
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-          )}
-        </div>
+        {/* Products Grid */}
+        {loading ? (
+          <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+              <div key={i} className="bg-white border border-neutral-200 rounded-lg overflow-hidden animate-pulse">
+                <div className="aspect-square bg-neutral-200"></div>
+                <div className="p-4 space-y-3">
+                  <div className="h-6 bg-neutral-200 rounded"></div>
+                  <div className="h-4 bg-neutral-200 rounded w-3/4"></div>
+                  <div className="h-4 bg-neutral-200 rounded w-1/2"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : products.length === 0 ? (
+          <div className="mt-6 flex flex-col items-center justify-center py-16 px-4 min-h-[400px] bg-white rounded-lg border border-neutral-200">
+            <Package className="w-16 h-16 text-neutral-400 mb-4" />
+            <h3 className="text-xl font-semibold text-neutral-900 mb-2">No Products Yet</h3>
+            <p className="text-neutral-600 text-center mb-6 max-w-md">
+              Build your product catalog by adding products. This will help you create orders more efficiently.
+            </p>
+            <button onClick={() => navigate('/products/new')} className="btn-primary">
+              <Plus className="w-4 h-4" />
+              <span>Add Product</span>
+            </button>
+          </div>
+        ) : (
+          <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {products.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onEdit={() => handleEditProduct(product)}
+                onClick={() => handleProductClick(product)}
+              />
+            ))}
+          </div>
+        )}
 
         {/* Pagination */}
         <Pagination
