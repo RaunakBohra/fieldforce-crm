@@ -1,7 +1,9 @@
 import { Hono } from 'hono';
 import { authMiddleware } from '../middleware/auth';
 import { requireManager } from '../middleware/rbac';
+import { rateLimiter } from '../middleware/rateLimiter';
 import { logger, getLogContext } from '../utils/logger';
+import { memoryCache } from '../utils/memoryCache';
 import type { Bindings } from '../index';
 import type { Dependencies } from '../config/dependencies';
 
@@ -15,6 +17,13 @@ const analytics = new Hono<{ Bindings: Bindings; Variables: { deps: Dependencies
 
 // All analytics routes require authentication
 analytics.use('/*', authMiddleware);
+
+// Rate limiting for analytics endpoints (100 requests/minute per user)
+analytics.use('/*', rateLimiter({
+  windowMs: 60 * 1000, // 1 minute
+  max: 100, // 100 requests per minute
+  message: 'Too many analytics requests, please try again in a minute',
+}));
 
 /**
  * GET /api/analytics/visit-trends
@@ -369,6 +378,38 @@ analytics.get('/territory-performance', requireManager, async (c) => {
     const endDate = endDateParam ? new Date(endDateParam) : new Date();
     const startDate = startDateParam ? new Date(startDateParam) : new Date(endDate.getTime() - 30 * 24 * 60 * 60 * 1000);
 
+    // Create cache key based on date range
+    const cacheKey = `territory-performance:${startDate.toISOString()}:${endDate.toISOString()}`;
+
+    // Tier 1: Check in-memory cache (< 1ms, 1-minute TTL)
+    const memCached = memoryCache.get(cacheKey);
+    if (memCached) {
+      logger.info('Territory performance served from memory cache', getLogContext(c));
+      return c.json({
+        success: true,
+        data: memCached,
+        cached: true,
+        cacheSource: 'memory',
+      });
+    }
+
+    // Tier 2: Check KV cache (~10-50ms, 5-minute TTL)
+    const kvCached = await deps.cache.get<any>(cacheKey);
+    if (kvCached) {
+      logger.info('Territory performance served from KV cache', getLogContext(c));
+      // Store in memory cache for next request
+      memoryCache.set(cacheKey, kvCached, 60); // 1 minute
+      return c.json({
+        success: true,
+        data: kvCached,
+        cached: true,
+        cacheSource: 'kv',
+      });
+    }
+
+    // Cache miss: Query database
+    logger.info('Territory performance cache miss, querying database', getLogContext(c));
+
     // Optimized: Use database aggregation to avoid N+1 queries
     // Execute all queries in parallel using Promise.all
     const [territories, contactCounts, orderAggregates, visitCounts] = await Promise.all([
@@ -497,21 +538,30 @@ analytics.get('/territory-performance', requireManager, async (c) => {
       { contacts: 0, orders: 0, revenue: 0, visits: 0 }
     );
 
+    // Prepare response data
+    const responseData = {
+      territories: performanceData,
+      totals,
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+    };
+
+    // Store in both cache tiers
+    memoryCache.set(cacheKey, responseData, 60); // Memory: 1 minute TTL
+    await deps.cache.set(cacheKey, responseData, { ttl: 300 }); // KV: 5 minutes TTL
+
     logger.info('Territory performance retrieved successfully', {
       ...getLogContext(c),
       territoryCount: performanceData.length,
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
+      cached: false,
     });
 
     return c.json({
       success: true,
-      data: {
-        territories: performanceData,
-        totals,
-        startDate: startDate.toISOString(),
-        endDate: endDate.toISOString(),
-      },
+      data: responseData,
+      cached: false,
     });
   } catch (error: any) {
     logger.error('Get territory performance error', {

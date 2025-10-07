@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { api } from '../services/api';
 import type { VisitTrend, RevenueData, PaymentModeData, TerritoryPerformance } from '../services/api';
 import { PageContainer, ContentSection, Card } from '../components/layout';
@@ -42,11 +42,8 @@ export default function Analytics() {
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
 
-  useEffect(() => {
-    fetchAnalyticsData();
-  }, [dateRange, customStartDate, customEndDate]);
-
-  const getDateRange = (): { startDate: string; endDate: string } => {
+  // Memoize date range calculation (expensive operation)
+  const dateRangeValues = useMemo(() => {
     const today = new Date();
     let start: Date;
     let end: Date = today;
@@ -80,12 +77,13 @@ export default function Analytics() {
       startDate: start.toISOString(),
       endDate: end.toISOString(),
     };
-  };
+  }, [dateRange, customStartDate, customEndDate]);
 
-  const fetchAnalyticsData = async () => {
+  // Memoize fetchAnalyticsData to prevent unnecessary re-renders
+  const fetchAnalyticsData = useCallback(async () => {
     try {
       setLoading(true);
-      const { startDate, endDate } = getDateRange();
+      const { startDate, endDate } = dateRangeValues;
 
       const [visitRes, revenueRes, paymentRes, territoryRes] = await Promise.all([
         api.getVisitTrends(startDate, endDate),
@@ -114,16 +112,33 @@ export default function Analytics() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [dateRangeValues]);
 
-  // Format date for charts (MMM DD)
-  const formatChartDate = (dateStr: string) => {
+  useEffect(() => {
+    fetchAnalyticsData();
+  }, [fetchAnalyticsData]);
+
+  // Memoize event handlers
+  const handleDateRangeChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    setDateRange(e.target.value as DateRange);
+  }, []);
+
+  const handleCustomStartDateChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setCustomStartDate(e.target.value);
+  }, []);
+
+  const handleCustomEndDateChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setCustomEndDate(e.target.value);
+  }, []);
+
+  // Memoize format date for charts
+  const formatChartDate = useCallback((dateStr: string) => {
     try {
       return format(new Date(dateStr), 'MMM dd');
     } catch {
       return dateStr;
     }
-  };
+  }, []);
 
   if (loading) {
     return (
@@ -164,9 +179,12 @@ export default function Analytics() {
 
             {/* Date Range Selector */}
             <div className="flex flex-col sm:flex-row gap-3">
+              <label htmlFor="date-range-select" className="sr-only">Select date range</label>
               <select
+                id="date-range-select"
                 value={dateRange}
-                onChange={(e) => setDateRange(e.target.value as DateRange)}
+                onChange={handleDateRangeChange}
+                aria-label="Date range filter for analytics data"
                 className="px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
                 <option value="last7days">Last 7 Days</option>
@@ -177,16 +195,22 @@ export default function Analytics() {
 
               {dateRange === 'custom' && (
                 <>
+                  <label htmlFor="custom-start-date" className="sr-only">Custom start date</label>
                   <input
+                    id="custom-start-date"
                     type="date"
                     value={customStartDate}
-                    onChange={(e) => setCustomStartDate(e.target.value)}
+                    onChange={handleCustomStartDateChange}
+                    aria-label="Select custom start date"
                     className="px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
+                  <label htmlFor="custom-end-date" className="sr-only">Custom end date</label>
                   <input
+                    id="custom-end-date"
                     type="date"
                     value={customEndDate}
-                    onChange={(e) => setCustomEndDate(e.target.value)}
+                    onChange={handleCustomEndDateChange}
+                    aria-label="Select custom end date"
                     className="px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </>
