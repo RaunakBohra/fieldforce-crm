@@ -23,70 +23,56 @@ CSRF tokens were mismatched between local development and production environment
 
 **Before:**
 ```typescript
-const API_URL = import.meta.env.VITE_API_URL || 'https://crm-api.raunakbohra.com';
+const API_URL = import.meta.env.VITE_API_URL || 'https://fieldforce-crm-api.rnkbohra.workers.dev';
 ```
 
 **After:**
 ```typescript
-function getApiUrl(): string {
-  const apiUrl = import.meta.env.VITE_API_URL;
-
-  if (!apiUrl) {
-    throw new Error(
-      'VITE_API_URL is not configured. Please set it in your .env file.\n' +
-      'Local: VITE_API_URL=http://localhost:8787\n' +
-      'Production: VITE_API_URL=https://fieldforce-crm-api.rnkbohra.workers.dev'
-    );
-  }
-
-  return apiUrl;
-}
+const API_URL = import.meta.env.VITE_API_URL || 'https://crm-api.raunakbohra.com';
 ```
 
 **Benefits:**
-- ✅ No hardcoded fallback URL
-- ✅ Clear error message if environment variable is missing
-- ✅ Forces proper configuration
-- ✅ Consistent behavior across environments
+- ✅ Uses custom domain `crm-api.raunakbohra.com` instead of workers.dev
+- ✅ Consistent domain for same-parent domain cookie sharing
+- ✅ Simple fallback for production builds
 
 ### Backend Changes (`src/middleware/csrf.ts`)
 
-**Added Environment-Aware Cookie Configuration:**
+**Critical Fix: Added Domain Attribute for Cross-Subdomain Cookies**
 
+**Before (Broken in Production):**
 ```typescript
-function getCookieAttributes(env?: string): string {
-  const isProduction = env === 'production';
-
-  if (isProduction) {
-    // Production: Cross-domain cookies with explicit domain
-    // SameSite=None requires Secure flag (HTTPS only)
-    return 'Path=/; SameSite=None; Secure; Max-Age=3600';
-  } else {
-    // Development: Same-site cookies (localhost)
-    // SameSite=Lax works for localhost without Secure flag
-    return 'Path=/; SameSite=Lax; Max-Age=3600';
-  }
-}
+c.header('Set-Cookie',
+  `${CSRF_COOKIE_NAME}=${token}; Path=/; SameSite=None; Secure; Max-Age=3600`
+);
 ```
 
-**Updated CSRF Middleware:**
-
+**After (Working):**
 ```typescript
-export async function csrfProtection(c: Context, next: Next) {
-  const environment = c.env.ENVIRONMENT || 'development';
-  const cookieAttributes = getCookieAttributes(environment);
-
-  // Set CSRF token in cookie
-  c.header('Set-Cookie', `${CSRF_COOKIE_NAME}=${token}; ${cookieAttributes}`);
-  // ...
-}
+// Set CSRF token in cookie (HttpOnly=false so JS can read it)
+// Domain=.raunakbohra.com makes cookie work across all subdomains
+// SameSite=None; Secure allows cross-subdomain access
+c.header('Set-Cookie',
+  `${CSRF_COOKIE_NAME}=${token}; Path=/; Domain=.raunakbohra.com; SameSite=None; Secure; Max-Age=3600`
+);
 ```
+
+**Why This Matters:**
+- Without `Domain` attribute, cookies are **host-only** (only work on the exact subdomain that set them)
+- With `Domain=.raunakbohra.com`, cookies work across **all subdomains**:
+  - ✅ `crm.raunakbohra.com` (frontend) can read it
+  - ✅ `crm-api.raunakbohra.com` (backend) can read it
+  - ✅ Any `*.raunakbohra.com` can read it
+
+**Updated in Two Places:**
+1. Line 95 in `csrfProtection()` middleware
+2. Line 172 in `getCsrfToken()` endpoint
 
 **Benefits:**
-- ✅ Local development uses `SameSite=Lax` (works with HTTP)
-- ✅ Production uses `SameSite=None; Secure` (works cross-domain with HTTPS)
-- ✅ Cookies work correctly in both environments
-- ✅ No manual configuration needed
+- ✅ Cookies shared across all subdomains under `.raunakbohra.com`
+- ✅ No more 403 CSRF token mismatch errors in production
+- ✅ Works with `SameSite=None; Secure` for HTTPS
+- ✅ Permanent fix - no environment-specific logic needed
 
 ## Testing
 
@@ -100,11 +86,13 @@ Set-Cookie: csrf_token=...; Path=/; SameSite=Lax; Max-Age=3600
 
 ### Production (HTTPS)
 ```bash
-curl -i https://fieldforce-crm-api.rnkbohra.workers.dev/api/csrf-token
+curl -i https://crm-api.raunakbohra.com/api/csrf-token
 
-# Response:
-Set-Cookie: csrf_token=...; Path=/; SameSite=None; Secure; Max-Age=3600
+# Response (with Domain attribute):
+Set-Cookie: csrf_token=...; SameSite=None; Secure; Path=/; Domain=raunakbohra.com; Max-Age=3600
 ```
+
+**Note:** The leading dot in `Domain=.raunakbohra.com` is optional - browsers normalize it to `Domain=raunakbohra.com`.
 
 ## Environment Variables
 
@@ -115,8 +103,10 @@ VITE_API_URL=http://localhost:8787
 
 ### Production (`.env.production`)
 ```bash
-VITE_API_URL=https://fieldforce-crm-api.rnkbohra.workers.dev
+VITE_API_URL=https://crm-api.raunakbohra.com
 ```
+
+**Note:** Use the custom domain `crm-api.raunakbohra.com` instead of `fieldforce-crm-api.rnkbohra.workers.dev` to ensure cookies work across subdomains.
 
 ## How CSRF Works Now
 
@@ -142,9 +132,9 @@ VITE_API_URL=https://fieldforce-crm-api.rnkbohra.workers.dev
 - Frontend and backend on same domain (localhost)
 
 **Production:**
-- Cookie: `SameSite=None; Secure` (cross-origin allowed)
+- Cookie: `SameSite=None; Secure; Domain=.raunakbohra.com` (cross-subdomain)
 - Requires HTTPS
-- Frontend and backend can be on different domains
+- Frontend (`crm.raunakbohra.com`) and backend (`crm-api.raunakbohra.com`) share parent domain
 
 ## Security Considerations
 
@@ -164,10 +154,10 @@ VITE_API_URL=https://fieldforce-crm-api.rnkbohra.workers.dev
    - Same origin (localhost), so `Lax` works
    - HTTP allowed in development
 
-2. **Production (None + Secure)**:
+2. **Production (None + Secure + Domain)**:
    - Frontend: `https://crm.raunakbohra.com` (Cloudflare Pages)
-   - Backend: `https://fieldforce-crm-api.rnkbohra.workers.dev` (Workers)
-   - Different origins, requires `SameSite=None`
+   - Backend: `https://crm-api.raunakbohra.com` (Workers with custom domain)
+   - Different subdomains, requires `SameSite=None` + `Domain=.raunakbohra.com`
    - HTTPS required for `Secure` flag
 
 ## Troubleshooting
@@ -183,70 +173,82 @@ VITE_API_URL=https://fieldforce-crm-api.rnkbohra.workers.dev
 
 ### Issue: "CSRF token mismatch"
 
-**Cause:** Cookie domain mismatch
+**Cause:** Cookie domain mismatch or missing Domain attribute
 
 **Fix:**
-1. Verify frontend and backend are using correct domains
-2. Check cookie attributes match environment (Lax vs None)
-3. Clear browser cookies and refresh
+1. Verify backend sets `Domain=.raunakbohra.com` in cookie
+2. Verify frontend uses `crm-api.raunakbohra.com` (not `*.workers.dev`)
+3. Check browser DevTools → Application → Cookies for `csrf_token`
+4. Clear browser cookies and refresh
 
 ### Issue: CSRF works locally but fails in production
 
-**Cause:** Cookie `SameSite` policy mismatch
+**Cause:** Missing `Domain` attribute on cookies (host-only cookies don't work across subdomains)
 
 **Fix:**
-1. Ensure `ENVIRONMENT=production` is set in Cloudflare
-2. Verify production uses `SameSite=None; Secure`
-3. Check frontend is on HTTPS
+1. Verify backend sets `Domain=.raunakbohra.com` in Set-Cookie header
+2. Use custom domain `crm-api.raunakbohra.com` for Workers (not `*.workers.dev`)
+3. Verify production uses `SameSite=None; Secure; Domain=.raunakbohra.com`
+4. Check frontend is on HTTPS
 
-## Manual Fix (If Needed)
+## Key Takeaways
 
-If you encounter CSRF issues, you can manually configure:
+### ✅ What Fixed the Issue
 
-### 1. Check Environment Variable
+1. **Added Domain Attribute**: `Domain=.raunakbohra.com` to all Set-Cookie headers
+2. **Used Custom Domain**: `crm-api.raunakbohra.com` instead of `*.workers.dev`
+3. **Same Parent Domain**: Both frontend and backend under `*.raunakbohra.com`
+
+### 🔍 How to Verify It's Working
+
 ```bash
-# In Cloudflare Workers
-wrangler secret list
+# Check backend sets Domain attribute
+curl -s -i https://crm-api.raunakbohra.com/api/csrf-token | grep -i domain
 
-# Should show ENVIRONMENT="production"
+# Expected output:
+# Domain=raunakbohra.com
 ```
 
-### 2. Update Cookie Attributes
-```typescript
-// For specific domain requirements
-function getCookieAttributes(env?: string): string {
-  return 'Path=/; SameSite=None; Secure; Max-Age=3600; Domain=.raunakbohra.com';
-}
-```
+### 🚨 Common Mistakes to Avoid
 
-### 3. Disable CSRF (NOT RECOMMENDED)
-```typescript
-// ONLY for debugging - remove after testing
-app.use('/api/*', async (c, next) => {
-  await next(); // Skip CSRF protection
-});
-```
+❌ **DON'T** use different parent domains (e.g., `crm.raunakbohra.com` + `*.workers.dev`)
+✅ **DO** use same parent domain with custom domain setup
+
+❌ **DON'T** forget Domain attribute in Set-Cookie header
+✅ **DO** set `Domain=.raunakbohra.com` for cross-subdomain cookies
+
+❌ **DON'T** use hardcoded fallback URLs that bypass env vars
+✅ **DO** use environment variables consistently
 
 ## Files Modified
 
-1. ✅ `web/src/utils/csrf.ts` - Fixed API URL handling
-2. ✅ `src/middleware/csrf.ts` - Added environment-aware cookies
-3. ✅ `web/src/pages/SignupWithEmailOTP.tsx` - Fixed TypeScript errors
-4. ✅ `web/src/pages/SignupWithOTP.tsx` - Fixed TypeScript errors
+1. ✅ `src/middleware/csrf.ts` - Added `Domain=.raunakbohra.com` to cookies (lines 95, 172)
+2. ✅ `web/src/utils/csrf.ts` - Updated API URL to `crm-api.raunakbohra.com`
+3. ✅ `web/src/services/api.ts` - Updated API URL to `crm-api.raunakbohra.com`
+4. ✅ `web/.env.production` - Set `VITE_API_URL=https://crm-api.raunakbohra.com`
 
 ## Deployment
 
 ```bash
-# Deploy backend
+# Deploy backend with Domain fix
 wrangler deploy --env=""
 
-# Build and deploy frontend
+# Build frontend
 cd web && npm run build
-# Then deploy dist/ to Cloudflare Pages
+
+# Deploy frontend to Cloudflare Pages
+wrangler pages deploy dist --project-name=fieldforce-crm
 ```
+
+### Cloudflare Pages Environment Variable
+
+Set in Cloudflare Pages dashboard:
+- **Variable**: `VITE_API_URL`
+- **Value**: `https://crm-api.raunakbohra.com`
+- **Type**: Text
 
 ---
 
 **Last Updated:** 2025-10-07
-**Status:** ✅ Fixed and Tested
-**Environments:** Local (HTTP) + Production (HTTPS)
+**Status:** ✅ Fixed and Tested - Domain Attribute Added
+**Environments:** Local (HTTP) + Production (HTTPS with Domain attribute)

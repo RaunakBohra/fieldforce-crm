@@ -4,12 +4,14 @@ import { List } from 'react-window';
 import { api } from '../services/api';
 import type { Contact, ContactStats, ContactQueryParams } from '../services/api';
 import { useDebounce } from '../hooks/useDebounce';
+import { useIsMobile } from '../hooks/useMediaQuery';
 import { Pencil, Trash2, Plus, Search, Filter, Users } from 'lucide-react';
 import { PageContainer, ContentSection, Card } from '../components/layout';
 import { StatusBadge, Pagination, TableSkeleton } from '../components/ui';
 
 export function ContactsList() {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [stats, setStats] = useState<ContactStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -118,7 +120,84 @@ export function ContactsList() {
     setCurrentPage(1);
   };
 
-  // ContactRow component for virtual scrolling
+  // Mobile Card View Component
+  const ContactMobileCard = ({ contact }: { contact: Contact }) => (
+    <div className="p-4 border-b border-neutral-200 hover:bg-neutral-50 active:bg-neutral-100 transition-colors">
+      <div className="flex justify-between items-start mb-3">
+        <div className="flex-1">
+          <h3 className="text-base font-semibold text-neutral-900">{contact.name}</h3>
+          {contact.designation && (
+            <p className="text-sm text-neutral-500 mt-0.5">{contact.designation}</p>
+          )}
+        </div>
+        <div className="flex gap-2 ml-3">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/contacts/${contact.id}/edit`);
+            }}
+            className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+            aria-label="Edit contact"
+          >
+            <Pencil className="w-5 h-5" />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDelete(contact.id, contact.name);
+            }}
+            className="p-2 text-danger-600 hover:bg-danger-50 rounded-lg transition-colors"
+            aria-label="Delete contact"
+          >
+            <Trash2 className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <div className="flex flex-wrap gap-2">
+          <StatusBadge
+            label={contact.contactCategory}
+            variant={contact.contactCategory === 'DISTRIBUTION' ? 'primary' : 'success'}
+            formatLabel={false}
+          />
+          <StatusBadge
+            label={contact.contactType}
+            variant="neutral"
+            formatLabel={false}
+          />
+          <StatusBadge
+            label={contact.isActive ? 'Active' : 'Inactive'}
+            variant={contact.isActive ? 'success' : 'neutral'}
+            formatLabel={false}
+          />
+        </div>
+
+        {(contact.phone || contact.email) && (
+          <div className="text-sm space-y-1">
+            {contact.phone && (
+              <p className="text-neutral-700">
+                <span className="font-medium">Phone:</span> {contact.phone}
+              </p>
+            )}
+            {contact.email && (
+              <p className="text-neutral-600">
+                <span className="font-medium">Email:</span> {contact.email}
+              </p>
+            )}
+          </div>
+        )}
+
+        {contact.city && contact.state && (
+          <p className="text-sm text-neutral-600">
+            <span className="font-medium">Location:</span> {contact.city}, {contact.state}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+
+  // ContactRow component for virtual scrolling (Desktop)
   const ContactRow = ({ index, style, ariaAttributes }: any) => {
     const contact = contacts[index];
     if (!contact) return null;
@@ -307,7 +386,15 @@ export function ContactsList() {
                 <span>Add Contact</span>
               </button>
             </div>
+          ) : isMobile ? (
+            // Mobile Card View
+            <div className="bg-white">
+              {contacts.map((contact) => (
+                <ContactMobileCard key={contact.id} contact={contact} />
+              ))}
+            </div>
           ) : (
+            // Desktop Table View
             <div className="overflow-x-auto">
               {/* Table Header */}
               <div className="grid grid-cols-7 gap-4 px-6 py-3 bg-neutral-50 border-b border-neutral-200">

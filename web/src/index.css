@@ -431,6 +431,20 @@
     }
   }
 
+  /* Shimmer Animation for Skeletons */
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  .animate-shimmer {
+    animation: shimmer 2s ease-in-out infinite;
+  }
+
   /* Glass Morphism Effects */
   .glass {
     background: rgba(255, 255, 255, 0.9);

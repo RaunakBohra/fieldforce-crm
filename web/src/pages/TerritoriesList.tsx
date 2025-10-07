@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import type { Territory } from '../services/api';
+import { useIsMobile } from '../hooks/useMediaQuery';
 import { PageContainer, ContentSection, Card } from '../components/layout';
 import { StatusBadge, TableSkeleton, Pagination } from '../components/ui';
 import { Plus, Search, MapPin } from 'lucide-react';
@@ -9,6 +10,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 export function TerritoriesList() {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const { user: currentUser } = useAuth();
   const [territories, setTerritories] = useState<Territory[]>([]);
   const [loading, setLoading] = useState(true);
@@ -85,6 +87,71 @@ export function TerritoriesList() {
       default: return 'bg-neutral-100 text-neutral-700';
     }
   };
+
+  // Mobile Card View Component
+  const TerritoryMobileCard = ({ territory }: { territory: Territory }) => (
+    <div
+      className="p-4 border-b border-neutral-200 hover:bg-neutral-50 active:bg-neutral-100 transition-colors cursor-pointer"
+      onClick={() => navigate(`/territories/${territory.id}`)}
+    >
+      <div className="flex justify-between items-start mb-3">
+        <div className="flex-1">
+          <h3 className="text-base font-semibold text-neutral-900">{territory.name}</h3>
+          <p className="text-sm text-neutral-600 mt-0.5 font-mono">{territory.code}</p>
+        </div>
+        <StatusBadge label={territory.isActive ? 'active' : 'inactive'} />
+      </div>
+
+      <div className="space-y-2">
+        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getTypeBadgeColor(territory.type)}`}>
+          {territory.type}
+        </span>
+
+        <div className="text-sm space-y-1">
+          {(territory.city || territory.state || territory.country) && (
+            <p className="text-neutral-700">
+              <span className="font-medium">Location:</span> {territory.city || territory.state || territory.country}
+            </p>
+          )}
+          {territory.parent && (
+            <p className="text-neutral-600">
+              <span className="font-medium">Parent:</span> {territory.parent.name}
+            </p>
+          )}
+          <p className="text-neutral-600">
+            <span className="font-medium">Users:</span> {territory._count?.users || 0}
+            {territory._count && territory._count.children > 0 && (
+              <span className="ml-2">• {territory._count.children} sub-territories</span>
+            )}
+          </p>
+        </div>
+
+        {currentUser?.role === 'ADMIN' && (
+          <div className="flex gap-2 pt-2">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/territories/${territory.id}/edit`);
+              }}
+              className="flex-1 px-3 py-2 text-sm font-medium text-primary-700 bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors"
+            >
+              Edit
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDelete(territory.id, territory.name);
+              }}
+              disabled={!!territory._count && (territory._count.users > 0 || territory._count.children > 0)}
+              className="px-3 py-2 text-sm font-medium text-danger-700 bg-danger-50 hover:bg-danger-100 rounded-lg transition-colors disabled:opacity-50"
+            >
+              Delete
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 
   if (currentUser && currentUser.role !== 'ADMIN' && currentUser.role !== 'MANAGER') {
     return null;
@@ -189,7 +256,15 @@ export function TerritoriesList() {
                 </button>
               )}
             </div>
+          ) : isMobile ? (
+            // Mobile Card View
+            <div className="bg-white">
+              {territories.map((territory) => (
+                <TerritoryMobileCard key={territory.id} territory={territory} />
+              ))}
+            </div>
           ) : (
+            // Desktop Table View
             <>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-neutral-200">

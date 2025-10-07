@@ -33,7 +33,22 @@
       "Bash(wrangler deployments list:*)",
       "Bash(npm run build:*)",
       "Bash(jq:*)",
-      "Bash(TOKEN=\"b798f0e807a77d6fd6c3304d1600f415edf1180e276244603b51f83154414b2c.ef0c456bde26f7c264457069e38c1275a736a9ef4015e6443b052f1fb0492aed\")"
+      "Bash(TOKEN=\"b798f0e807a77d6fd6c3304d1600f415edf1180e276244603b51f83154414b2c.ef0c456bde26f7c264457069e38c1275a736a9ef4015e6443b052f1fb0492aed\")",
+      "Bash(wrangler pages deploy:*)",
+      "Bash(wrangler pages project list:*)",
+      "Bash(wrangler pages secret put:*)",
+      "Bash(wrangler pages deployment create:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx eslint:*)",
+      "Bash(awk:*)",
+      "Bash(open:*)",
+      "mcp__chrome-devtools__take_screenshot",
+      "mcp__chrome-devtools__resize_page",
+      "mcp__chrome-devtools__evaluate_script",
+      "Bash(node:*)",
+      "Read(//private/tmp/**)",
+      "Bash(npm ls:*)",
+      "Bash(npx vite-bundle-visualizer:*)"
     ],
     "deny": [],
     "ask": []

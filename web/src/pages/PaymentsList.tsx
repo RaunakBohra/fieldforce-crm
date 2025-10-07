@@ -5,6 +5,7 @@ import { api } from '../services/api';
 import type { PaymentStats, PaymentQueryParams } from '../services/api';
 import { Search, Filter, DollarSign, Plus, FileText } from 'lucide-react';
 import { useDebounce } from '../hooks/useDebounce';
+import { useIsMobile } from '../hooks/useMediaQuery';
 import { PageContainer, ContentSection, Card } from '../components/layout';
 import { StatusBadge, Pagination, TableSkeleton } from '../components/ui';
 import { formatCurrency, formatDate } from '../utils';
@@ -24,6 +25,7 @@ interface Payment {
 }
 
 export default function PaymentsList() {
+  const isMobile = useIsMobile();
   const [payments, setPayments] = useState<Payment[]>([]);
   const [stats, setStats] = useState<PaymentStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -110,7 +112,45 @@ export default function PaymentsList() {
 
   const hasActiveFilters = searchTerm || filter.paymentMode || filter.startDate || filter.endDate || filter.minAmount || filter.maxAmount;
 
-  // PaymentRow component for virtual scrolling
+  // Mobile Card View Component
+  const PaymentMobileCard = ({ payment }: { payment: Payment }) => (
+    <div className="p-4 border-b border-neutral-200 hover:bg-neutral-50 active:bg-neutral-100 transition-colors">
+      <div className="flex justify-between items-start mb-3">
+        <div className="flex-1">
+          <h3 className="text-base font-semibold text-neutral-900">{payment.paymentNumber}</h3>
+          <p className="text-sm text-neutral-600 mt-0.5">
+            {payment.order?.contact.name || 'Unknown Contact'}
+          </p>
+        </div>
+        <div className="text-right">
+          <p className="text-lg font-bold text-success-600">{formatCurrency(payment.amount)}</p>
+          <StatusBadge
+            label={payment.paymentMode}
+            variant="primary"
+            formatLabel={false}
+          />
+        </div>
+      </div>
+
+      <div className="space-y-1.5 text-sm">
+        {payment.order?.orderNumber && (
+          <p className="text-neutral-700">
+            <span className="font-medium">Order:</span> {payment.order.orderNumber}
+          </p>
+        )}
+        {payment.referenceNumber && (
+          <p className="text-neutral-700">
+            <span className="font-medium">Reference:</span> {payment.referenceNumber}
+          </p>
+        )}
+        <p className="text-neutral-600">
+          <span className="font-medium">Date:</span> {formatDate(payment.paymentDate)}
+        </p>
+      </div>
+    </div>
+  );
+
+  // PaymentRow component for virtual scrolling (Desktop)
   const PaymentRow = ({ index, style, ariaAttributes }: any) => {
     const payment = payments[index];
     if (!payment) return null;
@@ -350,7 +390,15 @@ export default function PaymentsList() {
                 <span>Record Payment</span>
               </button>
             </div>
+          ) : isMobile ? (
+            // Mobile Card View
+            <div className="bg-white">
+              {payments.map((payment) => (
+                <PaymentMobileCard key={payment.id} payment={payment} />
+              ))}
+            </div>
           ) : (
+            // Desktop Table View
             <div className="overflow-x-auto">
               {/* Table Header */}
               <div className="grid grid-cols-7 gap-4 px-6 py-3 bg-neutral-50 border-b border-neutral-200">

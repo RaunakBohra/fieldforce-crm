@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import type { Product, ProductQueryParams } from '../services/api';
 import { useDebounce } from '../hooks/useDebounce';
+import { useIsMobile } from '../hooks/useMediaQuery';
 import { Search, Package, Plus, Edit2, Barcode, ImageIcon } from 'lucide-react';
 import { PageContainer, ContentSection, Card } from '../components/layout';
 import { Pagination, StatusBadge } from '../components/ui';
@@ -10,6 +11,7 @@ import { formatCurrency } from '../utils/formatters';
 
 export function ProductsList() {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -72,6 +74,63 @@ export function ProductsList() {
   const handleEditProduct = (productId: string) => {
     navigate(`/products/${productId}/edit`);
   };
+
+  // Mobile Card View Component
+  const ProductMobileCard = ({ product }: { product: Product }) => (
+    <div
+      className="p-4 border-b border-neutral-200 hover:bg-neutral-50 active:bg-neutral-100 transition-colors cursor-pointer"
+      onClick={() => handleEditProduct(product.id)}
+    >
+      <div className="flex gap-3 mb-3">
+        <div className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-neutral-100 border border-neutral-200 flex items-center justify-center">
+          {product.thumbnailUrl || product.imageUrl ? (
+            <img
+              src={product.thumbnailUrl || product.imageUrl}
+              alt={product.name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <ImageIcon className="w-8 h-8 text-neutral-400" />
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="text-base font-semibold text-neutral-900 truncate">{product.name}</h3>
+          <p className="text-sm text-neutral-600 mt-0.5">SKU: {product.sku}</p>
+          {product.barcode && (
+            <div className="flex items-center gap-1.5 text-xs text-neutral-500 mt-1">
+              <Barcode className="w-3.5 h-3.5" />
+              <span>{product.barcode}</span>
+            </div>
+          )}
+        </div>
+        <div className="text-right flex-shrink-0">
+          <p className="text-lg font-bold text-neutral-900">{formatCurrency(product.price)}</p>
+          <span className={`inline-flex items-center justify-center mt-1 px-2 py-0.5 rounded-full text-xs font-medium ${
+            product.stock > 10
+              ? 'bg-success-100 text-success-800'
+              : product.stock > 0
+              ? 'bg-warn-100 text-warn-800'
+              : 'bg-danger-100 text-danger-800'
+          }`}>
+            {product.stock} in stock
+          </span>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        <StatusBadge
+          label={product.category}
+          variant="primary"
+          formatLabel={false}
+        />
+        <StatusBadge
+          label={product.isActive ? 'Active' : 'Inactive'}
+          variant={product.isActive ? 'success' : 'neutral'}
+          formatLabel={false}
+        />
+      </div>
+    </div>
+  );
 
   return (
     <PageContainer>
@@ -165,7 +224,15 @@ export function ProductsList() {
                 <span>Add Product</span>
               </button>
             </div>
+          ) : isMobile ? (
+            // Mobile Card View
+            <div className="bg-white">
+              {products.map((product) => (
+                <ProductMobileCard key={product.id} product={product} />
+              ))}
+            </div>
           ) : (
+            // Desktop Table View
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-neutral-200">
                 <thead className="bg-neutral-50">

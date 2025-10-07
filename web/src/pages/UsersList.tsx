@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import type { User } from '../services/api';
+import { useIsMobile } from '../hooks/useMediaQuery';
 import { PageContainer, ContentSection, Card } from '../components/layout';
 import { StatusBadge, TableSkeleton, Pagination } from '../components/ui';
 import { Plus, Search, Users as UsersIcon, UserPlus } from 'lucide-react';
@@ -9,6 +10,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 export function UsersList() {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -81,6 +83,54 @@ export function UsersList() {
       default: return 'bg-neutral-100 text-neutral-700';
     }
   };
+
+  // Mobile Card View Component
+  const UserMobileCard = ({ user }: { user: User }) => (
+    <div className="p-4 border-b border-neutral-200 hover:bg-neutral-50 active:bg-neutral-100 transition-colors">
+      <div className="flex justify-between items-start mb-3">
+        <div className="flex-1">
+          <h3 className="text-base font-semibold text-neutral-900">{user.name}</h3>
+          <p className="text-sm text-neutral-600 mt-0.5">{user.email}</p>
+        </div>
+        <StatusBadge
+          label={user.isActive ? 'Active' : 'Inactive'}
+          className={user.isActive ? 'bg-success-100 text-success-700' : 'bg-neutral-100 text-neutral-700'}
+          formatLabel={false}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getRoleBadgeColor(user.role)}`}>
+          {user.role}
+        </span>
+
+        {user.phone && (
+          <p className="text-sm text-neutral-700">
+            <span className="font-medium">Phone:</span> {user.phone}
+          </p>
+        )}
+
+        {currentUser?.role === 'ADMIN' && (
+          <div className="flex gap-2 pt-2">
+            <button
+              onClick={() => navigate(`/users/${user.id}/edit`)}
+              className="flex-1 px-3 py-2 text-sm font-medium text-primary-700 bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors"
+            >
+              Edit
+            </button>
+            {user.isActive && user.id !== currentUser?.id && (
+              <button
+                onClick={() => handleDeactivate(user.id)}
+                className="px-3 py-2 text-sm font-medium text-danger-700 bg-danger-50 hover:bg-danger-100 rounded-lg transition-colors"
+              >
+                Deactivate
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 
   if (currentUser && currentUser.role !== 'ADMIN' && currentUser.role !== 'MANAGER') {
     return null;
@@ -183,7 +233,15 @@ export function UsersList() {
                 </button>
               )}
             </div>
+          ) : isMobile ? (
+            // Mobile Card View
+            <div className="bg-white">
+              {users.map((user) => (
+                <UserMobileCard key={user.id} user={user} />
+              ))}
+            </div>
           ) : (
+            // Desktop Table View
             <>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-neutral-200">

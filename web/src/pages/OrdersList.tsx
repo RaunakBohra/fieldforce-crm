@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { List } from 'react-window';
 import { api } from '../services/api';
 import type { Order, OrderStats } from '../services/api';
+import { useIsMobile } from '../hooks/useMediaQuery';
 import { ShoppingCart, Eye, XCircle, Plus, Download } from 'lucide-react';
 import { PageContainer, ContentSection, Card } from '../components/layout';
 import { StatusBadge, Pagination, TableSkeleton } from '../components/ui';
@@ -11,6 +12,7 @@ import { exportOrdersToCSV } from '../utils/exportUtils';
 
 export function OrdersList() {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [orders, setOrders] = useState<Order[]>([]);
   const [stats, setStats] = useState<OrderStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -86,7 +88,85 @@ export function OrdersList() {
     }
   };
 
-  // OrderRow component for virtual scrolling
+  // Mobile Card View Component
+  const OrderMobileCard = ({ order }: { order: Order }) => {
+    const totalPaid = order.payments?.reduce((sum, p) => sum + Number(p.amount), 0) || 0;
+    const outstandingAmount = Number(order.totalAmount) - totalPaid;
+    const isOverdue = order.dueDate && new Date(order.dueDate) < new Date() && outstandingAmount > 0;
+    const daysOverdue = isOverdue
+      ? Math.floor((new Date().getTime() - new Date(order.dueDate!).getTime()) / (1000 * 60 * 60 * 24))
+      : 0;
+
+    return (
+      <div className="p-4 border-b border-neutral-200 hover:bg-neutral-50 active:bg-neutral-100 transition-colors">
+        <div className="flex justify-between items-start mb-3">
+          <div className="flex-1">
+            <h3 className="text-base font-semibold text-neutral-900">{order.orderNumber}</h3>
+            <p className="text-sm text-neutral-600 mt-0.5">
+              {order.contact?.name} • {order.contact?.contactType}
+            </p>
+          </div>
+          <div className="text-right ml-3">
+            <p className="text-lg font-bold text-neutral-900">{formatCurrency(Number(order.totalAmount))}</p>
+            <p className="text-xs text-neutral-500">{order.items.length} items</p>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex flex-wrap gap-2">
+            <StatusBadge
+              label={order.status}
+              className={getOrderStatusColor(order.status)}
+              formatLabel
+            />
+            <StatusBadge
+              label={(order as any).paymentStatus || 'UNPAID'}
+              className={getPaymentStatusColor((order as any).paymentStatus || 'UNPAID')}
+              formatLabel
+            />
+            {isOverdue && (
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-danger-100 text-danger-800">
+                OVERDUE ({daysOverdue}d)
+              </span>
+            )}
+          </div>
+
+          <p className="text-sm text-neutral-600">
+            <span className="font-medium">Date:</span> {formatDate(order.createdAt)}
+          </p>
+
+          <div className="flex gap-2 pt-2">
+            <button
+              onClick={() => navigate(`/orders/${order.id}`)}
+              className="flex-1 px-3 py-2 text-sm font-medium text-primary-700 bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors"
+            >
+              <Eye className="w-4 h-4 inline mr-1" />
+              View
+            </button>
+            {(order.status === 'PENDING' || order.status === 'APPROVED') && (
+              <button
+                onClick={() => handleCancelOrder(order.id, order.orderNumber)}
+                className="px-3 py-2 text-sm font-medium text-danger-700 bg-danger-50 hover:bg-danger-100 rounded-lg transition-colors"
+              >
+                <XCircle className="w-4 h-4 inline mr-1" />
+                Cancel
+              </button>
+            )}
+            {(order.status === 'APPROVED' || order.status === 'DELIVERED') && (order as any).paymentStatus !== 'PAID' && (
+              <button
+                onClick={() => navigate(`/payments/new/${order.id}`)}
+                className="px-3 py-2 text-sm font-medium text-success-700 bg-success-50 hover:bg-success-100 rounded-lg transition-colors whitespace-nowrap"
+              >
+                Record Payment
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // OrderRow component for virtual scrolling (Desktop)
   const OrderRow = ({ index, style, ariaAttributes }: any) => {
     const order = orders[index];
     if (!order) return null;
@@ -282,7 +362,15 @@ export function OrdersList() {
                 <span>Create Order</span>
               </button>
             </div>
+          ) : isMobile ? (
+            // Mobile Card View
+            <div className="bg-white">
+              {orders.map((order) => (
+                <OrderMobileCard key={order.id} order={order} />
+              ))}
+            </div>
           ) : (
+            // Desktop Table View
             <div className="overflow-x-auto">
               {/* Table Header */}
               <div className="grid grid-cols-8 gap-4 px-6 py-3 bg-neutral-50 border-b border-neutral-200">

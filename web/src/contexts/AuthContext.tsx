@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { api, type User } from '../services/api';
 import { initializeCsrfToken, clearCsrfToken } from '../utils/csrf';
+import { clearAllCache } from '../utils/apiCache';
 
 interface AuthContextType {
   user: User | null;
@@ -84,6 +85,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Clear CSRF token on logout
     clearCsrfToken();
+
+    // Clear all API cache on logout
+    clearAllCache();
   };
 
   return (

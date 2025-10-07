@@ -9,3 +9,4 @@ export { Pagination } from './Pagination';
 export { LoadingSpinner } from './LoadingSpinner';
 export { TableSkeleton } from './TableSkeleton';
 export { EmptyState } from './EmptyState';
+export { SkeletonCard, SkeletonStat, SkeletonActivity, SkeletonVisitCard, SkeletonDashboard } from './Skeleton';

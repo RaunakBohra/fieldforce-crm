@@ -361,7 +361,7 @@ analytics.get('/payment-modes', async (c) => {
  * GET /api/analytics/territory-performance
  * Get performance metrics grouped by territory
  * Returns: territories with order count, revenue, visit count, contact count
- * Query params: startDate, endDate (optional)
+ * Query params: startDate, endDate, limit (optional)
  * Authorization: ADMIN or MANAGER only
  */
 analytics.get('/territory-performance', requireManager, async (c) => {
@@ -371,9 +371,11 @@ analytics.get('/territory-performance', requireManager, async (c) => {
   try {
     logger.info('Get territory performance request', getLogContext(c));
 
-    // Parse date range from query params
+    // Parse date range and limit from query params
     const startDateParam = c.req.query('startDate');
     const endDateParam = c.req.query('endDate');
+    const limitParam = c.req.query('limit');
+    const limit = limitParam ? parseInt(limitParam, 10) : undefined;
 
     const endDate = endDateParam ? new Date(endDateParam) : new Date();
     const startDate = startDateParam ? new Date(startDateParam) : new Date(endDate.getTime() - 30 * 24 * 60 * 60 * 1000);
@@ -559,9 +561,12 @@ analytics.get('/territory-performance', requireManager, async (c) => {
       { contacts: 0, orders: 0, revenue: 0, visits: 0 }
     );
 
+    // Apply limit if specified (for dashboard top N territories)
+    const limitedPerformanceData = limit ? performanceData.slice(0, limit) : performanceData;
+
     // Prepare response data
     const responseData = {
-      territories: performanceData,
+      territories: limitedPerformanceData,
       totals,
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),

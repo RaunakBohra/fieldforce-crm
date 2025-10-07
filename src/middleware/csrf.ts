@@ -89,9 +89,10 @@ export async function csrfProtection(
     const token = await generateCsrfToken(secret);
 
     // Set CSRF token in cookie (HttpOnly=false so JS can read it)
-    // SameSite=None; Secure works for both local (via wrangler dev) and production
+    // Domain=.raunakbohra.com makes cookie work across all subdomains
+    // SameSite=None; Secure allows cross-subdomain access
     c.header('Set-Cookie',
-      `${CSRF_COOKIE_NAME}=${token}; Path=/; SameSite=None; Secure; Max-Age=3600`
+      `${CSRF_COOKIE_NAME}=${token}; Path=/; Domain=.raunakbohra.com; SameSite=None; Secure; Max-Age=3600`
     );
 
     // Also expose in response header for SPA to access
@@ -166,9 +167,9 @@ export async function getCsrfToken(c: Context<{ Bindings: Bindings }>) {
   const secret = c.env.JWT_SECRET;
   const token = await generateCsrfToken(secret);
 
-  // Set cookie with SameSite=None; Secure for cross-origin support
+  // Set cookie with Domain to work across subdomains
   c.header('Set-Cookie',
-    `${CSRF_COOKIE_NAME}=${token}; Path=/; SameSite=None; Secure; Max-Age=3600`
+    `${CSRF_COOKIE_NAME}=${token}; Path=/; Domain=.raunakbohra.com; SameSite=None; Secure; Max-Age=3600`
   );
 
   return c.json({

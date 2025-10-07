@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import type { DashboardStats, DashboardActivity, TopPerformer, TerritoryPerformance, UpcomingVisit, OverdueVisit } from '../services/api';
@@ -15,9 +15,87 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { PageContainer, ContentSection, Card } from '../components/layout';
-import { StatusBadge, LoadingSpinner } from '../components/ui';
+import { StatusBadge, SkeletonDashboard } from '../components/ui';
 import { useAuth } from '../contexts/AuthContext';
 import { formatCurrency, formatDate } from '../utils';
+
+// Memoized stat card component to prevent unnecessary rerenders
+const StatCard = memo(({
+  title,
+  value,
+  subtitle,
+  icon: Icon,
+  bgGradient,
+  iconColor
+}: {
+  title: string;
+  value: string | number;
+  subtitle: string;
+  icon: any;
+  bgGradient: string;
+  iconColor: string;
+}) => (
+  <Card className={`${bgGradient} hover-lift shadow-elevated transition-all`}>
+    <div className="flex items-center justify-between">
+      <div>
+        <p className="text-xs font-medium mb-1 text-neutral-700">{title}</p>
+        <p className="text-2xl font-bold text-neutral-900">{value}</p>
+        <p className="text-xs text-neutral-600 mt-1">{subtitle}</p>
+      </div>
+      <Icon className={`w-8 h-8 ${iconColor} opacity-50`} />
+    </div>
+  </Card>
+));
+
+StatCard.displayName = 'StatCard';
+
+// Memoized activity item component
+const ActivityItem = memo(({
+  activity,
+  onClick
+}: {
+  activity: DashboardActivity;
+  onClick: () => void;
+}) => (
+  <div
+    className="flex items-center justify-between p-3 border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors cursor-pointer"
+    onClick={onClick}
+  >
+    <div className="flex items-center gap-3 flex-1 min-w-0">
+      <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+        activity.type === 'visit' ? 'bg-primary-100' :
+        activity.type === 'order' ? 'bg-warn-100' :
+        'bg-success-100'
+      }`}>
+        {activity.type === 'visit' && <MapPin className="w-5 h-5 text-primary-600" />}
+        {activity.type === 'order' && <ShoppingCart className="w-5 h-5 text-warn-600" />}
+        {activity.type === 'payment' && <CreditCard className="w-5 h-5 text-success-600" />}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="font-medium text-neutral-900 truncate">{activity.title}</p>
+        <p className="text-sm text-neutral-500 truncate">
+          {formatDate(activity.timestamp)}
+        </p>
+      </div>
+    </div>
+    <div className="flex items-center gap-3 flex-shrink-0 ml-3">
+      {activity.status && (
+        <StatusBadge
+          label={activity.status}
+          className="text-xs hidden sm:block"
+          formatLabel
+        />
+      )}
+      {activity.amount && (
+        <p className="font-semibold text-neutral-900 text-right min-w-[80px]">
+          {formatCurrency(activity.amount)}
+        </p>
+      )}
+    </div>
+  </div>
+));
+
+ActivityItem.displayName = 'ActivityItem';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -36,6 +114,13 @@ export default function Dashboard() {
   const [rescheduleLoading, setRescheduleLoading] = useState(false);
 
   const isAdmin = user?.role === 'ADMIN' || user?.role === 'MANAGER';
+
+  // Memoize activity click handlers to prevent recreation on every render
+  const handleActivityClick = useMemo(() => ({
+    visit: () => navigate('/visits'),
+    order: () => navigate('/orders'),
+    payment: () => navigate('/payments'),
+  }), [navigate]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -56,7 +141,7 @@ export default function Dashboard() {
       const [activitiesRes, performersRes, territoryRes, upcomingRes, overdueRes] = await Promise.all([
         api.getRecentActivity(),
         isAdmin ? api.getTopPerformers() : Promise.resolve({ success: false, data: null }),
-        isAdmin ? api.getTerritoryPerformance() : Promise.resolve({ success: false, data: null }),
+        isAdmin ? api.getTerritoryPerformance(undefined, undefined, 5) : Promise.resolve({ success: false, data: null }),
         api.getUpcomingVisits(7),
         api.getOverdueVisits(),
       ]);
@@ -70,7 +155,7 @@ export default function Dashboard() {
       }
 
       if (territoryRes.success && territoryRes.data) {
-        setTerritoryStats(territoryRes.data.territories.slice(0, 5)); // Top 5 territories
+        setTerritoryStats(territoryRes.data.territories); // Backend now returns only top 5
       }
 
       if (upcomingRes.success && upcomingRes.data) {
@@ -145,9 +230,7 @@ export default function Dashboard() {
     return (
       <PageContainer>
         <ContentSection>
-          <div className="flex justify-center items-center min-h-[400px]">
-            <LoadingSpinner size="lg" />
-          </div>
+          <SkeletonDashboard />
         </ContentSection>
       </PageContainer>
     );
@@ -622,47 +705,11 @@ export default function Dashboard() {
           ) : (
             <div className="space-y-3">
               {activities.slice(0, 8).map((activity) => (
-                <div
+                <ActivityItem
                   key={activity.id}
-                  className="flex items-center justify-between p-3 border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors cursor-pointer"
-                  onClick={() => {
-                    if (activity.type === 'visit') navigate('/visits');
-                    if (activity.type === 'order') navigate('/orders');
-                    if (activity.type === 'payment') navigate('/payments');
-                  }}
-                >
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-                      activity.type === 'visit' ? 'bg-primary-100' :
-                      activity.type === 'order' ? 'bg-warn-100' :
-                      'bg-success-100'
-                    }`}>
-                      {activity.type === 'visit' && <MapPin className="w-5 h-5 text-primary-600" />}
-                      {activity.type === 'order' && <ShoppingCart className="w-5 h-5 text-warn-600" />}
-                      {activity.type === 'payment' && <CreditCard className="w-5 h-5 text-success-600" />}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-neutral-900 truncate">{activity.title}</p>
-                      <p className="text-sm text-neutral-500 truncate">
-                        {formatDate(activity.timestamp)}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 flex-shrink-0 ml-3">
-                    {activity.status && (
-                      <StatusBadge
-                        label={activity.status}
-                        className="text-xs hidden sm:block"
-                        formatLabel
-                      />
-                    )}
-                    {activity.amount && (
-                      <p className="font-semibold text-neutral-900 text-right min-w-[80px]">
-                        {formatCurrency(activity.amount)}
-                      </p>
-                    )}
-                  </div>
-                </div>
+                  activity={activity}
+                  onClick={handleActivityClick[activity.type]}
+                />
               ))}
             </div>
           )}

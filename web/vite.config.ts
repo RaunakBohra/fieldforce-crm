@@ -18,6 +18,11 @@ export default defineConfig({
     force: false,
   },
 
+  // Ensure React is deduplicated
+  resolve: {
+    dedupe: ['react', 'react-dom', 'react-router-dom'],
+  },
+
   plugins: [
     react(),
     VitePWA({
@@ -98,30 +103,17 @@ export default defineConfig({
         chunkFileNames: `assets/[name].[hash].js`,
         assetFileNames: `assets/[name].[hash].[ext]`,
 
-        // Manual chunk splitting for better caching
-        manualChunks: (id) => {
-          // Vendor chunks - separate large libraries for better caching
-          if (id.includes('node_modules')) {
-            // React ecosystem
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
-              return 'vendor-react';
-            }
-            // PDF generation (large, rarely changes)
-            if (id.includes('jspdf') || id.includes('html2canvas')) {
-              return 'vendor-pdf';
-            }
-            // Icons (medium size)
-            if (id.includes('lucide-react')) {
-              return 'vendor-icons';
-            }
-            // Date utilities
-            if (id.includes('date-fns')) {
-              return 'vendor-date';
-            }
-            // Other vendor code (including recharts to prevent module registration issues)
-            // Note: Recharts has complex internal dependencies that break when split separately
-            return 'vendor-misc';
-          }
+        // Simplified chunk splitting - let Vite handle vendor splitting automatically
+        manualChunks: {
+          // Keep all vendor code together to avoid React duplication issues
+          vendor: [
+            'react',
+            'react-dom',
+            'react-router-dom',
+            'recharts',
+            'lucide-react',
+            'date-fns',
+          ],
         }
       },
       // Prevent Recharts tree-shaking issues
