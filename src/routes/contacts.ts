@@ -95,6 +95,67 @@ contacts.get('/stats', async (c) => {
 });
 
 /**
+ * GET /api/contacts/upcoming-visits
+ * Get contacts with upcoming visits in the next N days
+ */
+contacts.get('/upcoming-visits', async (c) => {
+  const deps = c.get('deps');
+  const user = c.get('user');
+
+  try {
+    const daysParam = c.req.query('days');
+    const days = daysParam ? parseInt(daysParam, 10) : 7;
+
+    if (isNaN(days) || days < 1 || days > 365) {
+      return c.json(
+        { success: false, error: 'Days must be between 1 and 365' },
+        400
+      );
+    }
+
+    logger.info('Get upcoming visits request', {
+      ...getLogContext(c),
+      days,
+    });
+
+    const result = await deps.contactService.getUpcomingVisits(user.userId, days);
+
+    if (!result.success) {
+      return c.json({ success: false, error: result.error }, 400);
+    }
+
+    return c.json({ success: true, data: result.data }, 200);
+  } catch (error: unknown) {
+    logger.error('Get upcoming visits failed', error, getLogContext(c));
+    throw error;
+  }
+});
+
+/**
+ * GET /api/contacts/overdue-visits
+ * Get contacts with overdue visits
+ */
+contacts.get('/overdue-visits', async (c) => {
+  const deps = c.get('deps');
+  const user = c.get('user');
+
+  try {
+    logger.info('Get overdue visits request', getLogContext(c));
+
+    const result = await deps.contactService.getOverdueVisits(user.userId);
+
+    if (!result.success) {
+      return c.json({ success: false, error: result.error }, 400);
+    }
+
+    return c.json({ success: true, data: result.data }, 200);
+  } catch (error: unknown) {
+    logger.error('Get overdue visits failed', error, getLogContext(c));
+    throw error;
+  }
+});
+
+/**
  * GET /api/contacts/:id
  * Get a single contact by ID
  */
@@ -278,67 +339,6 @@ contacts.delete('/:id', async (c) => {
       ...getLogContext(c),
       contactId,
     });
-    throw error;
-  }
-});
-
-/**
- * GET /api/contacts/upcoming-visits
- * Get contacts with upcoming visits in the next N days
- */
-contacts.get('/upcoming-visits', async (c) => {
-  const deps = c.get('deps');
-  const user = c.get('user');
-
-  try {
-    const daysParam = c.req.query('days');
-    const days = daysParam ? parseInt(daysParam, 10) : 7;
-
-    if (isNaN(days) || days < 1 || days > 365) {
-      return c.json(
-        { success: false, error: 'Days must be between 1 and 365' },
-        400
-      );
-    }
-
-    logger.info('Get upcoming visits request', {
-      ...getLogContext(c),
-      days,
-    });
-
-    const result = await deps.contactService.getUpcomingVisits(user.userId, days);
-
-    if (!result.success) {
-      return c.json({ success: false, error: result.error }, 400);
-    }
-
-    return c.json({ success: true, data: result.data }, 200);
-  } catch (error: unknown) {
-    logger.error('Get upcoming visits failed', error, getLogContext(c));
-    throw error;
-  }
-});
-
-/**
- * GET /api/contacts/overdue-visits
- * Get contacts with overdue visits
- */
-contacts.get('/overdue-visits', async (c) => {
-  const deps = c.get('deps');
-  const user = c.get('user');
-
-  try {
-    logger.info('Get overdue visits request', getLogContext(c));
-
-    const result = await deps.contactService.getOverdueVisits(user.userId);
-
-    if (!result.success) {
-      return c.json({ success: false, error: result.error }, 400);
-    }
-
-    return c.json({ success: true, data: result.data }, 200);
-  } catch (error: unknown) {
-    logger.error('Get overdue visits failed', error, getLogContext(c));
     throw error;
   }
 });

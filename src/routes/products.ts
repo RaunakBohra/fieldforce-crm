@@ -122,33 +122,23 @@ products.get('/', async (c) => {
 });
 
 /**
- * GET /api/products/:id
- * Get a single product by ID
+ * GET /api/products/generate-sku
+ * Generate next available SKU in MMYY-XXXX format
  */
-products.get('/:id', async (c) => {
+products.get('/generate-sku', async (c) => {
   const deps = c.get('deps');
-  const productId = c.req.param('id');
 
   try {
-    logger.info('Get product by ID request', {
-      ...getLogContext(c),
-      productId,
-    });
+    logger.info('Generate SKU request', getLogContext(c));
 
-    const product = await deps.prisma.product.findUnique({
-      where: { id: productId },
-    });
+    const sku = await generateSKU(deps.prisma);
 
-    if (!product) {
-      return c.json({ success: false, error: 'Product not found' }, 404);
-    }
-
-    return c.json({ success: true, data: product }, 200);
+    return c.json({
+      success: true,
+      data: { sku },
+    }, 200);
   } catch (error: unknown) {
-    logger.error('Get product by ID failed', error, {
-      ...getLogContext(c),
-      productId,
-    });
+    logger.error('Generate SKU failed', error, getLogContext(c));
     throw error;
   }
 });
@@ -176,28 +166,6 @@ products.get('/categories/list', async (c) => {
     }, 200);
   } catch (error: unknown) {
     logger.error('Get product categories failed', error, getLogContext(c));
-    throw error;
-  }
-});
-
-/**
- * GET /api/products/generate-sku
- * Generate next available SKU in MMYY-XXXX format
- */
-products.get('/generate-sku', async (c) => {
-  const deps = c.get('deps');
-
-  try {
-    logger.info('Generate SKU request', getLogContext(c));
-
-    const sku = await generateSKU(deps.prisma);
-
-    return c.json({
-      success: true,
-      data: { sku },
-    }, 200);
-  } catch (error: unknown) {
-    logger.error('Generate SKU failed', error, getLogContext(c));
     throw error;
   }
 });
@@ -234,14 +202,47 @@ products.get('/barcode/:barcode', async (c) => {
   }
 });
 
+/**
+ * GET /api/products/:id
+ * Get a single product by ID
+ */
+products.get('/:id', async (c) => {
+  const deps = c.get('deps');
+  const productId = c.req.param('id');
+
+  try {
+    logger.info('Get product by ID request', {
+      ...getLogContext(c),
+      productId,
+    });
+
+    const product = await deps.prisma.product.findUnique({
+      where: { id: productId },
+    });
+
+    if (!product) {
+      return c.json({ success: false, error: 'Product not found' }, 404);
+    }
+
+    return c.json({ success: true, data: product }, 200);
+  } catch (error: unknown) {
+    logger.error('Get product by ID failed', error, {
+      ...getLogContext(c),
+      productId,
+    });
+    throw error;
+  }
+});
+
 // Product creation schema
 const createProductSchema = z.object({
   name: z.string().min(1, 'Product name is required'),
   sku: z.string().min(1, 'SKU is required'),
+  barcode: z.string().optional(),
   description: z.string().optional(),
   category: z.string().min(1, 'Category is required'),
   price: z.number().positive('Price must be positive'),
-  stock: z.number().int().min(0, 'Stock cannot be negative'),
+  stock: z.number().int().min(0, 'Stock cannot be negative').optional().default(0),
   isActive: z.boolean().optional().default(true),
 });
 
@@ -381,16 +382,19 @@ products.post('/:id/image', requireManager, async (c) => {
 
   try {
     const body = await c.req.json();
-    const { image } = body;
+    const { image, imageData } = body;
 
-    if (!image || typeof image !== 'string') {
+    // Accept both 'image' and 'imageData' field names
+    const imageInput = image || imageData;
+
+    if (!imageInput || typeof imageInput !== 'string') {
       return c.json({ success: false, error: 'Image data is required' }, 400);
     }
 
     logger.info('Upload product image request', {
       ...getLogContext(c),
       productId,
-      imageSize: image.length,
+      imageSize: imageInput.length,
     });
 
     // Check if product exists
@@ -403,7 +407,7 @@ products.post('/:id/image', requireManager, async (c) => {
     }
 
     // Extract base64 data (supports data URLs like "data:image/jpeg;base64,...")
-    const base64Data = image.includes(',') ? image.split(',')[1] : image;
+    const base64Data = imageInput.includes(',') ? imageInput.split(',')[1] : imageInput;
     if (!base64Data) {
       return c.json({ success: false, error: 'Invalid image format' }, 400);
     }
