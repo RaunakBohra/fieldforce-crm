@@ -24,6 +24,7 @@ export function ContactsList() {
   const [typeFilter, setTypeFilter] = useState('ALL');
   const [cityFilter, setCityFilter] = useState('');
   const [territoryFilter, setTerritoryFilter] = useState('');
+  const [visitStatusFilter, setVisitStatusFilter] = useState<'ALL' | 'OVERDUE' | 'UPCOMING' | 'NOT_SCHEDULED'>('ALL');
   const [territories, setTerritories] = useState<Array<{ id: string; name: string; code: string }>>([]);
 
   // Debounce search inputs to reduce API calls
@@ -122,61 +123,128 @@ export function ContactsList() {
     setTypeFilter('ALL');
     setCityFilter('');
     setTerritoryFilter('');
+    setVisitStatusFilter('ALL');
     setCurrentPage(1);
   };
 
-  // Mobile Card View Component
-  const ContactMobileCard = ({ contact }: { contact: Contact }) => (
-    <div className="p-4 border-b border-neutral-200 hover:bg-neutral-50 active:bg-neutral-100 transition-colors">
-      <div className="flex justify-between items-start mb-3">
-        <div className="flex-1">
-          <h3 className="text-base font-semibold text-neutral-900">{contact.name}</h3>
-          {contact.designation && (
-            <p className="text-sm text-neutral-500 mt-0.5">{contact.designation}</p>
-          )}
-        </div>
-        <div className="flex gap-2 ml-3">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              navigate(`/contacts/${contact.id}/edit`);
-            }}
-            className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
-            aria-label="Edit contact"
-          >
-            <Pencil className="w-5 h-5" />
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleDelete(contact.id, contact.name);
-            }}
-            className="p-2 text-danger-600 hover:bg-danger-50 rounded-lg transition-colors"
-            aria-label="Delete contact"
-          >
-            <Trash2 className="w-5 h-5" />
-          </button>
-        </div>
-      </div>
+  // Helper function to calculate visit status
+  const getVisitStatus = (contact: Contact): { status: 'OVERDUE' | 'UPCOMING' | 'NOT_SCHEDULED'; label: string; variant: string; daysDiff?: number } => {
+    if (!contact.nextVisitDate) {
+      return { status: 'NOT_SCHEDULED', label: 'Not Scheduled', variant: 'bg-neutral-100 text-neutral-600' };
+    }
 
-      <div className="space-y-2">
-        <div className="flex flex-wrap gap-2">
-          <StatusBadge
-            label={contact.contactCategory}
-            variant={contact.contactCategory === 'DISTRIBUTION' ? 'primary' : 'success'}
-            formatLabel={false}
-          />
-          <StatusBadge
-            label={contact.contactType}
-            variant="neutral"
-            formatLabel={false}
-          />
-          <StatusBadge
-            label={contact.isActive ? 'Active' : 'Inactive'}
-            variant={contact.isActive ? 'success' : 'neutral'}
-            formatLabel={false}
-          />
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const nextVisit = new Date(contact.nextVisitDate);
+    nextVisit.setHours(0, 0, 0, 0);
+
+    const diffTime = nextVisit.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) {
+      return {
+        status: 'OVERDUE',
+        label: `Overdue (${Math.abs(diffDays)}d)`,
+        variant: 'bg-danger-100 text-danger-700',
+        daysDiff: diffDays
+      };
+    } else if (diffDays === 0) {
+      return {
+        status: 'UPCOMING',
+        label: 'Today',
+        variant: 'bg-warn-100 text-warn-700',
+        daysDiff: diffDays
+      };
+    } else if (diffDays <= 7) {
+      return {
+        status: 'UPCOMING',
+        label: `${diffDays}d`,
+        variant: 'bg-primary-100 text-primary-700',
+        daysDiff: diffDays
+      };
+    } else {
+      return {
+        status: 'UPCOMING',
+        label: `${diffDays}d`,
+        variant: 'bg-neutral-100 text-neutral-600',
+        daysDiff: diffDays
+      };
+    }
+  };
+
+  // Filter contacts based on visit status
+  const getFilteredContacts = () => {
+    if (visitStatusFilter === 'ALL') return contacts;
+
+    return contacts.filter(contact => {
+      const visitStatus = getVisitStatus(contact);
+      return visitStatus.status === visitStatusFilter;
+    });
+  };
+
+  const filteredContacts = getFilteredContacts();
+
+  // Mobile Card View Component
+  const ContactMobileCard = ({ contact }: { contact: Contact }) => {
+    const visitStatus = getVisitStatus(contact);
+
+    return (
+      <div className="p-4 border-b border-neutral-200 hover:bg-neutral-50 active:bg-neutral-100 transition-colors">
+        <div className="flex justify-between items-start mb-3">
+          <div className="flex-1">
+            <h3 className="text-base font-semibold text-neutral-900">{contact.name}</h3>
+            {contact.designation && (
+              <p className="text-sm text-neutral-500 mt-0.5">{contact.designation}</p>
+            )}
+          </div>
+          <div className="flex gap-2 ml-3">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/contacts/${contact.id}/edit`);
+              }}
+              className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+              aria-label="Edit contact"
+            >
+              <Pencil className="w-5 h-5" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDelete(contact.id, contact.name);
+              }}
+              className="p-2 text-danger-600 hover:bg-danger-50 rounded-lg transition-colors"
+              aria-label="Delete contact"
+            >
+              <Trash2 className="w-5 h-5" />
+            </button>
+          </div>
         </div>
+
+        <div className="space-y-2">
+          <div className="flex flex-wrap gap-2">
+            <StatusBadge
+              label={contact.contactCategory}
+              variant={contact.contactCategory === 'DISTRIBUTION' ? 'primary' : 'success'}
+              formatLabel={false}
+            />
+            <StatusBadge
+              label={contact.contactType}
+              variant="neutral"
+              formatLabel={false}
+            />
+            <StatusBadge
+              label={contact.isActive ? 'Active' : 'Inactive'}
+              variant={contact.isActive ? 'success' : 'neutral'}
+              formatLabel={false}
+            />
+            {/* Visit Status Badge */}
+            {visitStatus.status !== 'NOT_SCHEDULED' && (
+              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${visitStatus.variant}`}>
+                {visitStatus.label}
+              </span>
+            )}
+          </div>
 
         {(contact.phone || contact.email) && (
           <div className="text-sm space-y-1">
@@ -200,12 +268,15 @@ export function ContactsList() {
         )}
       </div>
     </div>
-  );
+    );
+  };
 
   // ContactRow component for virtual scrolling (Desktop)
   const ContactRow = ({ index, style, ariaAttributes }: any) => {
-    const contact = contacts[index];
+    const contact = filteredContacts[index];
     if (!contact) return null;
+
+    const visitStatus = getVisitStatus(contact);
 
     return (
       <div style={style} className="border-b border-neutral-200 hover:bg-neutral-50" {...ariaAttributes}>
@@ -233,12 +304,18 @@ export function ContactsList() {
           <div className="col-span-1 flex items-center text-sm text-neutral-900">
             {contact.city && contact.state ? `${contact.city}, ${contact.state}` : '-'}
           </div>
-          <div className="col-span-1 flex items-center">
+          <div className="col-span-1 flex items-center gap-2">
             <StatusBadge
               label={contact.isActive ? 'Active' : 'Inactive'}
               variant={contact.isActive ? 'success' : 'neutral'}
               formatLabel={false}
             />
+            {/* Visit Status Badge */}
+            {visitStatus.status !== 'NOT_SCHEDULED' && (
+              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${visitStatus.variant}`}>
+                {visitStatus.label}
+              </span>
+            )}
           </div>
           <div className="col-span-1 flex items-center justify-end gap-4">
             <button
@@ -309,60 +386,76 @@ export function ContactsList() {
             <h2 className="text-lg font-semibold text-neutral-900">Filters</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4">
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" />
+          <div className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4">
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Search contacts..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-all hover:border-neutral-400 text-sm min-h-[44px]"
+                />
+              </div>
+
+              {/* Category Filter */}
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value as any)}
+                className="px-4 py-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-all hover:border-neutral-400 text-sm min-h-[44px] bg-white"
+              >
+                <option value="ALL">All Categories</option>
+                <option value="DISTRIBUTION">Distribution</option>
+                <option value="MEDICAL">Medical</option>
+              </select>
+
+              {/* Visit Status Filter */}
+              <select
+                value={visitStatusFilter}
+                onChange={(e) => setVisitStatusFilter(e.target.value as any)}
+                className="px-4 py-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-all hover:border-neutral-400 text-sm min-h-[44px] bg-white"
+              >
+                <option value="ALL">All Visit Status</option>
+                <option value="OVERDUE">Overdue Visits</option>
+                <option value="UPCOMING">Upcoming Visits</option>
+                <option value="NOT_SCHEDULED">Not Scheduled</option>
+              </select>
+
+              {/* Territory Filter */}
+              <select
+                value={territoryFilter}
+                onChange={(e) => setTerritoryFilter(e.target.value)}
+                className="px-4 py-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-all hover:border-neutral-400 text-sm min-h-[44px] bg-white"
+              >
+                <option value="">All Territories</option>
+                {territories.map(territory => (
+                  <option key={territory.id} value={territory.id}>
+                    {territory.name} ({territory.code})
+                  </option>
+                ))}
+              </select>
+
+              {/* City Filter */}
               <input
                 type="text"
-                placeholder="Search contacts..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-4 py-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-all hover:border-neutral-400 text-sm min-h-[44px]"
+                placeholder="Filter by city..."
+                value={cityFilter}
+                onChange={(e) => setCityFilter(e.target.value)}
+                className="px-4 py-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-all hover:border-neutral-400 text-sm min-h-[44px]"
               />
             </div>
 
-            {/* Category Filter */}
-            <select
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value as any)}
-              className="px-4 py-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-all hover:border-neutral-400 text-sm min-h-[44px] bg-white"
-            >
-              <option value="ALL">All Categories</option>
-              <option value="DISTRIBUTION">Distribution</option>
-              <option value="MEDICAL">Medical</option>
-            </select>
-
-            {/* Territory Filter */}
-            <select
-              value={territoryFilter}
-              onChange={(e) => setTerritoryFilter(e.target.value)}
-              className="px-4 py-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-all hover:border-neutral-400 text-sm min-h-[44px] bg-white"
-            >
-              <option value="">All Territories</option>
-              {territories.map(territory => (
-                <option key={territory.id} value={territory.id}>
-                  {territory.name} ({territory.code})
-                </option>
-              ))}
-            </select>
-
-            {/* City Filter */}
-            <input
-              type="text"
-              placeholder="Filter by city..."
-              value={cityFilter}
-              onChange={(e) => setCityFilter(e.target.value)}
-              className="px-4 py-2.5 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-all hover:border-neutral-400 text-sm min-h-[44px]"
-            />
-
-            {/* Reset */}
-            <button
-              onClick={resetFilters}
-              className="px-4 py-2.5 border-2 border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 hover:border-neutral-400 transition-all font-medium text-sm min-h-[44px]"
-            >
-              Reset Filters
-            </button>
+            {/* Reset Button - Full Width */}
+            <div>
+              <button
+                onClick={resetFilters}
+                className="w-full md:w-auto px-4 py-2.5 border-2 border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 hover:border-neutral-400 transition-all font-medium text-sm min-h-[44px]"
+              >
+                Reset Filters
+              </button>
+            </div>
           </div>
         </Card>
 
@@ -381,22 +474,32 @@ export function ContactsList() {
               columns={7}
               headers={['Name', 'Category', 'Type', 'Contact', 'Location', 'Status', 'Actions']}
             />
-          ) : contacts.length === 0 ? (
+          ) : filteredContacts.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 px-4 min-h-[400px]">
               <Users className="w-16 h-16 text-neutral-400 mb-4" />
-              <h3 className="text-xl font-semibold text-neutral-900 mb-2">No Contacts Yet</h3>
+              <h3 className="text-xl font-semibold text-neutral-900 mb-2">
+                {contacts.length === 0 ? 'No Contacts Yet' : 'No Matching Contacts'}
+              </h3>
               <p className="text-neutral-600 text-center mb-6 max-w-md">
-                Get started by adding your first contact. Build your network of distribution and medical contacts.
+                {contacts.length === 0
+                  ? 'Get started by adding your first contact. Build your network of distribution and medical contacts.'
+                  : 'No contacts match your current filters. Try adjusting your search criteria.'}
               </p>
-              <button onClick={() => navigate('/contacts/new')} className="btn-primary">
-                <Plus className="w-4 h-4" />
-                <span>Add Contact</span>
-              </button>
+              {contacts.length === 0 ? (
+                <button onClick={() => navigate('/contacts/new')} className="btn-primary">
+                  <Plus className="w-4 h-4" />
+                  <span>Add Contact</span>
+                </button>
+              ) : (
+                <button onClick={resetFilters} className="btn-secondary">
+                  Reset Filters
+                </button>
+              )}
             </div>
           ) : isMobile ? (
             // Mobile Card View
             <div className="bg-white">
-              {contacts.map((contact) => (
+              {filteredContacts.map((contact) => (
                 <ContactMobileCard key={contact.id} contact={contact} />
               ))}
             </div>
@@ -419,14 +522,14 @@ export function ContactsList() {
                 <List
                   listRef={listRef}
                   defaultHeight={600}
-                  rowCount={contacts.length}
+                  rowCount={filteredContacts.length}
                   rowHeight={80}
                   rowComponent={ContactRow}
                   rowProps={{}}
                 />
               ) : (
                 <div className="bg-white">
-                  {contacts.map((contact, index) => (
+                  {filteredContacts.map((contact, index) => (
                     <ContactRow key={contact.id} index={index} style={{}} />
                   ))}
                 </div>
