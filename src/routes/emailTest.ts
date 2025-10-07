@@ -5,14 +5,14 @@
  */
 
 import { Hono } from 'hono';
-import { requireAuth } from '../middleware/auth';
+import { authMiddleware } from '../middleware/auth';
 import { logger } from '../utils/logger';
 import { getLogContext } from '../utils/logger';
 
 const emailTest = new Hono();
 
 // Apply auth middleware to all routes
-emailTest.use('/*', requireAuth);
+emailTest.use('/*', authMiddleware);
 
 /**
  * POST /api/email-test/order-confirmation

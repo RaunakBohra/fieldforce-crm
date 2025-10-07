@@ -13,6 +13,11 @@ import { logger } from '../utils/logger';
 // SESEmailService disabled - nodemailer not compatible with Cloudflare Workers
 // import { SESEmailService } from '../infrastructure/email/SESEmailService';
 import { MSG91EmailService } from '../infrastructure/email/MSG91EmailService';
+import { ResendEmailService } from '../infrastructure/email/ResendEmailService';
+import { MailerooEmailService } from '../infrastructure/email/MailerooEmailService';
+import { BrevoEmailService } from '../infrastructure/email/BrevoEmailService';
+import { AWSSESEmailService } from '../infrastructure/email/AWSSESEmailService';
+import { FallbackEmailService } from '../infrastructure/email/FallbackEmailService';
 import { CloudflareKVCacheService } from '../infrastructure/cache/CloudflareKVCacheService';
 import { R2StorageService } from '../infrastructure/storage/R2StorageService';
 // SQS import moved to dynamic import to avoid global scope issues
@@ -45,27 +50,92 @@ export function createDependencies(env: Bindings): Dependencies {
   // Infrastructure layer - Database
   const prisma = getPrisma(env.DATABASE_URL);
 
-  // Infrastructure layer - Email (MSG91 Email API - cloud-agnostic)
+  // Infrastructure layer - Cache (must be initialized before email services)
+  const cache = new CloudflareKVCacheService(
+    env.KV, // KV namespace binding
+    'fieldforce-crm'   // Namespace prefix
+  );
+
+  // Infrastructure layer - Email with Fallback System
+  // Automatically switches between providers based on monthly quotas
   let email: IEmailService;
 
-  if (env.MSG91_AUTH_KEY && env.MSG91_EMAIL_FROM) {
-    // Use MSG91 Email Service (primary)
-    email = new MSG91EmailService(
-      env.MSG91_AUTH_KEY,
-      env.MSG91_EMAIL_FROM,
-      env.MSG91_EMAIL_FROM_NAME || 'Field Force CRM',
-      env.MSG91_EMAIL_DOMAIN || 'qtoedo.mailer91.com'
-    );
-    logger.info('[Dependencies] MSG91 Email Service initialized');
+  // Build list of available email providers
+  const providers: Array<{
+    name: string;
+    service: IEmailService;
+    monthlyQuota: number;
+  }> = [];
+
+  // Provider 1: Brevo (9,000/month free - 300/day)
+  if (env.BREVO_API_KEY && env.BREVO_FROM_EMAIL) {
+    providers.push({
+      name: 'Brevo',
+      service: new BrevoEmailService(
+        env.BREVO_API_KEY,
+        env.BREVO_FROM_EMAIL,
+        env.BREVO_FROM_NAME || 'Field Force CRM'
+      ),
+      monthlyQuota: 9000,
+    });
+  }
+
+  // Provider 2: Resend (3,000/month free)
+  if (env.RESEND_SMTP_PASSWORD && env.RESEND_FROM_EMAIL) {
+    providers.push({
+      name: 'Resend',
+      service: new ResendEmailService(
+        env.RESEND_SMTP_PASSWORD,
+        env.RESEND_FROM_EMAIL,
+        env.RESEND_FROM_NAME || 'Field Force CRM'
+      ),
+      monthlyQuota: 3000,
+    });
+  }
+
+  // Provider 3: Maileroo (3,000/month free)
+  if (env.MAILEROO_API_KEY && env.MAILEROO_FROM_EMAIL) {
+    providers.push({
+      name: 'Maileroo',
+      service: new MailerooEmailService(
+        env.MAILEROO_API_KEY,
+        env.MAILEROO_FROM_EMAIL,
+        env.MAILEROO_FROM_NAME || 'Field Force CRM'
+      ),
+      monthlyQuota: 3000,
+    });
+  }
+
+  // Provider 4: AWS SES (unlimited, pay-per-use: ~$0.10/1000)
+  if (env.AWS_SES_ACCESS_KEY_ID && env.AWS_SES_SECRET_ACCESS_KEY && env.AWS_SES_REGION && env.AWS_SES_FROM_EMAIL) {
+    providers.push({
+      name: 'AWS SES',
+      service: new AWSSESEmailService(
+        env.AWS_SES_ACCESS_KEY_ID,
+        env.AWS_SES_SECRET_ACCESS_KEY,
+        env.AWS_SES_REGION,
+        env.AWS_SES_FROM_EMAIL,
+        env.AWS_SES_FROM_NAME || 'Field Force CRM'
+      ),
+      monthlyQuota: 999999, // Effectively unlimited
+    });
+  }
+
+  // Use fallback system if multiple providers available
+  if (providers.length > 1) {
+    email = new FallbackEmailService(providers, cache);
+    logger.info(`[Dependencies] Fallback Email Service initialized with ${providers.length} providers`, {
+      providers: providers.map(p => `${p.name} (${p.monthlyQuota}/month)`),
+    });
+  } else if (providers.length === 1) {
+    // Single provider - use directly
+    email = providers[0].service;
+    logger.info(`[Dependencies] ${providers[0].name} Email Service initialized (${providers[0].monthlyQuota}/month)`);
   } else {
-    // Fallback: No email service configured
-    logger.warn('[Dependencies] Email service not configured - MSG91 credentials missing');
+    // No email service configured
+    logger.warn('[Dependencies] No email service configured');
     email = {
       async sendEmail() {
-        logger.warn('Email service not configured');
-        return { success: false, error: 'Email service not available' };
-      },
-      async sendTemplatedEmail() {
         logger.warn('Email service not configured');
         return { success: false, error: 'Email service not available' };
       },
@@ -74,12 +144,6 @@ export function createDependencies(env: Bindings): Dependencies {
       },
     };
   }
-
-  // Infrastructure layer - Cache (Cloudflare KV - free tier available)
-  const cache = new CloudflareKVCacheService(
-    env.KV, // KV namespace binding
-    'fieldforce-crm'   // Namespace prefix
-  );
 
   // Infrastructure layer - Storage (Cloudflare R2 - free tier: 10GB storage)
   const storage = new R2StorageService(
@@ -101,8 +165,8 @@ export function createDependencies(env: Bindings): Dependencies {
   // Email notifications service
   const emailNotifications = new EmailNotificationService(
     email,
-    env.MSG91_EMAIL_FROM || 'noreply@fieldforce.com',
-    env.MSG91_EMAIL_FROM_NAME || 'Field Force CRM',
+    env.RESEND_FROM_EMAIL || env.MSG91_EMAIL_FROM || 'noreply@fieldforce.com',
+    env.RESEND_FROM_NAME || env.MSG91_EMAIL_FROM_NAME || 'Field Force CRM',
     env.COMPANY_NAME || 'Your Company'
   );
 

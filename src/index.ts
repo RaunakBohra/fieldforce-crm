@@ -45,6 +45,28 @@ export type Bindings = {
   MSG91_TEMPLATE_ID?: string; // Optional: for OTP template
   COMPANY_NAME?: string; // Company name for emails
 
+  // Resend Email Service (3,000/month free)
+  RESEND_SMTP_PASSWORD?: string; // API key
+  RESEND_FROM_EMAIL?: string;
+  RESEND_FROM_NAME?: string;
+
+  // Maileroo Email Service (3,000/month free)
+  MAILEROO_API_KEY?: string;
+  MAILEROO_FROM_EMAIL?: string;
+  MAILEROO_FROM_NAME?: string;
+
+  // Brevo Email Service (9,000/month free - 300/day)
+  BREVO_API_KEY?: string;
+  BREVO_FROM_EMAIL?: string;
+  BREVO_FROM_NAME?: string;
+
+  // AWS SES Email Service (pay-per-use: ~$0.10 per 1,000 emails)
+  AWS_SES_ACCESS_KEY_ID?: string;
+  AWS_SES_SECRET_ACCESS_KEY?: string;
+  AWS_SES_REGION?: string;
+  AWS_SES_FROM_EMAIL?: string;
+  AWS_SES_FROM_NAME?: string;
+
   // Cache service (Cloudflare KV - free tier available)
   KV: KVNamespace;
 

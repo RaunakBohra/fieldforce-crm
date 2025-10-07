@@ -65,12 +65,10 @@ export class MSG91EmailService implements IEmailService {
         },
         domain: this.domain,
         subject: options.subject,
-        content: [
-          {
-            type: 'html',
-            value: options.html || options.text || '',
-          },
-        ],
+        body: {
+          type: 'html',
+          data: options.html || options.text || '',
+        },
       };
 
       logger.info('[MSG91Email] Sending email', {
