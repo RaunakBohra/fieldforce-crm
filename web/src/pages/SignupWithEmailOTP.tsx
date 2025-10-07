@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
-import type { MSG91Config, MSG91VerifyResponse, MSG91Error } from '../types/msg91';
+import { Loader2 } from 'lucide-react';
 
 type Step = 'form' | 'otp-email' | 'creating-account';
 
@@ -25,67 +25,12 @@ export default function SignupWithEmailOTP() {
     role: 'FIELD_REP',
   });
 
-  // Refs to avoid stale closures
-  const formDataRef = useRef(formData);
-  const stepRef = useRef<Step>('form');
-
   // UI state
   const [step, setStep] = useState<Step>('form');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [otp, setOtp] = useState('');
   const [emailVerified, setEmailVerified] = useState(false);
-
-  // Update refs when state changes
-  useEffect(() => {
-    formDataRef.current = formData;
-  }, [formData]);
-
-  useEffect(() => {
-    stepRef.current = step;
-  }, [step]);
-
-  // Load MSG91 widget script
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://verify.msg91.com/otp-provider.js';
-    script.async = true;
-    script.onload = () => {
-      console.log('✅ MSG91 widget loaded');
-    };
-    document.body.appendChild(script);
-
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, []);
-
-  // Initialize MSG91 OTP widget when email verification step is reached
-  useEffect(() => {
-    if (step === 'otp-email' && window.initSendOTP) {
-      // TODO: Migrate to backend proxy (/api/otp) for better security
-      // Currently using environment variables to avoid credential exposure
-      const configuration = {
-        widgetId: import.meta.env.VITE_MSG91_WIDGET_ID || '356a6763534a353431353234',
-        tokenAuth: import.meta.env.VITE_MSG91_TOKEN_AUTH || '460963T7LX2uZk68e493c1P1',
-        identifier: formDataRef.current.email,
-        exposeMethods: true,
-        success: (data: MSG91VerifyResponse) => {
-          console.log('✅ OTP Verification Success');
-          const token = data.message || data.token || data.accessToken || data.authToken || data.data?.authToken || '';
-          console.log('📍 Current step from ref:', stepRef.current);
-          handleOTPVerificationSuccess(token);
-        },
-        failure: (error: MSG91Error) => {
-          console.error('❌ OTP Verification Failed:', error);
-          setError(error.message || 'OTP verification failed');
-          setLoading(false);
-        },
-      };
-
-      window.initSendOTP(configuration);
-    }
-  }, [step]);
 
   // Step 1: Handle form input changes
   const handleInputChange = (field: keyof FormData, value: string) => {
@@ -94,7 +39,7 @@ export default function SignupWithEmailOTP() {
   };
 
   // Step 2: Submit form and move to email OTP
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -115,53 +60,53 @@ export default function SignupWithEmailOTP() {
       return;
     }
 
-    // Move to email OTP verification
-    setStep('otp-email');
+    // Send email OTP
+    setLoading(true);
+    try {
+      const response = await api.sendOTP(formData.email, 4, 5);
 
-    // Auto-send email OTP
-    setTimeout(() => {
-      setLoading(true);
-      console.log('📧 Auto-sending email OTP to:', formData.email);
+      if (!response.success) {
+        setError(response.error || 'Failed to send OTP to email');
+        setLoading(false);
+        return;
+      }
 
-      window.sendOtp(
-        formData.email,
-        (data) => {
-          console.log('✅ Email OTP sent:', data);
-          setLoading(false);
-        },
-        (error) => {
-          console.error('❌ Send email OTP failed:', error);
-          setError(error.message || 'Failed to send OTP to email');
-          setLoading(false);
-        }
-      );
-    }, 500);
+      console.log('✅ Email OTP sent successfully');
+      setStep('otp-email');
+      setLoading(false);
+    } catch (err) {
+      console.error('❌ Send email OTP error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to send OTP');
+      setLoading(false);
+    }
   };
 
   // Step 3: Send OTP to email (manual trigger)
-  const handleSendEmailOTP = () => {
+  const handleSendEmailOTP = async () => {
     setLoading(true);
     setError('');
     setOtp('');
 
-    console.log('📧 Sending email OTP to:', formData.email);
+    try {
+      const response = await api.sendOTP(formData.email, 4, 5);
 
-    window.sendOtp(
-      formData.email,
-      (data) => {
-        console.log('✅ Email OTP sent:', data);
+      if (!response.success) {
+        setError(response.error || 'Failed to send OTP to email');
         setLoading(false);
-      },
-      (error) => {
-        console.error('❌ Send email OTP failed:', error);
-        setError(error.message || 'Failed to send OTP to email');
-        setLoading(false);
+        return;
       }
-    );
+
+      console.log('✅ Email OTP sent successfully');
+      setLoading(false);
+    } catch (err) {
+      console.error('❌ Send email OTP failed:', err);
+      setError(err instanceof Error ? err.message : 'Failed to send OTP to email');
+      setLoading(false);
+    }
   };
 
   // Step 4: Verify email OTP
-  const handleVerifyEmailOTP = () => {
+  const handleVerifyEmailOTP = async () => {
     if (!otp || otp.length !== 4) {
       setError('Please enter a valid 4-digit OTP');
       return;
@@ -170,40 +115,23 @@ export default function SignupWithEmailOTP() {
     setLoading(true);
     setError('');
 
-    window.verifyOtp(
-      otp,
-      (data) => {
-        console.log('✅ Email OTP verified:', data);
-        // Success callback handled by widget initialization
-      },
-      (error) => {
-        console.error('❌ Email OTP verification failed:', error);
-        setError(error.message || 'Invalid OTP');
-        setLoading(false);
-      }
-    );
-  };
-
-  // Handle successful OTP verification (called by widget)
-  const handleOTPVerificationSuccess = async (token: string) => {
     try {
-      console.log('✅ OTP verified by MSG91');
-      console.log('📍 Current step in handler:', stepRef.current);
+      const response = await api.verifyOTP(formData.email, otp);
 
-      // NOTE: We trust MSG91's widget verification and skip backend verification
-      // MSG91 tokens can only be verified once (error code 702: "access-token already verified")
-      // Since the widget already verified the OTP, we don't need to verify the token again
-      console.log('✅ Trusting MSG91 widget verification (token already verified by widget)');
+      if (!response.success || !response.data?.verified) {
+        setError(response.error || 'Invalid OTP');
+        setLoading(false);
+        return;
+      }
 
-      console.log('📧 Email verified! Creating account...');
+      console.log('✅ Email OTP verified successfully');
       setEmailVerified(true);
-      setLoading(false);
 
       // Create account
       await createAccount();
     } catch (err) {
-      console.error('❌ Verification error:', err);
-      setError(err instanceof Error ? err.message : 'Verification failed');
+      console.error('❌ Email OTP verification failed:', err);
+      setError(err instanceof Error ? err.message : 'Invalid OTP');
       setLoading(false);
     }
   };
@@ -217,15 +145,15 @@ export default function SignupWithEmailOTP() {
       console.log('👤 Creating user account...');
 
       // Remove country code from phone (backend expects 10 digits)
-      const phoneWithoutCountryCode = formDataRef.current.phone.startsWith('91')
-        ? formDataRef.current.phone.substring(2)
-        : formDataRef.current.phone;
+      const phoneWithoutCountryCode = formData.phone.startsWith('91')
+        ? formData.phone.substring(2)
+        : formData.phone;
 
       const response = await api.signup({
-        name: formDataRef.current.name,
-        email: formDataRef.current.email,
+        name: formData.name,
+        email: formData.email,
         phone: phoneWithoutCountryCode,
-        password: formDataRef.current.password,
+        password: formData.password,
       });
 
       if (!response.success) {
@@ -360,10 +288,11 @@ export default function SignupWithEmailOTP() {
 
             <button
               type="submit"
-              className="btn-primary w-full"
+              className="btn-primary w-full flex items-center justify-center gap-2"
               disabled={loading}
             >
-              {loading ? 'Processing...' : 'Continue to Verification'}
+              {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+              {loading ? 'Sending OTP...' : 'Continue to Verification'}
             </button>
 
             <p className="text-center text-sm text-neutral-600">
@@ -424,9 +353,10 @@ export default function SignupWithEmailOTP() {
 
             <button
               onClick={handleVerifyEmailOTP}
-              className="btn-primary w-full"
+              className="btn-primary w-full flex items-center justify-center gap-2"
               disabled={loading || otp.length !== 4}
             >
+              {loading && <Loader2 className="w-4 h-4 animate-spin" />}
               {loading ? 'Verifying...' : 'Verify Email & Create Account'}
             </button>
 
@@ -443,7 +373,7 @@ export default function SignupWithEmailOTP() {
         {/* Step 3: Creating Account */}
         {step === 'creating-account' && (
           <div className="bg-white p-8 rounded-lg shadow text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+            <Loader2 className="w-12 h-12 animate-spin text-primary-600 mx-auto mb-4" />
             <p className="text-neutral-600">Creating your account...</p>
           </div>
         )}

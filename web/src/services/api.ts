@@ -2064,6 +2064,90 @@ class ApiService {
       throw error;
     }
   }
+
+  // ==================== OTP Methods ====================
+
+  /**
+   * Send OTP to a mobile number
+   * @param mobile - Phone number with country code (e.g., "919999999999")
+   * @param otpLength - OTP length (4 or 6, default: 4)
+   * @param otpExpiry - OTP expiry in minutes (default: 5)
+   */
+  async sendOTP(mobile: string, otpLength: number = 4, otpExpiry: number = 5): Promise<ApiResponse<{
+    requestId: string;
+    message: string;
+  }>> {
+    try {
+      const response = await fetch(`${API_URL}/api/otp/send`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ mobile, otpLength, otpExpiry }),
+      });
+
+      return this.handleResponse(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Verify OTP code
+   * @param mobile - Phone number with country code
+   * @param otp - OTP code entered by user
+   */
+  async verifyOTP(mobile: string, otp: string): Promise<ApiResponse<{
+    verified: boolean;
+    mobile: string;
+    message: string;
+  }>> {
+    try {
+      const response = await fetch(`${API_URL}/api/otp/verify`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ mobile, otp }),
+      });
+
+      return this.handleResponse(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Resend OTP to the same mobile number
+   * @param mobile - Phone number with country code
+   * @param retryType - 'text' or 'voice' (default: 'text')
+   */
+  async resendOTP(mobile: string, retryType: 'text' | 'voice' = 'text'): Promise<ApiResponse<{
+    message: string;
+  }>> {
+    try {
+      const response = await fetch(`${API_URL}/api/otp/resend`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ mobile, retryType }),
+      });
+
+      return this.handleResponse(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
 }
 
 const api = new ApiService();

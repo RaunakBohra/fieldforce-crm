@@ -1,10 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { Loader2 } from 'lucide-react';
-import type { MSG91Config, MSG91VerifyResponse, MSG91Error } from '../types/msg91';
 
-type SignupStep = 'form' | 'otp-phone' | 'otp-email' | 'creating-account' | 'success';
+type SignupStep = 'form' | 'otp-phone' | 'otp-email' | 'creating-account';
 
 interface SignupFormData {
   name: string;
@@ -15,12 +14,12 @@ interface SignupFormData {
 }
 
 /**
- * Signup with MSG91 OTP Verification
+ * Signup with OTP Verification (Backend Proxy)
  *
  * Flow:
  * 1. User fills signup form
- * 2. Verify phone via SMS OTP (MSG91 widget)
- * 3. Verify email via Email OTP (MSG91 widget)
+ * 2. Verify phone via SMS OTP (backend API)
+ * 3. Verify email via Email OTP (backend API)
  * 4. Create account in database
  * 5. Auto-login user
  */
@@ -41,81 +40,8 @@ export function SignupWithOTP() {
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [accessToken, setAccessToken] = useState('');
   const [phoneVerified, setPhoneVerified] = useState(false);
   const [emailVerified, setEmailVerified] = useState(false);
-
-  // Avoid unused variable warnings
-  // Note: accessToken, phoneVerified, emailVerified tracked in state
-
-  // Use refs to track current step and formData to avoid stale closure issues
-  const stepRef = useRef(step);
-  const formDataRef = useRef(formData);
-  useEffect(() => {
-    stepRef.current = step;
-  }, [step]);
-  useEffect(() => {
-    formDataRef.current = formData;
-  }, [formData]);
-
-  // Load MSG91 OTP widget script
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://verify.msg91.com/otp-provider.js';
-    script.async = true;
-
-    script.onload = () => {
-      console.log('✅ MSG91 widget loaded');
-
-      // Initialize MSG91 widget
-      // TODO: Migrate to backend proxy (/api/otp) for better security
-      // Currently using environment variables to avoid credential exposure
-      (window as any).initSendOTP({
-        widgetId: import.meta.env.VITE_MSG91_WIDGET_ID || '356a6763534a353431353234',
-        tokenAuth: import.meta.env.VITE_MSG91_TOKEN_AUTH || '460963T7LX2uZk68e493c1P1',
-        exposeMethods: true,
-        success: (data: MSG91VerifyResponse) => {
-          console.log('✅ OTP Verification Success');
-          // MSG91 widget returns token in different possible fields
-          const token = data.token || data.accessToken || data.authToken || data.message || data.data?.authToken || '';
-          console.log('📍 Current step from ref:', stepRef.current);
-
-          if (token && typeof token === 'string') {
-            setAccessToken(token);
-            handleOTPVerificationSuccess(token);
-          } else {
-            console.log('⚠️ No string token in response, showing success without server verification');
-            // If no token but verification succeeded, just proceed
-            setLoading(false);
-            if (stepRef.current === 'otp-phone') {
-              setPhoneVerified(true);
-              setStep('otp-email');
-            } else if (stepRef.current === 'otp-email') {
-              setEmailVerified(true);
-              createAccount();
-            }
-          }
-        },
-        failure: (error: MSG91Error) => {
-          console.error('❌ OTP Verification Failed:', error);
-          setError(error.message || 'OTP verification failed');
-          setLoading(false);
-        },
-      });
-    };
-
-    script.onerror = () => {
-      setError('Failed to load OTP widget. Please refresh the page.');
-    };
-
-    document.body.appendChild(script);
-
-    return () => {
-      if (script.parentNode) {
-        script.parentNode.removeChild(script);
-      }
-    };
-  }, []);
 
   // Handle form input changes
   const handleInputChange = (field: keyof SignupFormData, value: string) => {
@@ -124,7 +50,7 @@ export function SignupWithOTP() {
   };
 
   // Step 1: Submit signup form → Move to phone OTP verification
-  const handleSubmitForm = (e: React.FormEvent) => {
+  const handleSubmitForm = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -136,6 +62,13 @@ export function SignupWithOTP() {
 
     if (formData.password.length < 8) {
       setError('Password must be at least 8 characters');
+      return;
+    }
+
+    // Password strength validation
+    if (!/[A-Z]/.test(formData.password) || !/[a-z]/.test(formData.password) ||
+        !/[0-9]/.test(formData.password) || !/[@$!%*?&]/.test(formData.password)) {
+      setError('Password must include uppercase, lowercase, number, and special character');
       return;
     }
 
@@ -152,172 +85,127 @@ export function SignupWithOTP() {
       : '91' + phone;
 
     setFormData(prev => ({ ...prev, phone: formattedPhone }));
-    setStep('otp-phone');
 
-    // Auto-send OTP immediately with formatted phone
-    // Note: Even for demo numbers, we must call sendOtp() to get reqId
-    // Demo mode means MSG91 accepts "1234" as OTP, but still needs sendOtp() call
+    // Send phone OTP
     setLoading(true);
-    console.log('📱 Auto-sending phone OTP to:', formattedPhone);
-
-    window.sendOtp(
-      formattedPhone,
-      (data) => {
-        console.log('✅ Phone OTP sent:', data);
-        setLoading(false);
-      },
-      (error) => {
-        console.error('❌ Send phone OTP failed:', error);
-        setError(error.message || 'Failed to send OTP to phone');
-        setLoading(false);
-      }
-    );
-  };
-
-  // Step 2: Send OTP to phone (manual trigger)
-  const handleSendPhoneOTP = () => {
-    setLoading(true);
-    setError('');
-
-    console.log('📱 Sending phone OTP to:', formData.phone);
-
-    window.sendOtp(
-      formData.phone,
-      (data) => {
-        console.log('✅ Phone OTP sent:', data);
-        setLoading(false);
-      },
-      (error) => {
-        console.error('❌ Send phone OTP failed:', error);
-        setError(error.message || 'Failed to send OTP to phone');
-        setLoading(false);
-      }
-    );
-  };
-
-  // Step 3: Verify phone OTP
-  const handleVerifyPhoneOTP = () => {
-    if (!otp || otp.length !== 4) {
-      setError('Please enter a valid 4-digit OTP');
-      return;
-    }
-
-    setLoading(true);
-    setError('');
-
-    window.verifyOtp(
-      otp,
-      (data) => {
-        console.log('✅ Phone OTP verified:', data);
-        // Success callback handled by widget initialization
-      },
-      (error) => {
-        console.error('❌ Phone OTP verification failed:', error);
-        setError(error.message || 'Invalid OTP');
-        setLoading(false);
-      }
-    );
-  };
-
-  // Step 4: Send OTP to email
-  const handleSendEmailOTP = () => {
-    setLoading(true);
-    setError('');
-    setOtp('');
-
-    console.log('📧 Sending email OTP to:', formData.email);
-
-    window.sendOtp(
-      formData.email,
-      (data) => {
-        console.log('✅ Email OTP sent:', data);
-        setLoading(false);
-      },
-      (error) => {
-        console.error('❌ Send email OTP failed:', error);
-        setError(error.message || 'Failed to send OTP to email');
-        setLoading(false);
-      }
-    );
-  };
-
-  // Step 5: Verify email OTP
-  const handleVerifyEmailOTP = () => {
-    if (!otp || otp.length !== 4) {
-      setError('Please enter a valid 4-digit OTP');
-      return;
-    }
-
-    setLoading(true);
-    setError('');
-
-    window.verifyOtp(
-      otp,
-      (data) => {
-        console.log('✅ Email OTP verified:', data);
-        // Success callback handled by widget initialization
-      },
-      (error) => {
-        console.error('❌ Email OTP verification failed:', error);
-        setError(error.message || 'Invalid OTP');
-        setLoading(false);
-      }
-    );
-  };
-
-  // Handle successful OTP verification (called by widget)
-  const handleOTPVerificationSuccess = async (token: string) => {
     try {
-      console.log('✅ OTP verified by MSG91');
-      console.log('📍 Current step in handler:', stepRef.current);
+      const response = await api.sendOTP(formattedPhone, 4, 5);
 
-      // NOTE: We trust MSG91's widget verification and skip backend verification
-      // MSG91 tokens can only be verified once (error code 702: "access-token already verified")
-      // Since the widget already verified the OTP, we don't need to verify the token again
-      console.log('✅ Trusting MSG91 widget verification (token already verified by widget)');
-
-      // Mark current step as verified
-      if (stepRef.current === 'otp-phone') {
-        console.log('📞 Phone verified! Moving to email verification...');
-        setPhoneVerified(true);
-        setOtp('');
-        setLoading(false); // Clear loading state
-        setStep('otp-email'); // Move to email verification
-
-        // Auto-send email OTP after a short delay
-        setTimeout(() => {
-          setLoading(true);
-          const email = formDataRef.current.email;
-          console.log('📧 Auto-sending email OTP to:', email);
-
-          window.sendOtp(
-            email,
-            (data) => {
-              console.log('✅ Email OTP sent:', data);
-              setLoading(false);
-            },
-            (error) => {
-              console.error('❌ Send email OTP failed:', error);
-              setError(error.message || 'Failed to send OTP to email');
-              setLoading(false);
-            }
-          );
-        }, 800);
-      } else if (stepRef.current === 'otp-email') {
-        console.log('📧 Email verified! Creating account...');
-        setEmailVerified(true);
-        setLoading(false); // Clear loading state
-        // Both phone and email verified → Create account
-        await createAccount();
+      if (!response.success) {
+        setError(response.error || 'Failed to send OTP');
+        setLoading(false);
+        return;
       }
+
+      console.log('✅ Phone OTP sent successfully');
+      setStep('otp-phone');
+      setLoading(false);
     } catch (err) {
-      console.error('❌ Verification error:', err);
-      setError(err instanceof Error ? err.message : 'Verification failed');
+      console.error('❌ Send phone OTP error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to send OTP');
       setLoading(false);
     }
   };
 
-  // Step 6: Create user account
+  // Step 2: Verify phone OTP
+  const handleVerifyPhoneOTP = async () => {
+    if (!otp || otp.length !== 4) {
+      setError('Please enter a valid 4-digit OTP');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await api.verifyOTP(formData.phone, otp);
+
+      if (!response.success || !response.data?.verified) {
+        setError(response.error || 'Invalid OTP');
+        setLoading(false);
+        return;
+      }
+
+      console.log('✅ Phone OTP verified successfully');
+      setPhoneVerified(true);
+      setOtp(''); // Clear OTP for next step
+
+      // Send email OTP
+      const emailOtpResponse = await api.sendOTP(formData.email, 4, 5);
+
+      if (!emailOtpResponse.success) {
+        setError(emailOtpResponse.error || 'Failed to send email OTP');
+        setLoading(false);
+        return;
+      }
+
+      console.log('✅ Email OTP sent successfully');
+      setStep('otp-email');
+      setLoading(false);
+    } catch (err) {
+      console.error('❌ Verify phone OTP error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to verify OTP');
+      setLoading(false);
+    }
+  };
+
+  // Step 3: Verify email OTP
+  const handleVerifyEmailOTP = async () => {
+    if (!otp || otp.length !== 4) {
+      setError('Please enter a valid 4-digit OTP');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await api.verifyOTP(formData.email, otp);
+
+      if (!response.success || !response.data?.verified) {
+        setError(response.error || 'Invalid OTP');
+        setLoading(false);
+        return;
+      }
+
+      console.log('✅ Email OTP verified successfully');
+      setEmailVerified(true);
+
+      // Create account
+      await createAccount();
+    } catch (err) {
+      console.error('❌ Verify email OTP error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to verify OTP');
+      setLoading(false);
+    }
+  };
+
+  // Step 4: Resend OTP
+  const handleResendOTP = async () => {
+    setLoading(true);
+    setError('');
+    setOtp('');
+
+    try {
+      const identifier = step === 'otp-phone' ? formData.phone : formData.email;
+      const response = await api.resendOTP(identifier);
+
+      if (!response.success) {
+        setError(response.error || 'Failed to resend OTP');
+        setLoading(false);
+        return;
+      }
+
+      console.log('✅ OTP resent successfully');
+      setLoading(false);
+    } catch (err) {
+      console.error('❌ Resend OTP error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to resend OTP');
+      setLoading(false);
+    }
+  };
+
+  // Step 5: Create user account
   const createAccount = async () => {
     try {
       setStep('creating-account');
@@ -326,16 +214,15 @@ export function SignupWithOTP() {
       console.log('👤 Creating user account...');
 
       // Remove country code from phone (backend expects 10 digits)
-      const phoneWithoutCountryCode = formDataRef.current.phone.startsWith('91')
-        ? formDataRef.current.phone.substring(2)
-        : formDataRef.current.phone;
+      const phoneWithoutCountryCode = formData.phone.startsWith('91')
+        ? formData.phone.substring(2)
+        : formData.phone;
 
       const response = await api.signup({
-        name: formDataRef.current.name,
-        email: formDataRef.current.email,
+        name: formData.name,
+        email: formData.email,
         phone: phoneWithoutCountryCode,
-        password: formDataRef.current.password,
-        // Add verified flag or store in user metadata
+        password: formData.password,
       });
 
       if (!response.success) {
@@ -349,44 +236,47 @@ export function SignupWithOTP() {
         localStorage.setItem('token', response.data.token);
       }
 
-      setStep('success');
-
-      // Redirect to dashboard after 2 seconds
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 2000);
+      // Redirect to dashboard
+      console.log('🎉 Redirecting to dashboard...');
+      navigate('/');
     } catch (err) {
       console.error('❌ Account creation error:', err);
       setError(err instanceof Error ? err.message : 'Failed to create account');
-      setStep('form'); // Go back to form
       setLoading(false);
+      setStep('form');
     }
   };
 
-
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 bg-neutral-100">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-8">
-          <div className="text-center mb-6">
-            <h1 className="text-2xl font-bold text-neutral-900 mb-2">
-              {step === 'form' && 'Create Account'}
-              {step === 'otp-phone' && 'Verify Phone Number'}
-              {step === 'otp-email' && 'Verify Email Address'}
-              {step === 'creating-account' && 'Creating Account...'}
-              {step === 'success' && 'Success!'}
-            </h1>
-            <p className="text-neutral-600">
-              {step === 'form' && 'Join Field Force CRM'}
-              {step === 'otp-phone' && 'Enter the OTP sent to your phone'}
-              {step === 'otp-email' && 'Enter the OTP sent to your email'}
-              {step === 'creating-account' && 'Please wait...'}
-              {step === 'success' && 'Account created successfully'}
-            </p>
-          </div>
+    <div className="min-h-screen bg-neutral-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        {/* Header */}
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-neutral-900">
+            {step === 'form' && 'Create Account'}
+            {step === 'otp-phone' && 'Verify Phone Number'}
+            {step === 'otp-email' && 'Verify Email Address'}
+            {step === 'creating-account' && 'Creating Account...'}
+          </h1>
+          <p className="mt-2 text-sm text-neutral-600">
+            {step === 'form' && 'Join Field Force CRM'}
+            {step === 'otp-phone' && 'Enter the OTP sent to your phone'}
+            {step === 'otp-email' && 'Enter the OTP sent to your email'}
+            {step === 'creating-account' && 'Please wait while we set up your account'}
+          </p>
+        </div>
 
-          {/* Step 1: Signup Form */}
-          {step === 'form' && (
-            <form onSubmit={handleSubmitForm} className="space-y-4">
+        {/* Error Message */}
+        {error && (
+          <div className="bg-danger-50 border border-danger-200 text-danger-700 px-4 py-3 rounded">
+            {error}
+          </div>
+        )}
+
+        {/* Step 1: Form */}
+        {step === 'form' && (
+          <form onSubmit={handleSubmitForm} className="mt-8 space-y-6 bg-white p-8 rounded-lg shadow">
+            <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-1">
                   Full Name
@@ -426,6 +316,8 @@ export function SignupWithOTP() {
                   className="input-field"
                   placeholder="9999999999 (without country code)"
                   required
+                  pattern="[0-9]{10}"
+                  title="Enter 10-digit phone number"
                 />
                 <p className="text-xs text-neutral-500 mt-1">
                   Enter 10-digit mobile number (India)
@@ -456,185 +348,161 @@ export function SignupWithOTP() {
                 </label>
                 <select
                   value={formData.role}
-                  onChange={(e) => handleInputChange('role', e.target.value as any)}
+                  onChange={(e) => handleInputChange('role', e.target.value as 'FIELD_REP' | 'MANAGER')}
                   className="input-field"
                 >
                   <option value="FIELD_REP">Field Representative</option>
                   <option value="MANAGER">Manager</option>
                 </select>
               </div>
-
-              {error && (
-                <div className="bg-danger-50 border border-danger-200 text-danger-700 px-4 py-3 rounded-lg text-sm">
-                  {error}
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="btn-primary w-full"
-              >
-                Continue to Verification
-              </button>
-
-              <p className="text-center text-sm text-neutral-600">
-                Already have an account?{' '}
-                <button
-                  type="button"
-                  onClick={() => navigate('/login')}
-                  className="text-primary-600 hover:text-primary-700 font-medium"
-                >
-                  Log in
-                </button>
-              </p>
-            </form>
-          )}
-
-          {/* Step 2: Phone OTP Verification */}
-          {step === 'otp-phone' && (
-            <div className="space-y-4">
-              <div className="bg-primary-50 border border-primary-200 rounded-lg p-4 text-sm text-primary-800">
-                <p>📱 Phone: <strong>+{formData.phone}</strong></p>
-                <p className="mt-1">Click below to receive OTP via SMS</p>
-              </div>
-
-              <button
-                onClick={handleSendPhoneOTP}
-                disabled={loading}
-                className="btn-primary w-full"
-              >
-                {loading ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Sending...
-                  </span>
-                ) : (
-                  'Send OTP to Phone'
-                )}
-              </button>
-
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1">
-                  Enter 4-digit OTP
-                </label>
-                <input
-                  type="text"
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                  className="input-field text-center text-2xl tracking-widest"
-                  placeholder="1234"
-                  maxLength={4}
-                />
-              </div>
-
-              {error && (
-                <div className="bg-danger-50 border border-danger-200 text-danger-700 px-4 py-3 rounded-lg text-sm">
-                  {error}
-                </div>
-              )}
-
-              <button
-                onClick={handleVerifyPhoneOTP}
-                disabled={loading || otp.length !== 4}
-                className="btn-primary w-full"
-              >
-                {loading ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Verifying...
-                  </span>
-                ) : (
-                  'Verify Phone OTP'
-                )}
-              </button>
             </div>
-          )}
 
-          {/* Step 3: Email OTP Verification */}
-          {step === 'otp-email' && (
-            <div className="space-y-4">
-              <div className="bg-success-50 border border-success-200 rounded-lg p-3 text-sm text-success-800 mb-4">
+            <button
+              type="submit"
+              className="btn-primary w-full flex items-center justify-center gap-2"
+              disabled={loading}
+            >
+              {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+              {loading ? 'Sending OTP...' : 'Continue to Verification'}
+            </button>
+
+            <p className="text-center text-sm text-neutral-600">
+              Already have an account?{' '}
+              <button
+                type="button"
+                onClick={() => navigate('/login')}
+                className="text-primary-600 hover:text-primary-500 font-medium"
+              >
+                Log in
+              </button>
+            </p>
+          </form>
+        )}
+
+        {/* Step 2: Phone OTP Verification */}
+        {step === 'otp-phone' && (
+          <div className="bg-white p-8 rounded-lg shadow space-y-6">
+            {phoneVerified && (
+              <div className="bg-success-50 border border-success-200 text-success-700 px-4 py-3 rounded">
                 ✅ Phone verified successfully
               </div>
+            )}
 
-              <div className="bg-primary-50 border border-primary-200 rounded-lg p-4 text-sm text-primary-800">
-                <p>📧 Email: <strong>{formData.email}</strong></p>
-                <p className="mt-1">Click below to receive OTP via email</p>
-              </div>
-
-              <button
-                onClick={handleSendEmailOTP}
-                disabled={loading}
-                className="btn-primary w-full"
-              >
-                {loading ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Sending...
-                  </span>
-                ) : (
-                  'Send OTP to Email'
-                )}
-              </button>
-
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1">
-                  Enter 4-digit OTP
-                </label>
-                <input
-                  type="text"
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                  className="input-field text-center text-2xl tracking-widest"
-                  placeholder="1234"
-                  maxLength={4}
-                />
-              </div>
-
-              {error && (
-                <div className="bg-danger-50 border border-danger-200 text-danger-700 px-4 py-3 rounded-lg text-sm">
-                  {error}
-                </div>
-              )}
-
-              <button
-                onClick={handleVerifyEmailOTP}
-                disabled={loading || otp.length !== 4}
-                className="btn-primary w-full"
-              >
-                {loading ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Verifying...
-                  </span>
-                ) : (
-                  'Verify Email & Create Account'
-                )}
-              </button>
+            <div className="text-center">
+              <p className="text-sm text-neutral-600">
+                📱 Phone: <span className="font-medium text-neutral-900">{formData.phone}</span>
+              </p>
             </div>
-          )}
 
-          {/* Step 4: Creating Account */}
-          {step === 'creating-account' && (
-            <div className="text-center py-8">
-              <Loader2 className="w-12 h-12 animate-spin text-primary-600 mx-auto mb-4" />
-              <p className="text-neutral-600">Creating your account...</p>
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-2">
+                Enter 4-digit OTP
+              </label>
+              <input
+                type="text"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                className="input-field text-center text-2xl tracking-widest"
+                placeholder="1234"
+                maxLength={4}
+                pattern="[0-9]{4}"
+              />
             </div>
-          )}
 
-          {/* Step 5: Success */}
-          {step === 'success' && (
-            <div className="text-center py-8">
-              <div className="w-16 h-16 bg-success-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
+            <button
+              onClick={handleVerifyPhoneOTP}
+              className="btn-primary w-full flex items-center justify-center gap-2"
+              disabled={loading || otp.length !== 4}
+            >
+              {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+              {loading ? 'Verifying...' : 'Verify Phone & Continue'}
+            </button>
+
+            <button
+              onClick={handleResendOTP}
+              className="btn-secondary w-full"
+              disabled={loading}
+            >
+              Resend OTP
+            </button>
+
+            <button
+              onClick={() => setStep('form')}
+              className="btn-ghost w-full"
+              disabled={loading}
+            >
+              Back to Form
+            </button>
+          </div>
+        )}
+
+        {/* Step 3: Email OTP Verification */}
+        {step === 'otp-email' && (
+          <div className="bg-white p-8 rounded-lg shadow space-y-6">
+            {emailVerified && (
+              <div className="bg-success-50 border border-success-200 text-success-700 px-4 py-3 rounded">
+                ✅ Email verified successfully
               </div>
-              <h2 className="text-xl font-bold text-neutral-900 mb-2">Account Created!</h2>
-              <p className="text-neutral-600">Redirecting to dashboard...</p>
+            )}
+
+            <div className="text-center">
+              <p className="text-sm text-neutral-600">
+                📧 Email: <span className="font-medium text-neutral-900">{formData.email}</span>
+              </p>
             </div>
-          )}
+
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-2">
+                Enter 4-digit OTP
+              </label>
+              <input
+                type="text"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                className="input-field text-center text-2xl tracking-widest"
+                placeholder="1234"
+                maxLength={4}
+                pattern="[0-9]{4}"
+              />
+            </div>
+
+            <button
+              onClick={handleVerifyEmailOTP}
+              className="btn-primary w-full flex items-center justify-center gap-2"
+              disabled={loading || otp.length !== 4}
+            >
+              {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+              {loading ? 'Verifying...' : 'Verify Email & Create Account'}
+            </button>
+
+            <button
+              onClick={handleResendOTP}
+              className="btn-secondary w-full"
+              disabled={loading}
+            >
+              Resend OTP
+            </button>
+
+            <button
+              onClick={() => {
+                setStep('otp-phone');
+                setOtp('');
+              }}
+              className="btn-ghost w-full"
+              disabled={loading}
+            >
+              Back to Phone Verification
+            </button>
+          </div>
+        )}
+
+        {/* Step 4: Creating Account */}
+        {step === 'creating-account' && (
+          <div className="bg-white p-8 rounded-lg shadow text-center">
+            <Loader2 className="w-12 h-12 animate-spin text-primary-600 mx-auto mb-4" />
+            <p className="text-neutral-600">Creating your account...</p>
+          </div>
+        )}
       </div>
     </div>
   );
