@@ -78,9 +78,8 @@ export default function SignupWithEmailOTP() {
         identifier: formDataRef.current.email,
         exposeMethods: true,
         success: (data: any) => {
-          console.log('✅ OTP Verification Success:', data);
+          console.log('✅ OTP Verification Success');
           const token = data.message || data.token || data;
-          console.log('🔑 Token extracted:', token);
           console.log('📍 Current step from ref:', stepRef.current);
           handleOTPVerificationSuccess(token);
         },
@@ -195,7 +194,7 @@ export default function SignupWithEmailOTP() {
   // Handle successful OTP verification (called by widget)
   const handleOTPVerificationSuccess = async (token: string) => {
     try {
-      console.log('✅ OTP verified by MSG91, token:', token);
+      console.log('✅ OTP verified by MSG91');
       console.log('📍 Current step in handler:', stepRef.current);
 
       // NOTE: We trust MSG91's widget verification and skip backend verification

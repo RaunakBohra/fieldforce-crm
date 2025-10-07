@@ -55,7 +55,7 @@ export function SignupWithOTP() {
   const [emailVerified, setEmailVerified] = useState(false);
 
   // Avoid unused variable warnings
-  console.log('OTP state:', { accessToken, phoneVerified, emailVerified });
+  // Note: accessToken, phoneVerified, emailVerified tracked in state
 
   // Use refs to track current step and formData to avoid stale closure issues
   const stepRef = useRef(step);
@@ -84,10 +84,9 @@ export function SignupWithOTP() {
         tokenAuth: import.meta.env.VITE_MSG91_TOKEN_AUTH || '460963T7LX2uZk68e493c1P1',
         exposeMethods: true,
         success: (data: any) => {
-          console.log('✅ OTP Verification Success:', data);
+          console.log('✅ OTP Verification Success');
           // MSG91 widget returns token in different possible fields
           const token = data.token || data.accessToken || data.authToken || data.message || data;
-          console.log('🔑 Token extracted:', token);
           console.log('📍 Current step from ref:', stepRef.current);
 
           if (token && typeof token === 'string') {
@@ -278,7 +277,7 @@ export function SignupWithOTP() {
   // Handle successful OTP verification (called by widget)
   const handleOTPVerificationSuccess = async (token: string) => {
     try {
-      console.log('✅ OTP verified by MSG91, token:', token);
+      console.log('✅ OTP verified by MSG91');
       console.log('📍 Current step in handler:', stepRef.current);
 
       // NOTE: We trust MSG91's widget verification and skip backend verification
