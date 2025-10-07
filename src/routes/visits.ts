@@ -47,9 +47,10 @@ visits.get('/', async (c) => {
     logger.info('Get visits request', {
       ...getLogContext(c),
       query,
+      userRole: user.role,
     });
 
-    const result = await deps.visitService.getVisits(user.userId, query);
+    const result = await deps.visitService.getVisits(user.userId, user.role, query);
 
     if (!result.success) {
       return c.json({ success: false, error: result.error }, 400);
@@ -82,9 +83,12 @@ visits.get('/stats', async (c) => {
   const user = c.get('user');
 
   try {
-    logger.info('Get visit stats request', getLogContext(c));
+    logger.info('Get visit stats request', {
+      ...getLogContext(c),
+      userRole: user.role,
+    });
 
-    const result = await deps.visitService.getVisitStats(user.userId);
+    const result = await deps.visitService.getVisitStats(user.userId, user.role);
 
     if (!result.success) {
       return c.json({ success: false, error: result.error }, 400);
@@ -110,9 +114,10 @@ visits.get('/:id', async (c) => {
     logger.info('Get visit by ID request', {
       ...getLogContext(c),
       visitId,
+      userRole: user.role,
     });
 
-    const result = await deps.visitService.getVisitById(user.userId, visitId);
+    const result = await deps.visitService.getVisitById(user.userId, user.role, visitId);
 
     if (!result.success) {
       return c.json({ success: false, error: result.error }, 404);
@@ -199,9 +204,10 @@ visits.put('/:id', async (c) => {
     logger.info('Update visit request', {
       ...getLogContext(c),
       visitId,
+      userRole: user.role,
     });
 
-    const result = await deps.visitService.updateVisit(user.userId, visitId, input);
+    const result = await deps.visitService.updateVisit(user.userId, user.role, visitId, input);
 
     if (!result.success) {
       return c.json({ success: false, error: result.error }, 400);
@@ -253,9 +259,10 @@ visits.delete('/:id', async (c) => {
     logger.info('Delete visit request', {
       ...getLogContext(c),
       visitId,
+      userRole: user.role,
     });
 
-    const result = await deps.visitService.deleteVisit(user.userId, visitId);
+    const result = await deps.visitService.deleteVisit(user.userId, user.role, visitId);
 
     if (!result.success) {
       return c.json({ success: false, error: result.error }, 404);

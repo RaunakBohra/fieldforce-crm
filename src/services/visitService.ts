@@ -1,6 +1,7 @@
 import { PrismaClient, Visit, VisitStatus, VisitType, VisitOutcome } from '@prisma/client';
 import { CreateVisitInput, UpdateVisitInput, VisitQueryInput } from '../validators/visitSchemas';
 import { logger } from '../utils/logger';
+import { buildVisitFilter, canModifyRecord, type UserContext } from '../utils/roleFilters';
 
 /**
  * Visit Service Result Interfaces
@@ -136,19 +137,31 @@ export class VisitService {
 
   /**
    * Get visits with filters and pagination
+   * @param userId - User ID
+   * @param role - User role (SUPER_ADMIN, ADMIN, MANAGER, FIELD_REP)
+   * @param query - Query parameters for filtering and pagination
    */
-  async getVisits(userId: string, query: VisitQueryInput): Promise<VisitsListResult> {
+  async getVisits(userId: string, role: string, query: VisitQueryInput): Promise<VisitsListResult> {
     try {
       const { page = 1, limit = 20, contactId, fieldRepId, visitType, status, outcome, startDate, endDate, search } = query;
       const skip = (page - 1) * limit;
 
-      // Build where clause
-      const where: any = {
-        OR: [
-          { fieldRepId: userId },
-          { contact: { company: { users: { some: { id: userId } } } } },
-        ],
+      // Fetch user's company for role-based filtering
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { companyId: true },
+      });
+
+      // Build role-based access filter
+      const userContext: UserContext = {
+        userId,
+        role,
+        companyId: user?.companyId,
       };
+      const roleFilter = buildVisitFilter(userContext);
+
+      // Build where clause with role-based filter
+      const where: any = { ...roleFilter };
 
       if (contactId) where.contactId = contactId;
       if (fieldRepId) where.fieldRepId = fieldRepId;
@@ -225,16 +238,30 @@ export class VisitService {
 
   /**
    * Get visit by ID
+   * @param userId - User ID
+   * @param role - User role (SUPER_ADMIN, ADMIN, MANAGER, FIELD_REP)
+   * @param visitId - Visit ID to retrieve
    */
-  async getVisitById(userId: string, visitId: string): Promise<VisitResult> {
+  async getVisitById(userId: string, role: string, visitId: string): Promise<VisitResult> {
     try {
+      // Fetch user's company for role-based filtering
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { companyId: true },
+      });
+
+      // Build role-based access filter
+      const userContext: UserContext = {
+        userId,
+        role,
+        companyId: user?.companyId,
+      };
+      const roleFilter = buildVisitFilter(userContext);
+
       const visit = await this.prisma.visit.findFirst({
         where: {
           id: visitId,
-          OR: [
-            { fieldRepId: userId },
-            { contact: { company: { users: { some: { id: userId } } } } },
-          ],
+          ...roleFilter,
         },
         include: {
           contact: {
@@ -286,21 +313,47 @@ export class VisitService {
 
   /**
    * Update visit
+   * @param userId - User ID
+   * @param role - User role (SUPER_ADMIN, ADMIN, MANAGER, FIELD_REP)
+   * @param visitId - Visit ID to update
+   * @param input - Updated visit data
    */
-  async updateVisit(userId: string, visitId: string, input: UpdateVisitInput): Promise<VisitResult> {
+  async updateVisit(userId: string, role: string, visitId: string, input: UpdateVisitInput): Promise<VisitResult> {
     try {
-      // Verify visit belongs to user
-      const existingVisit = await this.prisma.visit.findFirst({
-        where: {
-          id: visitId,
-          fieldRepId: userId,
+      // Fetch user's company for permission check
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { companyId: true },
+      });
+
+      // Fetch existing visit with field rep info
+      const existingVisit = await this.prisma.visit.findUnique({
+        where: { id: visitId },
+        include: {
+          fieldRep: {
+            select: { companyId: true },
+          },
         },
       });
 
       if (!existingVisit) {
         return {
           success: false,
-          error: 'Visit not found or access denied',
+          error: 'Visit not found',
+        };
+      }
+
+      // Check if user has permission to modify this visit
+      const userContext: UserContext = {
+        userId,
+        role,
+        companyId: user?.companyId,
+      };
+
+      if (!canModifyRecord(userContext, existingVisit.fieldRepId, existingVisit.fieldRep.companyId)) {
+        return {
+          success: false,
+          error: 'Access denied - you do not have permission to edit this visit',
         };
       }
 
@@ -355,21 +408,46 @@ export class VisitService {
 
   /**
    * Delete visit
+   * @param userId - User ID
+   * @param role - User role (SUPER_ADMIN, ADMIN, MANAGER, FIELD_REP)
+   * @param visitId - Visit ID to delete
    */
-  async deleteVisit(userId: string, visitId: string): Promise<VisitResult> {
+  async deleteVisit(userId: string, role: string, visitId: string): Promise<VisitResult> {
     try {
-      // Verify visit belongs to user
-      const existingVisit = await this.prisma.visit.findFirst({
-        where: {
-          id: visitId,
-          fieldRepId: userId,
+      // Fetch user's company for permission check
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { companyId: true },
+      });
+
+      // Fetch existing visit with field rep info
+      const existingVisit = await this.prisma.visit.findUnique({
+        where: { id: visitId },
+        include: {
+          fieldRep: {
+            select: { companyId: true },
+          },
         },
       });
 
       if (!existingVisit) {
         return {
           success: false,
-          error: 'Visit not found or access denied',
+          error: 'Visit not found',
+        };
+      }
+
+      // Check if user has permission to delete this visit
+      const userContext: UserContext = {
+        userId,
+        role,
+        companyId: user?.companyId,
+      };
+
+      if (!canModifyRecord(userContext, existingVisit.fieldRepId, existingVisit.fieldRep.companyId)) {
+        return {
+          success: false,
+          error: 'Access denied - you do not have permission to delete this visit',
         };
       }
 
@@ -393,20 +471,29 @@ export class VisitService {
 
   /**
    * Get visit statistics for dashboard
+   * @param userId - User ID
+   * @param role - User role (SUPER_ADMIN, ADMIN, MANAGER, FIELD_REP)
    */
-  async getVisitStats(userId: string): Promise<VisitStatsResult> {
+  async getVisitStats(userId: string, role: string): Promise<VisitStatsResult> {
     try {
       const now = new Date();
       const todayStart = new Date(now.setHours(0, 0, 0, 0));
       const weekStart = new Date(now.setDate(now.getDate() - now.getDay()));
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
-      const where = {
-        OR: [
-          { fieldRepId: userId },
-          { contact: { company: { users: { some: { id: userId } } } } },
-        ],
+      // Fetch user's company for role-based filtering
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { companyId: true },
+      });
+
+      // Build role-based access filter
+      const userContext: UserContext = {
+        userId,
+        role,
+        companyId: user?.companyId,
       };
+      const where = buildVisitFilter(userContext);
 
       const [
         totalVisits,
