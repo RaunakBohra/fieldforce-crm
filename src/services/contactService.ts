@@ -92,9 +92,9 @@ export class ContactService {
 
       // Add territoryId if provided (validate it exists and is active)
       if (input.territoryId && input.territoryId.trim()) {
-        const territory = await prisma.territory.findUnique({
+        const territory = await this.prisma.territory.findUnique({
           where: { id: input.territoryId },
-          select: { id: true, isActive: true },
+          select: { id: true, isActive: true, companyId: true },
         });
 
         if (!territory) {
@@ -103,6 +103,11 @@ export class ContactService {
 
         if (!territory.isActive) {
           return { success: false, error: 'Territory is not active' };
+        }
+
+        // SECURITY: Verify territory belongs to same company (unless SUPER_ADMIN)
+        if (user.companyId && territory.companyId !== user.companyId) {
+          return { success: false, error: 'Territory not found' };
         }
 
         contactData.territoryId = input.territoryId;
@@ -424,7 +429,7 @@ export class ContactService {
         if (input.territoryId && input.territoryId.trim()) {
           const territory = await this.prisma.territory.findUnique({
             where: { id: input.territoryId },
-            select: { id: true, isActive: true },
+            select: { id: true, isActive: true, companyId: true },
           });
 
           if (!territory) {
@@ -433,6 +438,11 @@ export class ContactService {
 
           if (!territory.isActive) {
             return { success: false, error: 'Territory is not active' };
+          }
+
+          // SECURITY: Verify territory belongs to same company (unless SUPER_ADMIN)
+          if (user?.companyId && territory.companyId !== user.companyId) {
+            return { success: false, error: 'Territory not found' };
           }
 
           updateData.territoryId = input.territoryId;

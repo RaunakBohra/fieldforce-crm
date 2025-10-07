@@ -43,6 +43,7 @@ const adminOnly = async (c: any, next: any) => {
  */
 territories.get('/', adminOnly, async (c) => {
   const deps = c.get('deps');
+  const user = c.get('user');
 
   try {
     logger.info('List territories request', getLogContext(c));
@@ -59,8 +60,21 @@ territories.get('/', adminOnly, async (c) => {
 
     const skip = (page - 1) * limit;
 
-    // Build filter
+    // Fetch user's company for role-based filtering
+    const userData = await deps.prisma.user.findUnique({
+      where: { id: user.userId },
+      select: { companyId: true },
+    });
+
+    // Build filter with company isolation
     const where: any = {};
+
+    // SECURITY: Filter territories by company (unless SUPER_ADMIN)
+    if (user.role !== 'SUPER_ADMIN') {
+      if (userData?.companyId) {
+        where.companyId = userData.companyId;
+      }
+    }
 
     if (country) {
       where.country = country;
@@ -173,10 +187,17 @@ territories.get('/', adminOnly, async (c) => {
  */
 territories.get('/:id', adminOnly, async (c) => {
   const deps = c.get('deps');
+  const user = c.get('user');
   const territoryId = c.req.param('id');
 
   try {
     logger.info('Get territory request', { ...getLogContext(c), territoryId });
+
+    // Fetch user's company for validation
+    const userData = await deps.prisma.user.findUnique({
+      where: { id: user.userId },
+      select: { companyId: true },
+    });
 
     const territory = await deps.prisma.territory.findUnique({
       where: { id: territoryId },
@@ -218,6 +239,16 @@ territories.get('/:id', adminOnly, async (c) => {
       }, 404);
     }
 
+    // SECURITY: Verify territory belongs to user's company (unless SUPER_ADMIN)
+    if (user.role !== 'SUPER_ADMIN') {
+      if (userData?.companyId && territory.companyId !== userData.companyId) {
+        return c.json({
+          success: false,
+          error: 'Territory not found',
+        }, 404);
+      }
+    }
+
     logger.info('Territory retrieved successfully', { ...getLogContext(c), territoryId });
 
     return c.json({
@@ -243,12 +274,19 @@ territories.get('/:id', adminOnly, async (c) => {
  */
 territories.post('/', requireManager, async (c) => {
   const deps = c.get('deps');
+  const user = c.get('user');
 
   try {
     const body = await c.req.json();
     const { name, code, description, type, country, state, city, pincode, parentId, isActive } = body;
 
     logger.info('Create territory attempt', { ...getLogContext(c), code });
+
+    // Fetch user's company
+    const userData = await deps.prisma.user.findUnique({
+      where: { id: user.userId },
+      select: { companyId: true },
+    });
 
     // Validate required fields
     if (!name || !code || !type || !country) {
@@ -270,7 +308,7 @@ territories.post('/', requireManager, async (c) => {
       }, 400);
     }
 
-    // If parentId provided, validate it exists
+    // If parentId provided, validate it exists and belongs to same company
     if (parentId) {
       const parentTerritory = await deps.prisma.territory.findUnique({
         where: { id: parentId },
@@ -282,9 +320,19 @@ territories.post('/', requireManager, async (c) => {
           error: 'Parent territory not found',
         }, 404);
       }
+
+      // SECURITY: Verify parent territory belongs to same company
+      if (user.role !== 'SUPER_ADMIN') {
+        if (userData?.companyId && parentTerritory.companyId !== userData.companyId) {
+          return c.json({
+            success: false,
+            error: 'Parent territory not found',
+          }, 404);
+        }
+      }
     }
 
-    // Create territory
+    // Create territory with company assignment
     const newTerritory = await deps.prisma.territory.create({
       data: {
         name,
@@ -297,6 +345,7 @@ territories.post('/', requireManager, async (c) => {
         pincode: pincode || null,
         parentId: parentId || null,
         isActive: isActive !== undefined ? isActive : true,
+        companyId: userData?.companyId || null,
       },
       include: {
         parent: {
@@ -338,6 +387,7 @@ territories.post('/', requireManager, async (c) => {
  */
 territories.put('/:id', requireManager, async (c) => {
   const deps = c.get('deps');
+  const user = c.get('user');
   const territoryId = c.req.param('id');
 
   try {
@@ -345,6 +395,12 @@ territories.put('/:id', requireManager, async (c) => {
     const { name, code, description, type, country, state, city, pincode, parentId, isActive } = body;
 
     logger.info('Update territory attempt', { ...getLogContext(c), territoryId });
+
+    // Fetch user's company
+    const userData = await deps.prisma.user.findUnique({
+      where: { id: user.userId },
+      select: { companyId: true },
+    });
 
     // Check if territory exists
     const existingTerritory = await deps.prisma.territory.findUnique({
@@ -356,6 +412,16 @@ territories.put('/:id', requireManager, async (c) => {
         success: false,
         error: 'Territory not found',
       }, 404);
+    }
+
+    // SECURITY: Verify territory belongs to user's company (unless SUPER_ADMIN)
+    if (user.role !== 'SUPER_ADMIN') {
+      if (userData?.companyId && existingTerritory.companyId !== userData.companyId) {
+        return c.json({
+          success: false,
+          error: 'Territory not found',
+        }, 404);
+      }
     }
 
     // If code is being changed, check it's not already taken
@@ -390,6 +456,16 @@ territories.put('/:id', requireManager, async (c) => {
           success: false,
           error: 'Parent territory not found',
         }, 404);
+      }
+
+      // SECURITY: Verify parent territory belongs to same company
+      if (user.role !== 'SUPER_ADMIN') {
+        if (userData?.companyId && parentTerritory.companyId !== userData.companyId) {
+          return c.json({
+            success: false,
+            error: 'Parent territory not found',
+          }, 404);
+        }
       }
     }
 
@@ -457,10 +533,17 @@ territories.put('/:id', requireManager, async (c) => {
  */
 territories.delete('/:id', requireManager, async (c) => {
   const deps = c.get('deps');
+  const user = c.get('user');
   const territoryId = c.req.param('id');
 
   try {
     logger.info('Delete territory attempt', { ...getLogContext(c), territoryId });
+
+    // Fetch user's company for validation
+    const userData = await deps.prisma.user.findUnique({
+      where: { id: user.userId },
+      select: { companyId: true },
+    });
 
     // Check if territory exists
     const territory = await deps.prisma.territory.findUnique({
@@ -480,6 +563,16 @@ territories.delete('/:id', requireManager, async (c) => {
         success: false,
         error: 'Territory not found',
       }, 404);
+    }
+
+    // SECURITY: Verify territory belongs to user's company (unless SUPER_ADMIN)
+    if (user.role !== 'SUPER_ADMIN') {
+      if (userData?.companyId && territory.companyId !== userData.companyId) {
+        return c.json({
+          success: false,
+          error: 'Territory not found',
+        }, 404);
+      }
     }
 
     // Prevent deletion if territory has users
@@ -531,10 +624,17 @@ territories.delete('/:id', requireManager, async (c) => {
  */
 territories.get('/:id/users', adminOnly, async (c) => {
   const deps = c.get('deps');
+  const user = c.get('user');
   const territoryId = c.req.param('id');
 
   try {
     logger.info('Get territory users request', { ...getLogContext(c), territoryId });
+
+    // Fetch user's company for validation
+    const userData = await deps.prisma.user.findUnique({
+      where: { id: user.userId },
+      select: { companyId: true },
+    });
 
     // Check if territory exists
     const territory = await deps.prisma.territory.findUnique({
@@ -548,16 +648,33 @@ territories.get('/:id/users', adminOnly, async (c) => {
       }, 404);
     }
 
+    // SECURITY: Verify territory belongs to user's company (unless SUPER_ADMIN)
+    if (user.role !== 'SUPER_ADMIN') {
+      if (userData?.companyId && territory.companyId !== userData.companyId) {
+        return c.json({
+          success: false,
+          error: 'Territory not found',
+        }, 404);
+      }
+    }
+
+    // Build filter for users
+    const userFilter: any = { territoryId };
+
+    // SECURITY: Filter users by company (unless SUPER_ADMIN)
+    if (user.role !== 'SUPER_ADMIN' && userData?.companyId) {
+      userFilter.companyId = userData.companyId;
+    }
+
     // Get users
     const users = await deps.prisma.user.findMany({
-      where: { territoryId },
+      where: userFilter,
       select: {
         id: true,
         name: true,
         email: true,
         phone: true,
         role: true,
-        isActive: true,
         createdAt: true,
       },
       orderBy: { name: 'asc' },
@@ -599,11 +716,18 @@ territories.get('/:id/users', adminOnly, async (c) => {
  */
 territories.put('/:id/users/:userId', requireManager, async (c) => {
   const deps = c.get('deps');
+  const currentUser = c.get('user');
   const territoryId = c.req.param('id');
   const userId = c.req.param('userId');
 
   try {
     logger.info('Assign user to territory attempt', { ...getLogContext(c), territoryId, userId });
+
+    // Fetch current user's company for validation
+    const userData = await deps.prisma.user.findUnique({
+      where: { id: currentUser.userId },
+      select: { companyId: true },
+    });
 
     // Check if territory exists
     const territory = await deps.prisma.territory.findUnique({
@@ -617,16 +741,36 @@ territories.put('/:id/users/:userId', requireManager, async (c) => {
       }, 404);
     }
 
+    // SECURITY: Verify territory belongs to user's company (unless SUPER_ADMIN)
+    if (currentUser.role !== 'SUPER_ADMIN') {
+      if (userData?.companyId && territory.companyId !== userData.companyId) {
+        return c.json({
+          success: false,
+          error: 'Territory not found',
+        }, 404);
+      }
+    }
+
     // Check if user exists
-    const user = await deps.prisma.user.findUnique({
+    const userToAssign = await deps.prisma.user.findUnique({
       where: { id: userId },
     });
 
-    if (!user) {
+    if (!userToAssign) {
       return c.json({
         success: false,
         error: 'User not found',
       }, 404);
+    }
+
+    // SECURITY: Verify user belongs to same company (unless SUPER_ADMIN)
+    if (currentUser.role !== 'SUPER_ADMIN') {
+      if (userData?.companyId && userToAssign.companyId !== userData.companyId) {
+        return c.json({
+          success: false,
+          error: 'User not found',
+        }, 404);
+      }
     }
 
     // Assign user to territory

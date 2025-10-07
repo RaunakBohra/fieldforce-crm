@@ -35,6 +35,7 @@ const productQuerySchema = z.object({
  */
 products.get('/', async (c) => {
   const deps = c.get('deps');
+  const user = c.get('user');
 
   try {
     // Parse and validate query parameters
@@ -51,8 +52,15 @@ products.get('/', async (c) => {
       query,
     });
 
+    // Fetch user's company for filtering
+    const userData = await deps.prisma.user.findUnique({
+      where: { id: user.userId },
+      select: { companyId: true },
+    });
+
     // Build where clause
     const where: {
+      companyId?: string;
       category?: string;
       isActive?: boolean;
       OR?: Array<{
@@ -60,6 +68,13 @@ products.get('/', async (c) => {
         sku?: { contains: string; mode: 'insensitive' };
       }>;
     } = {};
+
+    // SECURITY: Filter products by company (unless SUPER_ADMIN)
+    if (user.role !== 'SUPER_ADMIN') {
+      if (userData?.companyId) {
+        where.companyId = userData.companyId;
+      }
+    }
 
     if (query.category) {
       where.category = query.category;
@@ -149,12 +164,27 @@ products.get('/generate-sku', async (c) => {
  */
 products.get('/categories/list', async (c) => {
   const deps = c.get('deps');
+  const user = c.get('user');
 
   try {
     logger.info('Get product categories request', getLogContext(c));
 
+    // Fetch user's company for filtering
+    const userData = await deps.prisma.user.findUnique({
+      where: { id: user.userId },
+      select: { companyId: true },
+    });
+
+    // Build filter
+    const where: { isActive: boolean; companyId?: string } = { isActive: true };
+
+    // SECURITY: Filter by company (unless SUPER_ADMIN)
+    if (user.role !== 'SUPER_ADMIN' && userData?.companyId) {
+      where.companyId = userData.companyId;
+    }
+
     const categories = await deps.prisma.product.findMany({
-      where: { isActive: true },
+      where,
       select: { category: true },
       distinct: ['category'],
       orderBy: { category: 'asc' },
@@ -176,6 +206,7 @@ products.get('/categories/list', async (c) => {
  */
 products.get('/barcode/:barcode', async (c) => {
   const deps = c.get('deps');
+  const user = c.get('user');
   const barcode = c.req.param('barcode');
 
   try {
@@ -184,8 +215,22 @@ products.get('/barcode/:barcode', async (c) => {
       barcode,
     });
 
+    // Fetch user's company for filtering
+    const userData = await deps.prisma.user.findUnique({
+      where: { id: user.userId },
+      select: { companyId: true },
+    });
+
+    // Build filter
+    const where: { barcode: string; companyId?: string } = { barcode };
+
+    // SECURITY: Filter by company (unless SUPER_ADMIN)
+    if (user.role !== 'SUPER_ADMIN' && userData?.companyId) {
+      where.companyId = userData.companyId;
+    }
+
     const product = await deps.prisma.product.findFirst({
-      where: { barcode },
+      where,
     });
 
     if (!product) {
@@ -208,6 +253,7 @@ products.get('/barcode/:barcode', async (c) => {
  */
 products.get('/:id', async (c) => {
   const deps = c.get('deps');
+  const user = c.get('user');
   const productId = c.req.param('id');
 
   try {
@@ -216,12 +262,25 @@ products.get('/:id', async (c) => {
       productId,
     });
 
+    // Fetch user's company for validation
+    const userData = await deps.prisma.user.findUnique({
+      where: { id: user.userId },
+      select: { companyId: true },
+    });
+
     const product = await deps.prisma.product.findUnique({
       where: { id: productId },
     });
 
     if (!product) {
       return c.json({ success: false, error: 'Product not found' }, 404);
+    }
+
+    // SECURITY: Verify product belongs to user's company (unless SUPER_ADMIN)
+    if (user.role !== 'SUPER_ADMIN') {
+      if (userData?.companyId && product.companyId !== userData.companyId) {
+        return c.json({ success: false, error: 'Product not found' }, 404);
+      }
     }
 
     return c.json({ success: true, data: product }, 200);
@@ -252,6 +311,7 @@ const createProductSchema = z.object({
  */
 products.post('/', requireManager, async (c) => {
   const deps = c.get('deps');
+  const user = c.get('user');
 
   try {
     const body = await c.req.json();
@@ -262,18 +322,34 @@ products.post('/', requireManager, async (c) => {
       data,
     });
 
-    // Check if SKU already exists
-    const existing = await deps.prisma.product.findUnique({
-      where: { sku: data.sku },
+    // Fetch user's company
+    const userData = await deps.prisma.user.findUnique({
+      where: { id: user.userId },
+      select: { companyId: true },
+    });
+
+    // Check if SKU already exists within the company
+    const where: { sku: string; companyId?: string } = { sku: data.sku };
+
+    // SECURITY: Check SKU uniqueness within company (unless SUPER_ADMIN)
+    if (user.role !== 'SUPER_ADMIN' && userData?.companyId) {
+      where.companyId = userData.companyId;
+    }
+
+    const existing = await deps.prisma.product.findFirst({
+      where,
     });
 
     if (existing) {
       return c.json({ success: false, error: 'Product with this SKU already exists' }, 409);
     }
 
-    // Create product
+    // Create product with company assignment
     const product = await deps.prisma.product.create({
-      data,
+      data: {
+        ...data,
+        companyId: userData?.companyId || null,
+      },
     });
 
     logger.info('Product created successfully', {
@@ -319,6 +395,7 @@ const updateProductSchema = z.object({
  */
 products.put('/:id', requireManager, async (c) => {
   const deps = c.get('deps');
+  const user = c.get('user');
   const productId = c.req.param('id');
 
   try {
@@ -331,6 +408,12 @@ products.put('/:id', requireManager, async (c) => {
       data,
     });
 
+    // Fetch user's company for validation
+    const userData = await deps.prisma.user.findUnique({
+      where: { id: user.userId },
+      select: { companyId: true },
+    });
+
     // Check if product exists
     const existing = await deps.prisma.product.findUnique({
       where: { id: productId },
@@ -338,6 +421,13 @@ products.put('/:id', requireManager, async (c) => {
 
     if (!existing) {
       return c.json({ success: false, error: 'Product not found' }, 404);
+    }
+
+    // SECURITY: Verify product belongs to user's company (unless SUPER_ADMIN)
+    if (user.role !== 'SUPER_ADMIN') {
+      if (userData?.companyId && existing.companyId !== userData.companyId) {
+        return c.json({ success: false, error: 'Product not found' }, 404);
+      }
     }
 
     // Update product
@@ -378,6 +468,7 @@ products.put('/:id', requireManager, async (c) => {
  */
 products.post('/:id/image', requireManager, async (c) => {
   const deps = c.get('deps');
+  const user = c.get('user');
   const productId = c.req.param('id');
 
   try {
@@ -397,6 +488,12 @@ products.post('/:id/image', requireManager, async (c) => {
       imageSize: imageInput.length,
     });
 
+    // Fetch user's company for validation
+    const userData = await deps.prisma.user.findUnique({
+      where: { id: user.userId },
+      select: { companyId: true },
+    });
+
     // Check if product exists
     const product = await deps.prisma.product.findUnique({
       where: { id: productId },
@@ -404,6 +501,13 @@ products.post('/:id/image', requireManager, async (c) => {
 
     if (!product) {
       return c.json({ success: false, error: 'Product not found' }, 404);
+    }
+
+    // SECURITY: Verify product belongs to user's company (unless SUPER_ADMIN)
+    if (user.role !== 'SUPER_ADMIN') {
+      if (userData?.companyId && product.companyId !== userData.companyId) {
+        return c.json({ success: false, error: 'Product not found' }, 404);
+      }
     }
 
     // Extract base64 data (supports data URLs like "data:image/jpeg;base64,...")
@@ -560,6 +664,12 @@ products.post('/:id/notify-launch', requireManager, async (c) => {
       productId,
     });
 
+    // Fetch user's company for filtering
+    const userData = await deps.prisma.user.findUnique({
+      where: { id: user.userId },
+      select: { companyId: true },
+    });
+
     // Get product details
     const product = await deps.prisma.product.findUnique({
       where: { id: productId },
@@ -567,6 +677,13 @@ products.post('/:id/notify-launch', requireManager, async (c) => {
 
     if (!product) {
       return c.json({ success: false, error: 'Product not found' }, 404);
+    }
+
+    // SECURITY: Verify product belongs to user's company (unless SUPER_ADMIN)
+    if (user.role !== 'SUPER_ADMIN') {
+      if (userData?.companyId && product.companyId !== userData.companyId) {
+        return c.json({ success: false, error: 'Product not found' }, 404);
+      }
     }
 
     if (!product.isActive) {
@@ -579,13 +696,21 @@ products.post('/:id/notify-launch', requireManager, async (c) => {
       );
     }
 
-    // Get all active users with phone numbers
-    const users = await deps.prisma.user.findMany({
-      where: {
-        phone: {
-          not: null,
-        },
+    // Build filter for users
+    const userFilter: any = {
+      phone: {
+        not: null,
       },
+    };
+
+    // SECURITY: Only notify users from same company (unless SUPER_ADMIN)
+    if (user.role !== 'SUPER_ADMIN' && userData?.companyId) {
+      userFilter.companyId = userData.companyId;
+    }
+
+    // Get all active users with phone numbers from the same company
+    const users = await deps.prisma.user.findMany({
+      where: userFilter,
       select: {
         id: true,
         name: true,

@@ -50,8 +50,10 @@ model Company {
   address String?
 
   // Relations
-  users    User[]
-  contacts Contact[]
+  users       User[]
+  contacts    Contact[]
+  territories Territory[]
+  products    Product[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -264,6 +266,10 @@ model Product {
   imageUrl     String? // Full-size product image (R2)
   thumbnailUrl String? // 300x300 thumbnail (R2)
 
+  // Company Assignment (for multi-tenancy)
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id])
+
   // Relations
   orderItems           OrderItem[]
   launchNotifications ProductLaunchNotification[]
@@ -274,6 +280,8 @@ model Product {
   @@index([sku]) // SKU lookup (unique constraint handles this)
   @@index([isActive, category]) // Active products by category
   @@index([barcode]) // Barcode scanner lookup
+  @@index([companyId])
+  @@index([companyId, isActive])
 }
 
 model Order {
@@ -437,6 +445,10 @@ model Territory {
   city    String? // Mumbai, Lalitpur
   pincode String?
 
+  // Company Assignment (for multi-tenancy)
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id])
+
   // Hierarchy
   parentId String?
   parent   Territory?  @relation("TerritoryHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
@@ -457,6 +469,8 @@ model Territory {
   @@index([parentId])
   @@index([isActive])
   @@index([type])
+  @@index([companyId])
+  @@index([companyId, isActive])
 }
 
 enum TerritoryType {
