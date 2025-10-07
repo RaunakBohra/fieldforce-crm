@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { api } from '../services/api';
 import type { CreateContactData } from '../services/api';
 import { ArrowLeft, Save } from 'lucide-react';
-import { Navigation } from '../components/Navigation';
+import { PageContainer, ContentSection, Card } from '../components/layout';
+import { Select, showToast } from '../components/ui';
 import { DISTRIBUTION_TYPES, MEDICAL_TYPES, VISIT_FREQUENCIES } from '../constants';
 
 export function ContactForm() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
   const isEditMode = !!id;
 
   const [loading, setLoading] = useState(false);
@@ -16,7 +18,7 @@ export function ContactForm() {
   const [territories, setTerritories] = useState<Array<{ id: string; name: string; code: string; type: string }>>([]);
   const [formData, setFormData] = useState<CreateContactData>({
     contactCategory: 'MEDICAL',
-    name: '',
+    name: searchParams.get('name') || '',
     contactType: 'DOCTOR',
     visitFrequency: 'MONTHLY',
     isActive: true,
@@ -74,11 +76,21 @@ export function ContactForm() {
         : await api.createContact(formData);
 
       if (response.success) {
+        showToast.success(
+          isEditMode ? 'Contact updated successfully' : 'Contact created successfully',
+          `${formData.name} has been ${isEditMode ? 'updated' : 'added'} to your contacts`
+        );
         navigate('/contacts');
+      } else {
+        const errorMsg = response.error || `Failed to ${isEditMode ? 'update' : 'create'} contact`;
+        setError(errorMsg);
+        showToast.error(errorMsg);
       }
     } catch (err) {
       const error = err as Error;
-      setError(error.message || 'Failed to save contact');
+      const errorMsg = error.message || `Failed to ${isEditMode ? 'update' : 'create'} contact`;
+      setError(errorMsg);
+      showToast.error(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -94,87 +106,79 @@ export function ContactForm() {
 
   if (loading && isEditMode) {
     return (
-      <div className="min-h-screen bg-neutral-100">
-        <Navigation />
-        <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-          <div className="px-4 py-6 sm:px-0">
-            <div className="flex items-center justify-center">
-              <div className="text-neutral-600">Loading contact...</div>
-            </div>
+      <PageContainer>
+        <ContentSection maxWidth="4xl">
+          <div className="flex items-center justify-center py-12">
+            <div className="text-neutral-600">Loading contact...</div>
           </div>
-        </main>
-      </div>
+        </ContentSection>
+      </PageContainer>
     );
   }
 
   return (
-    <div className="min-h-screen bg-neutral-100">
-      <Navigation />
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          {/* Header */}
-          <div className="bg-white border-b border-neutral-200">
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <button
-            onClick={() => navigate('/contacts')}
-            className="flex items-center gap-2 text-neutral-600 hover:text-neutral-900 mb-4"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            Back to Contacts
-          </button>
-          <h1 className="text-3xl font-bold text-neutral-900">
-            {isEditMode ? 'Edit Contact' : 'Add New Contact'}
-          </h1>
-        </div>
-      </div>
-
-      {/* Form */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <form onSubmit={handleSubmit} className="bg-white rounded-lg border border-neutral-200 p-6">
-          {/* Error */}
-          {error && (
-            <div className="mb-6 error-message">
-              {error}
+    <PageContainer>
+      <ContentSection maxWidth="4xl">
+        {/* Header */}
+        <Card className="mb-6">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-bold text-neutral-900 mb-2">
+                {isEditMode ? 'Edit Contact' : 'Add New Contact'}
+              </h1>
+              <p className="text-neutral-600">
+                {isEditMode ? 'Update contact information' : 'Create a new contact in your network'}
+              </p>
             </div>
-          )}
+            <button
+              onClick={() => navigate('/contacts')}
+              className="flex items-center gap-2 px-4 py-2 text-neutral-700 bg-white rounded-md hover:bg-neutral-50 border border-neutral-300"
+            >
+              <ArrowLeft size={20} />
+              Back to Contacts
+            </button>
+          </div>
+        </Card>
 
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-6">
           {/* Category Selection */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-neutral-700 mb-2">
-              Contact Category <span className="text-red-500">*</span>
-            </label>
-            <div className="flex gap-4">
-              <label className="flex items-center">
+          <Card>
+            <h2 className="text-lg font-semibold text-neutral-900 mb-4">Contact Category</h2>
+            <div className="flex gap-6">
+              <label className="flex items-center cursor-pointer">
                 <input
                   type="radio"
                   value="MEDICAL"
                   checked={formData.contactCategory === 'MEDICAL'}
                   onChange={(e) => handleCategoryChange(e.target.value as 'MEDICAL')}
-                  className="w-4 h-4 text-primary-800 focus:ring-primary-800"
+                  className="w-4 h-4 text-primary-600 focus:ring-primary-500 border-neutral-300"
                 />
-                <span className="ml-2 text-neutral-700">Medical</span>
+                <span className="ml-3 text-sm font-medium text-neutral-900">Medical Professional</span>
               </label>
-              <label className="flex items-center">
+              <label className="flex items-center cursor-pointer">
                 <input
                   type="radio"
                   value="DISTRIBUTION"
                   checked={formData.contactCategory === 'DISTRIBUTION'}
                   onChange={(e) => handleCategoryChange(e.target.value as 'DISTRIBUTION')}
-                  className="w-4 h-4 text-primary-800 focus:ring-primary-800"
+                  className="w-4 h-4 text-primary-600 focus:ring-primary-500 border-neutral-300"
                 />
-                <span className="ml-2 text-neutral-700">Distribution</span>
+                <span className="ml-3 text-sm font-medium text-neutral-900">Distribution Channel</span>
               </label>
             </div>
-          </div>
+            <p className="text-xs text-neutral-500 mt-2">
+              Choose whether this contact is a medical professional (doctor, hospital) or a distribution partner (wholesaler, retailer)
+            </p>
+          </Card>
 
           {/* Basic Information */}
-          <div className="space-y-4 mb-6">
-            <h3 className="text-lg font-semibold text-neutral-900">Basic Information</h3>
-
+          <Card>
+            <h2 className="text-lg font-semibold text-neutral-900 mb-4">Basic Information</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1">
-                  Name <span className="text-red-500">*</span>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Name *
                 </label>
                 <input
                   type="text"
@@ -182,12 +186,13 @@ export function ContactForm() {
                   onChange={(e) => handleChange('name', e.target.value)}
                   required
                   className="input-field"
+                  placeholder="Enter contact name"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1">
-                  Contact Type <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Contact Type *
                 </label>
                 <select
                   value={formData.contactType}
@@ -204,7 +209,7 @@ export function ContactForm() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1">
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
                   Designation
                 </label>
                 <input
@@ -212,12 +217,13 @@ export function ContactForm() {
                   value={formData.designation || ''}
                   onChange={(e) => handleChange('designation', e.target.value)}
                   className="input-field"
+                  placeholder="e.g., Chief Surgeon"
                 />
               </div>
 
               {formData.contactCategory === 'MEDICAL' && (
-                <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-1">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
                     Specialty
                   </label>
                   <input
@@ -225,120 +231,125 @@ export function ContactForm() {
                     value={formData.specialty || ''}
                     onChange={(e) => handleChange('specialty', e.target.value)}
                     className="input-field"
+                    placeholder="e.g., Cardiology, Orthopedics"
                   />
                 </div>
               )}
             </div>
-          </div>
+          </Card>
 
           {/* Contact Details */}
-          <div className="space-y-4 mb-6">
-            <h3 className="text-lg font-semibold text-neutral-900">Contact Details</h3>
-
+          <Card>
+            <h2 className="text-lg font-semibold text-neutral-900 mb-4">Contact Details</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1">
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
                   Phone
                 </label>
                 <input
                   type="tel"
                   value={formData.phone || ''}
                   onChange={(e) => handleChange('phone', e.target.value)}
-                  placeholder="10-digit number"
+                  placeholder="10-digit mobile number"
                   className="input-field"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1">
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
                   Email
                 </label>
                 <input
                   type="email"
                   value={formData.email || ''}
                   onChange={(e) => handleChange('email', e.target.value)}
+                  placeholder="contact@example.com"
                   className="input-field"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1">
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
                   Alternate Phone
                 </label>
                 <input
                   type="tel"
                   value={formData.alternatePhone || ''}
                   onChange={(e) => handleChange('alternatePhone', e.target.value)}
+                  placeholder="Optional alternate number"
                   className="input-field"
                 />
               </div>
             </div>
-          </div>
+          </Card>
 
           {/* Address Information */}
-          <div className="space-y-4 mb-6">
-            <h3 className="text-lg font-semibold text-neutral-900">Address Information</h3>
+          <Card>
+            <h2 className="text-lg font-semibold text-neutral-900 mb-4">Address Information</h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Address
+                </label>
+                <textarea
+                  value={formData.address || ''}
+                  onChange={(e) => handleChange('address', e.target.value)}
+                  rows={2}
+                  className="textarea-field"
+                  placeholder="Street address, building name, floor"
+                />
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1">
-                Address
-              </label>
-              <textarea
-                value={formData.address || ''}
-                onChange={(e) => handleChange('address', e.target.value)}
-                rows={2}
-                className="textarea-field"
-              />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    City
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.city || ''}
+                    onChange={(e) => handleChange('city', e.target.value)}
+                    className="input-field"
+                    placeholder="City name"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    State
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.state || ''}
+                    onChange={(e) => handleChange('state', e.target.value)}
+                    className="input-field"
+                    placeholder="State name"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    Pincode
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.pincode || ''}
+                    onChange={(e) => handleChange('pincode', e.target.value)}
+                    placeholder="6 digits"
+                    className="input-field"
+                  />
+                </div>
+              </div>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1">
-                  City
-                </label>
-                <input
-                  type="text"
-                  value={formData.city || ''}
-                  onChange={(e) => handleChange('city', e.target.value)}
-                  className="input-field"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1">
-                  State
-                </label>
-                <input
-                  type="text"
-                  value={formData.state || ''}
-                  onChange={(e) => handleChange('state', e.target.value)}
-                  className="input-field"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1">
-                  Pincode
-                </label>
-                <input
-                  type="text"
-                  value={formData.pincode || ''}
-                  onChange={(e) => handleChange('pincode', e.target.value)}
-                  placeholder="6 digits"
-                  className="input-field"
-                />
-              </div>
-            </div>
-          </div>
+          </Card>
 
           {/* Category-Specific Fields */}
           {formData.contactCategory === 'MEDICAL' && (
-            <div className="space-y-4 mb-6">
-              <h3 className="text-lg font-semibold text-neutral-900">Medical Details</h3>
-
+            <Card>
+              <h2 className="text-lg font-semibold text-neutral-900 mb-4">Medical Details</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-1">
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
                     Hospital Name
                   </label>
                   <input
@@ -346,11 +357,12 @@ export function ContactForm() {
                     value={formData.hospitalName || ''}
                     onChange={(e) => handleChange('hospitalName', e.target.value)}
                     className="input-field"
+                    placeholder="Primary hospital affiliation"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-1">
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
                     Clinic Name
                   </label>
                   <input
@@ -358,11 +370,12 @@ export function ContactForm() {
                     value={formData.clinicName || ''}
                     onChange={(e) => handleChange('clinicName', e.target.value)}
                     className="input-field"
+                    placeholder="Private clinic or chamber"
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-1">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
                     License Number
                   </label>
                   <input
@@ -370,41 +383,40 @@ export function ContactForm() {
                     value={formData.licenseNumber || ''}
                     onChange={(e) => handleChange('licenseNumber', e.target.value)}
                     className="input-field"
+                    placeholder="Medical registration or license number"
                   />
                 </div>
               </div>
-            </div>
+            </Card>
           )}
 
           {formData.contactCategory === 'DISTRIBUTION' && (
-            <div className="space-y-4 mb-6">
-              <h3 className="text-lg font-semibold text-neutral-900">Distribution Details</h3>
-
+            <Card>
+              <h2 className="text-lg font-semibold text-neutral-900 mb-4">Distribution Details</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-1">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
                     Territory
                   </label>
-                  <select
+                  <Select
                     value={formData.territoryId || ''}
-                    onChange={(e) => handleChange('territoryId', e.target.value || undefined)}
-                    className="input-field"
-                  >
-                    <option value="">Select territory (optional)</option>
-                    {territories.map(territory => (
-                      <option key={territory.id} value={territory.id}>
-                        {territory.name} ({territory.code}) - {territory.type}
-                      </option>
-                    ))}
-                  </select>
-                  <p className="text-xs text-neutral-500 mt-1">
-                    Assign contact to a geographic territory for reporting
+                    onChange={(value) => handleChange('territoryId', value ? String(value) : undefined)}
+                    options={territories.map((t) => ({
+                      id: t.id,
+                      label: t.name,
+                      sublabel: `${t.code} • ${t.type}`,
+                    }))}
+                    placeholder="Search and select territory (optional)..."
+                    aria-label="Territory selection"
+                  />
+                  <p className="text-xs text-neutral-500 mt-2">
+                    Assign contact to a geographic territory for reporting purposes
                   </p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-1">
-                    Credit Limit
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    Credit Limit (₹)
                   </label>
                   <input
                     type="number"
@@ -412,33 +424,52 @@ export function ContactForm() {
                     onChange={(e) => handleChange('creditLimit', e.target.value ? Number(e.target.value) : undefined)}
                     min="0"
                     step="1000"
+                    placeholder="e.g., 100000"
                     className="input-field"
                   />
                 </div>
 
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-neutral-700 mb-1">
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
                     Payment Terms
                   </label>
                   <input
                     type="text"
                     value={formData.paymentTerms || ''}
                     onChange={(e) => handleChange('paymentTerms', e.target.value)}
-                    placeholder="e.g., Net 30, COD, etc."
+                    placeholder="e.g., Net 30, COD"
                     className="input-field"
                   />
                 </div>
               </div>
-            </div>
+            </Card>
           )}
 
           {/* Visit Planning */}
-          <div className="space-y-4 mb-6">
-            <h3 className="text-lg font-semibold text-neutral-900">Visit Planning</h3>
+          <Card>
+            <h2 className="text-lg font-semibold text-neutral-900 mb-4">Visit Planning</h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Visit History - Only shown in edit mode */}
+            {isEditMode && formData.lastVisitDate && (
+              <div className="mb-4 p-3 bg-primary-50 border border-primary-200 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-primary-900">Last Visit:</span>
+                  <span className="text-sm text-primary-700">
+                    {new Date(formData.lastVisitDate).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1">
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
                   Visit Frequency
                 </label>
                 <select
@@ -455,7 +486,7 @@ export function ContactForm() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1">
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
                   Preferred Day
                 </label>
                 <input
@@ -468,72 +499,100 @@ export function ContactForm() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1">
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
                   Preferred Time
                 </label>
                 <input
                   type="text"
                   value={formData.preferredTime || ''}
                   onChange={(e) => handleChange('preferredTime', e.target.value)}
-                  placeholder="e.g., 10:00 AM"
+                  placeholder="e.g., 10:00 AM - 12:00 PM"
                   className="input-field"
                 />
               </div>
             </div>
-          </div>
+
+            {/* Next Visit Date */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Next Scheduled Visit
+                </label>
+                <input
+                  type="datetime-local"
+                  value={formData.nextVisitDate ? new Date(formData.nextVisitDate).toISOString().slice(0, 16) : ''}
+                  onChange={(e) => handleChange('nextVisitDate', e.target.value ? new Date(e.target.value).toISOString() : undefined)}
+                  className="input-field"
+                  min={new Date().toISOString().slice(0, 16)}
+                />
+                <p className="text-xs text-neutral-500 mt-1">
+                  Schedule the next visit date and time for this contact
+                </p>
+              </div>
+            </div>
+
+            <p className="text-xs text-neutral-500 mt-4">
+              Set preferred schedule for field visits to help plan your territory coverage
+            </p>
+          </Card>
 
           {/* Additional Information */}
-          <div className="space-y-4 mb-6">
-            <h3 className="text-lg font-semibold text-neutral-900">Additional Information</h3>
+          <Card>
+            <h2 className="text-lg font-semibold text-neutral-900 mb-4">Additional Information</h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Notes
+                </label>
+                <textarea
+                  value={formData.notes || ''}
+                  onChange={(e) => handleChange('notes', e.target.value)}
+                  rows={3}
+                  className="textarea-field"
+                  placeholder="Any additional information, preferences, or special instructions"
+                />
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1">
-                Notes
-              </label>
-              <textarea
-                value={formData.notes || ''}
-                onChange={(e) => handleChange('notes', e.target.value)}
-                rows={3}
-                className="textarea-field"
-              />
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="isActive"
+                  checked={formData.isActive}
+                  onChange={(e) => handleChange('isActive', e.target.checked)}
+                  className="w-4 h-4 text-primary-600 focus:ring-primary-500 border-neutral-300 rounded"
+                />
+                <label htmlFor="isActive" className="ml-3 text-sm font-medium text-neutral-900">
+                  Active Contact
+                </label>
+              </div>
+              <p className="text-xs text-neutral-500 ml-7">
+                Inactive contacts won't appear in selection lists but remain in the system
+              </p>
             </div>
-
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="isActive"
-                checked={formData.isActive}
-                onChange={(e) => handleChange('isActive', e.target.checked)}
-                className="w-4 h-4 text-primary-800 focus:ring-primary-800 rounded"
-              />
-              <label htmlFor="isActive" className="ml-2 text-sm text-neutral-700">
-                Active Contact
-              </label>
-            </div>
-          </div>
+          </Card>
 
           {/* Submit */}
-          <div className="flex justify-end gap-4 pt-6 border-t border-neutral-200">
-            <button
-              type="button"
-              onClick={() => navigate('/contacts')}
-              className="btn-secondary"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn-primary"
-            >
-              <Save className="w-5 h-5" />
-              {loading ? 'Saving...' : isEditMode ? 'Update Contact' : 'Create Contact'}
-            </button>
-          </div>
+          <Card>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <button
+                type="button"
+                onClick={() => navigate('/contacts')}
+                className="btn-secondary flex-1 sm:flex-none sm:w-auto"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn-primary flex-1 sm:flex-none sm:w-auto"
+              >
+                <Save className="w-5 h-5" />
+                {loading ? 'Saving...' : isEditMode ? 'Update Contact' : 'Create Contact'}
+              </button>
+            </div>
+          </Card>
         </form>
-      </div>
-        </div>
-      </main>
-    </div>
+      </ContentSection>
+    </PageContainer>
   );
 }
