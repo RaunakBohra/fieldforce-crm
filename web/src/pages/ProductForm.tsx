@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { api } from '../services/api';
 import { Save, ArrowLeft, Wand2, Scan, Camera as CameraIcon, X, Upload, Bell } from 'lucide-react';
 import { PageContainer, ContentSection, Card } from '../components/layout';
@@ -9,6 +9,9 @@ import { compressImage, getImageSizeKB } from '../utils/imageCompression';
 
 export function ProductForm() {
   const navigate = useNavigate();
+  const { id } = useParams();
+  const isEditMode = !!id;
+
   const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -33,7 +36,10 @@ export function ProductForm() {
 
   useEffect(() => {
     fetchCategories();
-  }, []);
+    if (isEditMode && id) {
+      fetchProduct(id);
+    }
+  }, [id]);
 
   const fetchCategories = async () => {
     try {
@@ -43,6 +49,34 @@ export function ProductForm() {
       }
     } catch (err) {
       console.error('Failed to fetch categories:', err);
+    }
+  };
+
+  const fetchProduct = async (productId: string) => {
+    try {
+      setLoading(true);
+      const response = await api.getProduct(productId);
+      if (response.success && response.data) {
+        const product = response.data;
+        setFormData({
+          name: product.name,
+          sku: product.sku,
+          barcode: product.barcode || '',
+          description: product.description || '',
+          category: product.category,
+          price: product.price.toString(),
+          stock: product.stock.toString(),
+        });
+        // Set existing image if available
+        if (product.imageUrl) {
+          setImagePreview(product.imageUrl);
+        }
+      }
+    } catch (err) {
+      const error = err as Error;
+      setError(error.message || 'Failed to fetch product');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -108,7 +142,7 @@ export function ProductForm() {
     setError('');
 
     try {
-      const response = await api.createProduct({
+      const productData = {
         name: formData.name,
         sku: formData.sku,
         barcode: formData.barcode || undefined,
@@ -116,31 +150,42 @@ export function ProductForm() {
         category: formData.category,
         price: parseFloat(formData.price),
         stock: parseInt(formData.stock),
-      });
+      };
+
+      const response = isEditMode && id
+        ? await api.updateProduct(id, productData)
+        : await api.createProduct(productData);
 
       if (response.success && response.data) {
-        // Upload image if present
-        if (productImage) {
+        const productId = response.data.id || id;
+
+        // Upload image if present and changed
+        if (productImage && productId) {
           setUploadingImage(true);
           try {
-            await api.uploadProductImage(response.data.id, productImage);
+            await api.uploadProductImage(productId, productImage);
           } catch (err) {
             console.error('Failed to upload image:', err);
-            // Continue anyway - product is created
+            // Continue anyway - product is created/updated
           } finally {
             setUploadingImage(false);
           }
         }
 
-        // Store product ID and show notification modal
-        setCreatedProductId(response.data.id);
-        setShowNotifyModal(true);
+        if (isEditMode) {
+          // For edit mode, go back to products list
+          navigate('/products');
+        } else {
+          // For create mode, show notification modal
+          setCreatedProductId(response.data.id);
+          setShowNotifyModal(true);
+        }
       } else {
-        setError(response.error || 'Failed to create product');
+        setError(response.error || `Failed to ${isEditMode ? 'update' : 'create'} product`);
       }
     } catch (err) {
       const error = err as Error;
-      setError(error.message || 'Failed to create product');
+      setError(error.message || `Failed to ${isEditMode ? 'update' : 'create'} product`);
     } finally {
       setLoading(false);
     }
@@ -177,8 +222,12 @@ export function ProductForm() {
         <Card className="mb-6">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold text-neutral-900 mb-2">Add New Product</h1>
-              <p className="text-neutral-600">Create a new product in your catalog</p>
+              <h1 className="text-2xl font-bold text-neutral-900 mb-2">
+                {isEditMode ? 'Edit Product' : 'Add New Product'}
+              </h1>
+              <p className="text-neutral-600">
+                {isEditMode ? 'Update product information' : 'Create a new product in your catalog'}
+              </p>
             </div>
             <button
               onClick={() => navigate('/products')}
