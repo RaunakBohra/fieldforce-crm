@@ -384,7 +384,11 @@ analytics.get('/territory-performance', requireManager, async (c) => {
     // Tier 1: Check in-memory cache (< 1ms, 1-minute TTL)
     const memCached = memoryCache.get(cacheKey);
     if (memCached) {
-      logger.info('Territory performance served from memory cache', getLogContext(c));
+      logger.info('🎯 Territory performance served from MEMORY CACHE (< 1ms)', {
+        ...getLogContext(c),
+        cacheKey,
+        memoryCacheSize: memoryCache.size(),
+      });
       return c.json({
         success: true,
         data: memCached,
@@ -396,9 +400,16 @@ analytics.get('/territory-performance', requireManager, async (c) => {
     // Tier 2: Check KV cache (~10-50ms, 5-minute TTL)
     const kvCached = await deps.cache.get<any>(cacheKey);
     if (kvCached) {
-      logger.info('Territory performance served from KV cache', getLogContext(c));
+      logger.info('📦 Territory performance served from KV CACHE (~10-50ms)', {
+        ...getLogContext(c),
+        cacheKey,
+      });
       // Store in memory cache for next request
       memoryCache.set(cacheKey, kvCached, 60); // 1 minute
+      logger.info('✅ Cached in memory for next request', {
+        ...getLogContext(c),
+        memoryCacheSize: memoryCache.size(),
+      });
       return c.json({
         success: true,
         data: kvCached,
@@ -408,7 +419,11 @@ analytics.get('/territory-performance', requireManager, async (c) => {
     }
 
     // Cache miss: Query database
-    logger.info('Territory performance cache miss, querying database', getLogContext(c));
+    logger.info('❌ Territory performance CACHE MISS - querying database', {
+      ...getLogContext(c),
+      cacheKey,
+      dateRange: { startDate, endDate },
+    });
 
     // Optimized: Use database aggregation to avoid N+1 queries
     // Execute all queries in parallel using Promise.all
@@ -453,7 +468,7 @@ analytics.get('/territory-performance', requireManager, async (c) => {
           if (!territoryId) continue;
 
           const existing = territoryMap.get(territoryId) || { orderCount: 0, totalRevenue: 0, deliveredOrders: 0 };
-          existing.orderCount += (group._count?.id || group._count || 0);
+          existing.orderCount += group._count.id;
           existing.totalRevenue += Number(group._sum?.totalAmount || 0);
           territoryMap.set(territoryId, existing);
         }
@@ -474,7 +489,7 @@ analytics.get('/territory-performance', requireManager, async (c) => {
           if (!territoryId) continue;
           const existing = territoryMap.get(territoryId);
           if (existing) {
-            existing.deliveredOrders += (group._count?.id || group._count || 0);
+            existing.deliveredOrders += group._count.id;
           }
         }
 
@@ -503,7 +518,7 @@ analytics.get('/territory-performance', requireManager, async (c) => {
         for (const group of visitGroups) {
           const territoryId = contactToTerritory.get(group.contactId);
           if (!territoryId) continue;
-          territoryMap.set(territoryId, (territoryMap.get(territoryId) || 0) + (group._count?.id || group._count || 0));
+          territoryMap.set(territoryId, (territoryMap.get(territoryId) || 0) + group._count.id);
         }
         return territoryMap;
       }),
@@ -549,6 +564,14 @@ analytics.get('/territory-performance', requireManager, async (c) => {
     // Store in both cache tiers
     memoryCache.set(cacheKey, responseData, 60); // Memory: 1 minute TTL
     await deps.cache.set(cacheKey, responseData, { ttl: 300 }); // KV: 5 minutes TTL
+
+    logger.info('💾 Territory performance CACHED in both tiers', {
+      ...getLogContext(c),
+      cacheKey,
+      memoryTTL: '60s',
+      kvTTL: '300s',
+      memoryCacheSize: memoryCache.size(),
+    });
 
     logger.info('Territory performance retrieved successfully', {
       ...getLogContext(c),

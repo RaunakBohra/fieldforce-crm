@@ -110,7 +110,11 @@
       "Bash(npx prisma format:*)",
       "Bash(do curl -X POST http://localhost:8787/api/v1/auth/login -H \"Content-Type: application/json\" -d '{\"\"\"\"email\"\"\"\":\"\"\"\"test@example.com\"\"\"\",\"\"\"\"password\"\"\"\":\"\"\"\"wrongpassword\"\"\"\"}' -w \"\\nAttempt $i Status: %{http_code}\\n\\n\" -s)",
       "Bash(CLOUDFLARE_ACCOUNT_ID=610762493d34333f1a6d72a037b345cf npx wrangler kv:namespace list)",
-      "Bash(CLOUDFLARE_ACCOUNT_ID=610762493d34333f1a6d72a037b345cf npx wrangler kv namespace list)"
+      "Bash(CLOUDFLARE_ACCOUNT_ID=610762493d34333f1a6d72a037b345cf npx wrangler kv namespace list)",
+      "Read(//Users/raunakbohra/Library/Preferences/.wrangler/logs/**)",
+      "Bash(/Users/raunakbohra/Desktop/medical-CRM/test-cache.sh:*)",
+      "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_EK1XpFYRye6M@ep-ancient-art-a1aag2jx-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require\" npx tsx scripts/create-test-user.ts)",
+      "Bash(tee:*)"
     ],
     "deny": [],
     "ask": []

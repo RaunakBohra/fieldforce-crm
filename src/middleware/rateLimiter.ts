@@ -38,7 +38,7 @@ async function getRateLimitEntry(kv: KVNamespace | undefined, key: string): Prom
  */
 async function setRateLimitEntry(kv: KVNamespace | undefined, key: string, entry: RateLimitEntry): Promise<void> {
   if (kv) {
-    const ttl = Math.ceil((entry.resetTime - Date.now()) / 1000);
+    const ttl = Math.max(60, Math.ceil((entry.resetTime - Date.now()) / 1000)); // KV requires minimum 60 seconds TTL
     await kv.put(key, JSON.stringify(entry), { expirationTtl: ttl });
   } else {
     rateLimitStore.set(key, entry);
