@@ -55,6 +55,11 @@ export type Bindings = {
   MAILEROO_FROM_EMAIL?: string;
   MAILEROO_FROM_NAME?: string;
 
+  // MailerSend Email Service (3,000/month free)
+  MAILERSEND_API_KEY?: string;
+  MAILERSEND_FROM_EMAIL?: string;
+  MAILERSEND_FROM_NAME?: string;
+
   // Brevo Email Service (9,000/month free - 300/day)
   BREVO_API_KEY?: string;
   BREVO_FROM_EMAIL?: string;

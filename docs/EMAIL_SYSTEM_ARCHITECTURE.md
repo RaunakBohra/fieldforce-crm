@@ -2,19 +2,21 @@
 
 ## Overview
 
-The email system uses a **smart fallback strategy** to maximize free tier usage across multiple providers, ensuring 6,000 free emails per month before any paid service is used.
+The email system uses a **smart fallback strategy** to maximize free tier usage across multiple providers, ensuring 18,000 free emails per month before any paid service is used.
 
 ## Email Providers & Free Tiers
 
 | Provider | Free Tier | Status | Use Case |
 |----------|-----------|--------|----------|
-| **Resend** | 3,000/month | ✅ **Primary** | Raw HTML emails, best compatibility |
-| **Maileroo** | 3,000/month | ✅ **Fallback #2** | Automatic fallback when Resend quota exhausted |
-| **AWS SES** | Unlimited | ✅ **Fallback #3** | Pay-as-you-go (~$0.10 per 1000), AWS SigV4 signing |
+| **Brevo** | 9,000/month | ✅ **Primary** | Largest free tier (300/day limit), REST API |
+| **Resend** | 3,000/month | ✅ **Fallback #2** | Raw HTML emails, excellent deliverability |
+| **Maileroo** | 3,000/month | ✅ **Fallback #3** | Reliable secondary fallback, REST API |
+| **MailerSend** | 3,000/month | ✅ **Fallback #4** | Additional free capacity, REST API |
+| **AWS SES** | Unlimited | ✅ **Fallback #5** | Pay-as-you-go (~$0.10 per 1000), AWS SigV4 signing |
 | **MSG91** | 5,000/month | ❌ **Not Used** | Template-based only (incompatible with raw HTML) |
 
 ### Total Free Capacity
-- **Free tier**: 6,000 emails/month (Resend 3k + Maileroo 3k)
+- **Free tier**: 18,000 emails/month (Brevo 9k + Resend 3k + Maileroo 3k + MailerSend 3k)
 - **With AWS SES**: Unlimited (after free tiers, ~$0.10/1000 emails)
 
 ## How It Works
@@ -23,55 +25,73 @@ The email system uses a **smart fallback strategy** to maximize free tier usage 
 
 ```typescript
 // Priority Order (from free to paid):
-1. Resend (3,000/month) → Try first
-2. Maileroo (3,000/month) → Try if Resend quota exhausted
-3. AWS SES (pay-per-use) → Final fallback for unlimited capacity
+1. Brevo (9,000/month) → Try first (largest free tier)
+2. Resend (3,000/month) → Try if Brevo quota exhausted
+3. Maileroo (3,000/month) → Try if Resend quota exhausted
+4. MailerSend (3,000/month) → Try if Maileroo quota exhausted
+5. AWS SES (pay-per-use) → Final fallback for unlimited capacity
 ```
 
 ### 2. How the Fallback Works
 
-**Key Point**: Both Resend and Maileroo have 3,000 emails/month free tier each. The fallback system uses them **sequentially**, not simultaneously, to maximize total free capacity.
+**Key Point**: All providers have monthly free tiers. The fallback system uses them **sequentially**, not simultaneously, to maximize total free capacity.
 
 **Monthly Email Flow:**
 ```
 Month: October 2025
 
-Email #1-3000:     Resend ✅ (quota: 0→3000/3000)
-Email #3001:       Resend ❌ (quota exhausted)
-                   → Fallback to Maileroo ✅ (quota: 0→1/3000)
-Email #3002-6000:  Maileroo ✅ (quota: 1→3000/3000)
-Email #6001:       Maileroo ❌ (quota exhausted)
-                   → Fallback to AWS SES ✅ (paid, but unlimited)
+Email #1-9000:      Brevo ✅ (quota: 0→9000/9000)
+Email #9001:        Brevo ❌ (quota exhausted)
+                    → Fallback to Resend ✅ (quota: 0→1/3000)
+Email #9002-12000:  Resend ✅ (quota: 1→3000/3000)
+Email #12001:       Resend ❌ (quota exhausted)
+                    → Fallback to Maileroo ✅ (quota: 0→1/3000)
+Email #12002-15000: Maileroo ✅ (quota: 1→3000/3000)
+Email #15001:       Maileroo ❌ (quota exhausted)
+                    → Fallback to MailerSend ✅ (quota: 0→1/3000)
+Email #15002-18000: MailerSend ✅ (quota: 1→3000/3000)
+Email #18001:       MailerSend ❌ (quota exhausted)
+                    → Fallback to AWS SES ✅ (paid, but unlimited)
 ```
 
 **Why This Strategy?**
-- Maximizes free tier: 3,000 (Resend) + 3,000 (Maileroo) = **6,000 free emails**
+- Maximizes free tier: 9,000 (Brevo) + 3,000 (Resend) + 3,000 (Maileroo) + 3,000 (MailerSend) = **18,000 free emails**
 - Prevents waste: We don't split emails between providers
-- Cost-efficient: Only pays for AWS SES after exhausting 6,000 free emails
+- Cost-efficient: Only pays for AWS SES after exhausting 18,000 free emails
 
 ### 3. Quota Tracking
 
 - Uses **Cloudflare KV** to track monthly usage per provider
 - Automatically switches to next provider when quota reached
 - Resets monthly on the 1st of each month
-- Keys: `email-quota:Resend:2025-10`, `email-quota:Maileroo:2025-10`
+- Keys: `email-quota:Brevo:2025-10`, `email-quota:Resend:2025-10`, etc.
 
 ### 4. Current Setup
 
 **Active Configuration** (`.dev.vars`):
 ```bash
-# Resend (Primary - 3,000/month)
-RESEND_SMTP_PASSWORD="re_6efeNAXp_AX58sqyN3QboiFgQ39rTVd88"
+# Brevo (Primary - 9,000/month, 300/day limit)
+BREVO_API_KEY="your_brevo_api_key_here"
+BREVO_FROM_EMAIL="noreply@mail.raunakbohra.com"
+BREVO_FROM_NAME="Field Force CRM"
+
+# Resend (Fallback #2 - 3,000/month)
+RESEND_SMTP_PASSWORD="your_resend_api_key_here"
 RESEND_FROM_EMAIL="noreply@mail.raunakbohra.com"
 RESEND_FROM_NAME="Field Force CRM"
 
-# Maileroo (Fallback - 3,000/month) - ✅ CONFIGURED
-MAILEROO_API_KEY="bbb9fc093e192adceaacdc3cac0a40019ef7fc26241e08a3081a699a08fdabca"
+# Maileroo (Fallback #3 - 3,000/month)
+MAILEROO_API_KEY="your_maileroo_api_key_here"
 MAILEROO_FROM_EMAIL="noreply@mail.raunakbohra.com"
 MAILEROO_FROM_NAME="Field Force CRM"
+
+# MailerSend (Fallback #4 - 3,000/month)
+MAILERSEND_API_KEY="your_mailersend_api_key_here"
+MAILERSEND_FROM_EMAIL="noreply@mail.raunakbohra.com"
+MAILERSEND_FROM_NAME="Field Force CRM"
 ```
 
-**Current Status**: ✅ **Resend + Maileroo fallback active** (6,000 emails/month free capacity)
+**Current Status**: ✅ **All 4 providers active** (18,000 emails/month free capacity)
 
 **To add AWS SES** (`.dev.vars` or Cloudflare secrets):
 ```bash

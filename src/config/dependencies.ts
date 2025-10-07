@@ -15,6 +15,7 @@ import { logger } from '../utils/logger';
 import { MSG91EmailService } from '../infrastructure/email/MSG91EmailService';
 import { ResendEmailService } from '../infrastructure/email/ResendEmailService';
 import { MailerooEmailService } from '../infrastructure/email/MailerooEmailService';
+import { MailerSendEmailService } from '../infrastructure/email/MailerSendEmailService';
 import { BrevoEmailService } from '../infrastructure/email/BrevoEmailService';
 import { AWSSESEmailService } from '../infrastructure/email/AWSSESEmailService';
 import { FallbackEmailService } from '../infrastructure/email/FallbackEmailService';
@@ -106,7 +107,20 @@ export function createDependencies(env: Bindings): Dependencies {
     });
   }
 
-  // Provider 4: AWS SES (unlimited, pay-per-use: ~$0.10/1000)
+  // Provider 4: MailerSend (3,000/month free)
+  if (env.MAILERSEND_API_KEY && env.MAILERSEND_FROM_EMAIL) {
+    providers.push({
+      name: 'MailerSend',
+      service: new MailerSendEmailService(
+        env.MAILERSEND_API_KEY,
+        env.MAILERSEND_FROM_EMAIL,
+        env.MAILERSEND_FROM_NAME || 'Field Force CRM'
+      ),
+      monthlyQuota: 3000,
+    });
+  }
+
+  // Provider 5: AWS SES (unlimited, pay-per-use: ~$0.10/1000)
   if (env.AWS_SES_ACCESS_KEY_ID && env.AWS_SES_SECRET_ACCESS_KEY && env.AWS_SES_REGION && env.AWS_SES_FROM_EMAIL) {
     providers.push({
       name: 'AWS SES',
