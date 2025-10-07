@@ -16,6 +16,7 @@ import userRoutes from './routes/users';
 import reportRoutes from './routes/reports';
 import territoryRoutes from './routes/territories';
 import otpRoutes from './routes/otp';
+import emailTestRoutes from './routes/emailTest';
 import { authMiddleware } from './middleware/auth';
 
 /**
@@ -210,6 +211,9 @@ app.route('/api/reports', reportRoutes);
 
 // Territory management routes (protected, admin/manager only)
 app.route('/api/territories', territoryRoutes);
+
+// Email testing routes (protected - for testing email templates)
+app.route('/api/email-test', emailTestRoutes);
 
 // Protected route example
 app.get('/api/protected', authMiddleware, (c) => {
