@@ -186,13 +186,23 @@ export function VisitsList() {
           ) : null}
 
           {(visit.locationName || (visit.latitude && visit.longitude)) && (
-            <p className="text-neutral-700 flex items-center gap-1.5">
+            <div className="text-neutral-700 flex items-center gap-1.5">
               <MapPin className="w-4 h-4 text-neutral-400" />
-              <span>
-                <span className="font-medium">Location:</span>{' '}
-                {visit.locationName || `${visit.latitude?.toFixed(4)}, ${visit.longitude?.toFixed(4)}`}
-              </span>
-            </p>
+              <span className="font-medium">Location:</span>{' '}
+              {visit.latitude && visit.longitude ? (
+                <a
+                  href={`https://www.google.com/maps?q=${visit.latitude},${visit.longitude}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary-600 hover:text-primary-700 hover:underline"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {visit.locationName || `${visit.latitude.toFixed(4)}, ${visit.longitude.toFixed(4)}`}
+                </a>
+              ) : (
+                <span>{visit.locationName}</span>
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -252,19 +262,40 @@ export function VisitsList() {
           </div>
           <div className="col-span-1 flex items-center">
             {visit.locationName ? (
-              <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-neutral-400" />
-                <span className="text-sm text-neutral-900 truncate max-w-[200px]" title={visit.locationName}>
-                  {visit.locationName}
-                </span>
-              </div>
+              visit.latitude && visit.longitude ? (
+                <a
+                  href={`https://www.google.com/maps?q=${visit.latitude},${visit.longitude}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-primary-600 hover:text-primary-700 hover:underline"
+                  title={`${visit.locationName}\nClick to view in Google Maps`}
+                >
+                  <MapPin className="w-4 h-4" />
+                  <span className="text-sm truncate max-w-[200px]">
+                    {visit.locationName}
+                  </span>
+                </a>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-neutral-400" />
+                  <span className="text-sm text-neutral-900 truncate max-w-[200px]" title={visit.locationName}>
+                    {visit.locationName}
+                  </span>
+                </div>
+              )
             ) : visit.latitude && visit.longitude ? (
-              <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-neutral-400" />
-                <span className="text-sm text-neutral-700 truncate max-w-[200px]" title={`${visit.latitude}, ${visit.longitude}`}>
+              <a
+                href={`https://www.google.com/maps?q=${visit.latitude},${visit.longitude}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-primary-600 hover:text-primary-700 hover:underline"
+                title="Click to view in Google Maps"
+              >
+                <MapPin className="w-4 h-4" />
+                <span className="text-sm truncate max-w-[200px]">
                   {visit.latitude.toFixed(4)}, {visit.longitude.toFixed(4)}
                 </span>
-              </div>
+              </a>
             ) : (
               <span className="text-sm text-neutral-500">No location</span>
             )}
