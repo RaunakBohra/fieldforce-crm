@@ -3,10 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import type { Product, ProductQueryParams } from '../services/api';
 import { useDebounce } from '../hooks/useDebounce';
-import { Search, Package, Plus } from 'lucide-react';
+import { Search, Package, Plus, Edit2, Barcode, ImageIcon } from 'lucide-react';
 import { PageContainer, ContentSection, Card } from '../components/layout';
-import { Pagination } from '../components/ui';
-import { ProductCard } from '../components/ProductCard';
+import { Pagination, StatusBadge } from '../components/ui';
+import { formatCurrency } from '../utils/formatters';
 
 export function ProductsList() {
   const navigate = useNavigate();
@@ -153,44 +153,130 @@ export function ProductsList() {
           </div>
         )}
 
-        {/* Products Grid */}
-        {loading ? (
-          <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-              <div key={i} className="bg-white border border-neutral-200 rounded-lg overflow-hidden animate-pulse">
-                <div className="aspect-square bg-neutral-200"></div>
-                <div className="p-4 space-y-3">
-                  <div className="h-6 bg-neutral-200 rounded"></div>
-                  <div className="h-4 bg-neutral-200 rounded w-3/4"></div>
-                  <div className="h-4 bg-neutral-200 rounded w-1/2"></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : products.length === 0 ? (
-          <div className="mt-6 flex flex-col items-center justify-center py-16 px-4 min-h-[400px] bg-white rounded-lg border border-neutral-200">
-            <Package className="w-16 h-16 text-neutral-400 mb-4" />
-            <h3 className="text-xl font-semibold text-neutral-900 mb-2">No Products Yet</h3>
-            <p className="text-neutral-600 text-center mb-6 max-w-md">
-              Build your product catalog by adding products. This will help you create orders more efficiently.
-            </p>
-            <button onClick={() => navigate('/products/new')} className="btn-primary">
-              <Plus className="w-4 h-4" />
-              <span>Add Product</span>
-            </button>
-          </div>
-        ) : (
-          <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {products.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onEdit={() => handleEditProduct(product)}
-                onClick={() => handleProductClick(product)}
-              />
-            ))}
-          </div>
-        )}
+        {/* Products Table */}
+        <Card className="mt-6 border border-neutral-200 shadow-sm overflow-hidden">
+          {loading ? (
+            <div className="p-8 space-y-4">
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                <div key={i} className="h-16 bg-neutral-100 rounded animate-pulse"></div>
+              ))}
+            </div>
+          ) : products.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 px-4 min-h-[400px]">
+              <Package className="w-16 h-16 text-neutral-400 mb-4" />
+              <h3 className="text-xl font-semibold text-neutral-900 mb-2">No Products Yet</h3>
+              <p className="text-neutral-600 text-center mb-6 max-w-md">
+                Build your product catalog by adding products. This will help you create orders more efficiently.
+              </p>
+              <button onClick={() => navigate('/products/new')} className="btn-primary">
+                <Plus className="w-4 h-4" />
+                <span>Add Product</span>
+              </button>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-neutral-200">
+                <thead className="bg-neutral-50">
+                  <tr>
+                    <th className="table-header text-left">Image</th>
+                    <th className="table-header text-left">Product Name</th>
+                    <th className="table-header text-left">SKU</th>
+                    <th className="table-header text-left">Barcode</th>
+                    <th className="table-header text-left">Category</th>
+                    <th className="table-header text-right">Price</th>
+                    <th className="table-header text-center">Stock</th>
+                    <th className="table-header text-center">Status</th>
+                    <th className="table-header text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-neutral-200">
+                  {products.map((product) => (
+                    <tr
+                      key={product.id}
+                      className="hover:bg-neutral-50 transition-colors"
+                    >
+                      <td className="table-cell">
+                        <div className="flex items-center justify-center w-12 h-12 rounded-lg overflow-hidden bg-neutral-100 border border-neutral-200">
+                          {product.thumbnailUrl || product.imageUrl ? (
+                            <img
+                              src={product.thumbnailUrl || product.imageUrl}
+                              alt={product.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <ImageIcon className="w-6 h-6 text-neutral-400" />
+                          )}
+                        </div>
+                      </td>
+                      <td className="table-cell">
+                        <div className="flex flex-col">
+                          <span className="font-medium text-neutral-900">{product.name}</span>
+                          {product.description && (
+                            <span className="text-sm text-neutral-500 truncate max-w-xs">
+                              {product.description}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="table-cell">
+                        <span className="font-mono text-sm text-neutral-700">{product.sku}</span>
+                      </td>
+                      <td className="table-cell">
+                        {product.barcode ? (
+                          <div className="flex items-center gap-2">
+                            <Barcode className="w-4 h-4 text-neutral-400" />
+                            <span className="font-mono text-sm text-neutral-700">{product.barcode}</span>
+                          </div>
+                        ) : (
+                          <span className="text-neutral-400 text-sm">-</span>
+                        )}
+                      </td>
+                      <td className="table-cell">
+                        <StatusBadge
+                          label={product.category}
+                          variant="primary"
+                          formatLabel={false}
+                        />
+                      </td>
+                      <td className="table-cell text-right">
+                        <span className="font-semibold text-neutral-900">
+                          {formatCurrency(product.price)}
+                        </span>
+                      </td>
+                      <td className="table-cell text-center">
+                        <span className={`inline-flex items-center justify-center min-w-[3rem] px-2 py-1 rounded-full text-sm font-medium ${
+                          product.stock > 10
+                            ? 'bg-success-100 text-success-800'
+                            : product.stock > 0
+                            ? 'bg-warn-100 text-warn-800'
+                            : 'bg-danger-100 text-danger-800'
+                        }`}>
+                          {product.stock}
+                        </span>
+                      </td>
+                      <td className="table-cell text-center">
+                        <StatusBadge
+                          label={product.isActive ? 'Active' : 'Inactive'}
+                          variant={product.isActive ? 'success' : 'neutral'}
+                          formatLabel={false}
+                        />
+                      </td>
+                      <td className="table-cell text-center">
+                        <button
+                          onClick={() => handleEditProduct(product)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-primary-700 hover:text-primary-800 hover:bg-primary-50 rounded-md transition-colors"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                          <span>Edit</span>
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Card>
 
         {/* Pagination */}
         <Pagination
