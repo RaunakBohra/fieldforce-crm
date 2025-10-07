@@ -3,6 +3,7 @@ import { authMiddleware } from '../middleware/auth';
 import { ZodError, z } from 'zod';
 import { logger, getLogContext } from '../utils/logger';
 import { getOrSetCache, getUserStatsCacheKey } from '../utils/cache';
+import { buildPaymentFilter, type UserContext } from '../utils/roleFilters';
 import type { Bindings } from '../index';
 import type { Dependencies } from '../config/dependencies';
 
@@ -222,18 +223,27 @@ payments.get('/', async (c) => {
       endDate: c.req.query('endDate'),
     });
 
-    logger.info('Get payments request', { ...getLogContext(c), query });
+    logger.info('Get payments request', {
+      ...getLogContext(c),
+      query,
+      userRole: user.role,
+    });
 
-    const where: {
-      recordedById: string;
-      orderId?: string;
-      contactId?: string;
-      paymentMode?: string;
-      status?: string;
-      paymentDate?: { gte?: Date; lte?: Date };
-    } = {
-      recordedById: user.userId,
+    // Fetch user's company for role-based filtering
+    const userData = await deps.prisma.user.findUnique({
+      where: { id: user.userId },
+      select: { companyId: true },
+    });
+
+    // Build role-based access filter
+    const userContext: UserContext = {
+      userId: user.userId,
+      role: user.role,
+      companyId: userData?.companyId,
     };
+    const roleFilter = buildPaymentFilter(userContext);
+
+    const where: any = { ...roleFilter };
 
     if (query.orderId) where.orderId = query.orderId;
     if (query.contactId) where.contactId = query.contactId;
@@ -303,19 +313,32 @@ payments.get('/stats', async (c) => {
     const startDate = c.req.query('startDate');
     const endDate = c.req.query('endDate');
 
-    logger.info('Get payment stats request', getLogContext(c));
+    logger.info('Get payment stats request', {
+      ...getLogContext(c),
+      userRole: user.role,
+    });
 
-    const cacheKey = getUserStatsCacheKey('payments', user.userId);
+    // Fetch user's company for role-based filtering
+    const userData = await deps.prisma.user.findUnique({
+      where: { id: user.userId },
+      select: { companyId: true },
+    });
+
+    // Build role-based access filter
+    const userContext: UserContext = {
+      userId: user.userId,
+      role: user.role,
+      companyId: userData?.companyId,
+    };
+    const roleFilter = buildPaymentFilter(userContext);
+
+    const cacheKey = getUserStatsCacheKey('payments', `${user.userId}-${user.role}`);
     const stats = await getOrSetCache(
       deps.kv,
       cacheKey,
       async () => {
-        const where: {
-          recordedById: string;
-          status: string;
-          paymentDate?: { gte?: Date; lte?: Date };
-        } = {
-          recordedById: user.userId,
+        const where: any = {
+          ...roleFilter,
           status: 'COMPLETED',
         };
 
