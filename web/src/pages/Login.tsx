@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { validators } from '../utils/validation';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -8,12 +9,73 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Validation state
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  const validateField = (field: string, value: string): string => {
+    switch (field) {
+      case 'email':
+        return validators.required(value, 'Email') || validators.email(value);
+      case 'password':
+        return validators.required(value, 'Password');
+      default:
+        return '';
+    }
+  };
+
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+    errors.email = validateField('email', email);
+    errors.password = validateField('password', password);
+
+    Object.keys(errors).forEach(key => {
+      if (!errors[key]) delete errors[key];
+    });
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleBlur = (field: string, value: string) => {
+    setTouched({ ...touched, [field]: true });
+    const error = validateField(field, value);
+    if (error) {
+      setFieldErrors({ ...fieldErrors, [field]: error });
+    } else {
+      const newErrors = { ...fieldErrors };
+      delete newErrors[field];
+      setFieldErrors(newErrors);
+    }
+  };
+
+  const handleEmailChange = (value: string) => {
+    setEmail(value);
+    if (fieldErrors.email) {
+      setFieldErrors({ ...fieldErrors, email: '' });
+    }
+  };
+
+  const handlePasswordChange = (value: string) => {
+    setPassword(value);
+    if (fieldErrors.password) {
+      setFieldErrors({ ...fieldErrors, password: '' });
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    // Validate form
+    if (!validateForm()) {
+      setTouched({ email: true, password: true });
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -58,11 +120,15 @@ export default function Login() {
                 id="email"
                 type="email"
                 required
-                className="input-field mt-1"
+                className={`input-field mt-1 ${touched.email && fieldErrors.email ? 'border-danger-500 focus:ring-danger-500' : ''}`}
                 placeholder="you@example.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => handleEmailChange(e.target.value)}
+                onBlur={() => handleBlur('email', email)}
               />
+              {touched.email && fieldErrors.email && (
+                <p className="mt-1 text-sm text-danger-600">{fieldErrors.email}</p>
+              )}
             </div>
 
             <div>
@@ -73,11 +139,15 @@ export default function Login() {
                 id="password"
                 type="password"
                 required
-                className="input-field mt-1"
+                className={`input-field mt-1 ${touched.password && fieldErrors.password ? 'border-danger-500 focus:ring-danger-500' : ''}`}
                 placeholder="••••••••"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => handlePasswordChange(e.target.value)}
+                onBlur={() => handleBlur('password', password)}
               />
+              {touched.password && fieldErrors.password && (
+                <p className="mt-1 text-sm text-danger-600">{fieldErrors.password}</p>
+              )}
             </div>
           </div>
 

@@ -63,7 +63,8 @@
       "Bash(for:*)",
       "Bash(do echo \"=== $file ===\")",
       "Bash(done)",
-      "Bash(npx wrangler pages deploy:*)"
+      "Bash(npx wrangler pages deploy:*)",
+      "Bash(xargs basename:*)"
     ],
     "deny": [],
     "ask": []

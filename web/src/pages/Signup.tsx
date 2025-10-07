@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { validators } from '../utils/validation';
 
 export default function Signup() {
   const [formData, setFormData] = useState({
@@ -13,27 +14,82 @@ export default function Signup() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Validation state
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+
   const { signup } = useAuth();
   const navigate = useNavigate();
 
+  const validateField = (field: string, value: string): string => {
+    switch (field) {
+      case 'name':
+        return validators.required(value, 'Name') || validators.minLength(value, 2, 'Name');
+      case 'email':
+        return validators.required(value, 'Email') || validators.email(value);
+      case 'phone':
+        if (value) return validators.phone(value);
+        return '';
+      case 'password':
+        const requiredError = validators.required(value, 'Password');
+        if (requiredError) return requiredError;
+        if (value.length < 8) return 'Password must be at least 8 characters';
+        return '';
+      case 'confirmPassword':
+        if (value !== formData.password) return 'Passwords do not match';
+        return '';
+      default:
+        return '';
+    }
+  };
+
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+    errors.name = validateField('name', formData.name);
+    errors.email = validateField('email', formData.email);
+    if (formData.phone) errors.phone = validateField('phone', formData.phone);
+    errors.password = validateField('password', formData.password);
+    errors.confirmPassword = validateField('confirmPassword', formData.confirmPassword);
+
+    Object.keys(errors).forEach(key => {
+      if (!errors[key]) delete errors[key];
+    });
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleBlur = (field: string) => {
+    setTouched({ ...touched, [field]: true });
+    const value = formData[field as keyof typeof formData];
+    const error = validateField(field, value);
+    if (error) {
+      setFieldErrors({ ...fieldErrors, [field]: error });
+    } else {
+      const newErrors = { ...fieldErrors };
+      delete newErrors[field];
+      setFieldErrors(newErrors);
+    }
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: value,
     });
+    if (fieldErrors[name]) {
+      setFieldErrors({ ...fieldErrors, [name]: '' });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-
-    if (formData.password.length < 8) {
-      setError('Password must be at least 8 characters');
+    // Validate form
+    if (!validateForm()) {
+      setTouched({ name: true, email: true, phone: true, password: true, confirmPassword: true });
       return;
     }
 
@@ -87,11 +143,15 @@ export default function Signup() {
                 name="name"
                 type="text"
                 required
-                className="input-field mt-1"
+                className={`input-field mt-1 ${touched.name && fieldErrors.name ? 'border-danger-500 focus:ring-danger-500' : ''}`}
                 placeholder="John Doe"
                 value={formData.name}
                 onChange={handleChange}
+                onBlur={() => handleBlur('name')}
               />
+              {touched.name && fieldErrors.name && (
+                <p className="mt-1 text-sm text-danger-600">{fieldErrors.name}</p>
+              )}
             </div>
 
             <div>
@@ -103,11 +163,15 @@ export default function Signup() {
                 name="email"
                 type="email"
                 required
-                className="input-field mt-1"
+                className={`input-field mt-1 ${touched.email && fieldErrors.email ? 'border-danger-500 focus:ring-danger-500' : ''}`}
                 placeholder="you@example.com"
                 value={formData.email}
                 onChange={handleChange}
+                onBlur={() => handleBlur('email')}
               />
+              {touched.email && fieldErrors.email && (
+                <p className="mt-1 text-sm text-danger-600">{fieldErrors.email}</p>
+              )}
             </div>
 
             <div>
@@ -118,11 +182,15 @@ export default function Signup() {
                 id="phone"
                 name="phone"
                 type="tel"
-                className="input-field mt-1"
+                className={`input-field mt-1 ${touched.phone && fieldErrors.phone ? 'border-danger-500 focus:ring-danger-500' : ''}`}
                 placeholder="9876543210"
                 value={formData.phone}
                 onChange={handleChange}
+                onBlur={() => handleBlur('phone')}
               />
+              {touched.phone && fieldErrors.phone && (
+                <p className="mt-1 text-sm text-danger-600">{fieldErrors.phone}</p>
+              )}
             </div>
 
             <div>
@@ -134,11 +202,15 @@ export default function Signup() {
                 name="password"
                 type="password"
                 required
-                className="input-field mt-1"
+                className={`input-field mt-1 ${touched.password && fieldErrors.password ? 'border-danger-500 focus:ring-danger-500' : ''}`}
                 placeholder="••••••••"
                 value={formData.password}
                 onChange={handleChange}
+                onBlur={() => handleBlur('password')}
               />
+              {touched.password && fieldErrors.password && (
+                <p className="mt-1 text-sm text-danger-600">{fieldErrors.password}</p>
+              )}
             </div>
 
             <div>
@@ -150,11 +222,15 @@ export default function Signup() {
                 name="confirmPassword"
                 type="password"
                 required
-                className="input-field mt-1"
+                className={`input-field mt-1 ${touched.confirmPassword && fieldErrors.confirmPassword ? 'border-danger-500 focus:ring-danger-500' : ''}`}
                 placeholder="••••••••"
                 value={formData.confirmPassword}
                 onChange={handleChange}
+                onBlur={() => handleBlur('confirmPassword')}
               />
+              {touched.confirmPassword && fieldErrors.confirmPassword && (
+                <p className="mt-1 text-sm text-danger-600">{fieldErrors.confirmPassword}</p>
+              )}
             </div>
           </div>
 
