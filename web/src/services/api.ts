@@ -1,4 +1,5 @@
 import { getCsrfToken, getCsrfHeaderName } from '../utils/csrf';
+import { apiCache, cacheKeys } from '../utils/apiCache';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://crm-api.raunakbohra.com';
 
@@ -706,12 +707,9 @@ class ApiService {
     if (includeCsrf) {
       try {
         const csrfToken = await getCsrfToken();
-        console.log('[CSRF Debug] Token retrieved:', csrfToken ? 'Yes' : 'No', csrfToken?.substring(0, 20) + '...');
-        console.log('[CSRF Debug] Cookies:', document.cookie);
         headers[getCsrfHeaderName()] = csrfToken;
-        console.log('[CSRF Debug] Header set:', getCsrfHeaderName(), '=', csrfToken?.substring(0, 20) + '...');
       } catch (error) {
-        console.error('[CSRF Debug] Failed to get CSRF token:', error);
+        console.error('Failed to get CSRF token:', error);
       }
     }
 
@@ -890,36 +888,48 @@ class ApiService {
   }
 
   async getUpcomingVisits(days?: number): Promise<ApiResponse<UpcomingVisit[]>> {
-    try {
-      const queryString = days ? `?days=${days}` : '';
-      const response = await fetch(`${API_URL}/api/contacts/upcoming-visits${queryString}`, {
-        headers: await this.getHeaders(true, true),
-        credentials: 'include',
-      });
+    return apiCache.get(
+      cacheKeys.upcomingVisits(days || 7),
+      async () => {
+        try {
+          const queryString = days ? `?days=${days}` : '';
+          const response = await fetch(`${API_URL}/api/contacts/upcoming-visits${queryString}`, {
+            headers: await this.getHeaders(true, true),
+            credentials: 'include',
+          });
 
-      return this.handleResponse<UpcomingVisit[]>(response);
-    } catch (error) {
-      if (error instanceof TypeError && error.message.includes('fetch')) {
-        throw new Error('Network error: Unable to connect to server');
-      }
-      throw error;
-    }
+          return this.handleResponse<UpcomingVisit[]>(response);
+        } catch (error) {
+          if (error instanceof TypeError && error.message.includes('fetch')) {
+            throw new Error('Network error: Unable to connect to server');
+          }
+          throw error;
+        }
+      },
+      { ttl: 5 * 60 * 1000, staleTime: 2 * 60 * 1000 } // 5min TTL, 2min fresh
+    );
   }
 
   async getOverdueVisits(): Promise<ApiResponse<OverdueVisit[]>> {
-    try {
-      const response = await fetch(`${API_URL}/api/contacts/overdue-visits`, {
-        headers: await this.getHeaders(true, true),
-        credentials: 'include',
-      });
+    return apiCache.get(
+      cacheKeys.overdueVisits(),
+      async () => {
+        try {
+          const response = await fetch(`${API_URL}/api/contacts/overdue-visits`, {
+            headers: await this.getHeaders(true, true),
+            credentials: 'include',
+          });
 
-      return this.handleResponse<OverdueVisit[]>(response);
-    } catch (error) {
-      if (error instanceof TypeError && error.message.includes('fetch')) {
-        throw new Error('Network error: Unable to connect to server');
-      }
-      throw error;
-    }
+          return this.handleResponse<OverdueVisit[]>(response);
+        } catch (error) {
+          if (error instanceof TypeError && error.message.includes('fetch')) {
+            throw new Error('Network error: Unable to connect to server');
+          }
+          throw error;
+        }
+      },
+      { ttl: 5 * 60 * 1000, staleTime: 2 * 60 * 1000 } // 5min TTL, 2min fresh
+    );
   }
 
   // Visit Management
@@ -1476,54 +1486,72 @@ class ApiService {
 
   // Dashboard Management
   async getDashboardStats(): Promise<ApiResponse<DashboardStats>> {
-    try {
-      const response = await fetch(`${API_URL}/api/dashboard/stats`, {
-        method: 'GET',
-        headers: await this.getHeaders(true),
-        credentials: 'include',
-      });
+    return apiCache.get(
+      cacheKeys.dashboardStats(),
+      async () => {
+        try {
+          const response = await fetch(`${API_URL}/api/dashboard/stats`, {
+            method: 'GET',
+            headers: await this.getHeaders(true),
+            credentials: 'include',
+          });
 
-      return this.handleResponse<DashboardStats>(response);
-    } catch (error) {
-      if (error instanceof TypeError && error.message.includes('fetch')) {
-        throw new Error('Network error: Unable to connect to server');
-      }
-      throw error;
-    }
+          return this.handleResponse<DashboardStats>(response);
+        } catch (error) {
+          if (error instanceof TypeError && error.message.includes('fetch')) {
+            throw new Error('Network error: Unable to connect to server');
+          }
+          throw error;
+        }
+      },
+      { ttl: 3 * 60 * 1000, staleTime: 60 * 1000 } // 3min TTL, 1min fresh
+    );
   }
 
   async getRecentActivity(): Promise<ApiResponse<DashboardActivitiesResponse>> {
-    try {
-      const response = await fetch(`${API_URL}/api/dashboard/recent-activity`, {
-        method: 'GET',
-        headers: await this.getHeaders(true),
-        credentials: 'include',
-      });
+    return apiCache.get(
+      cacheKeys.recentActivity(),
+      async () => {
+        try {
+          const response = await fetch(`${API_URL}/api/dashboard/recent-activity`, {
+            method: 'GET',
+            headers: await this.getHeaders(true),
+            credentials: 'include',
+          });
 
-      return this.handleResponse<DashboardActivitiesResponse>(response);
-    } catch (error) {
-      if (error instanceof TypeError && error.message.includes('fetch')) {
-        throw new Error('Network error: Unable to connect to server');
-      }
-      throw error;
-    }
+          return this.handleResponse<DashboardActivitiesResponse>(response);
+        } catch (error) {
+          if (error instanceof TypeError && error.message.includes('fetch')) {
+            throw new Error('Network error: Unable to connect to server');
+          }
+          throw error;
+        }
+      },
+      { ttl: 2 * 60 * 1000, staleTime: 30 * 1000 } // 2min TTL, 30sec fresh
+    );
   }
 
   async getTopPerformers(): Promise<ApiResponse<TopPerformersResponse>> {
-    try {
-      const response = await fetch(`${API_URL}/api/dashboard/top-performers`, {
-        method: 'GET',
-        headers: await this.getHeaders(true),
-        credentials: 'include',
-      });
+    return apiCache.get(
+      cacheKeys.topPerformers(),
+      async () => {
+        try {
+          const response = await fetch(`${API_URL}/api/dashboard/top-performers`, {
+            method: 'GET',
+            headers: await this.getHeaders(true),
+            credentials: 'include',
+          });
 
-      return this.handleResponse<TopPerformersResponse>(response);
-    } catch (error) {
-      if (error instanceof TypeError && error.message.includes('fetch')) {
-        throw new Error('Network error: Unable to connect to server');
-      }
-      throw error;
-    }
+          return this.handleResponse<TopPerformersResponse>(response);
+        } catch (error) {
+          if (error instanceof TypeError && error.message.includes('fetch')) {
+            throw new Error('Network error: Unable to connect to server');
+          }
+          throw error;
+        }
+      },
+      { ttl: 5 * 60 * 1000, staleTime: 2 * 60 * 1000 } // 5min TTL, 2min fresh
+    );
   }
 
   // Analytics Management
@@ -1596,27 +1624,34 @@ class ApiService {
     }
   }
 
-  async getTerritoryPerformance(startDate?: string, endDate?: string): Promise<ApiResponse<TerritoryPerformanceResponse>> {
-    try {
-      const params = new URLSearchParams();
-      if (startDate) params.append('startDate', startDate);
-      if (endDate) params.append('endDate', endDate);
+  async getTerritoryPerformance(startDate?: string, endDate?: string, limit?: number): Promise<ApiResponse<TerritoryPerformanceResponse>> {
+    return apiCache.get(
+      cacheKeys.territoryPerformance(),
+      async () => {
+        try {
+          const params = new URLSearchParams();
+          if (startDate) params.append('startDate', startDate);
+          if (endDate) params.append('endDate', endDate);
+          if (limit) params.append('limit', limit.toString());
 
-      const queryString = params.toString() ? `?${params.toString()}` : '';
+          const queryString = params.toString() ? `?${params.toString()}` : '';
 
-      const response = await fetch(`${API_URL}/api/analytics/territory-performance${queryString}`, {
-        method: 'GET',
-        headers: await this.getHeaders(true),
-        credentials: 'include',
-      });
+          const response = await fetch(`${API_URL}/api/analytics/territory-performance${queryString}`, {
+            method: 'GET',
+            headers: await this.getHeaders(true),
+            credentials: 'include',
+          });
 
-      return this.handleResponse<TerritoryPerformanceResponse>(response);
-    } catch (error) {
-      if (error instanceof TypeError && error.message.includes('fetch')) {
-        throw new Error('Network error: Unable to connect to server');
-      }
-      throw error;
-    }
+          return this.handleResponse<TerritoryPerformanceResponse>(response);
+        } catch (error) {
+          if (error instanceof TypeError && error.message.includes('fetch')) {
+            throw new Error('Network error: Unable to connect to server');
+          }
+          throw error;
+        }
+      },
+      { ttl: 10 * 60 * 1000, staleTime: 5 * 60 * 1000 } // 10min TTL, 5min fresh
+    );
   }
 
   // User Management

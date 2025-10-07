@@ -71,7 +71,7 @@ export function Navigation() {
             {/* Mobile menu button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 rounded-lg hover:bg-primary-700 transition-colors"
+              className="md:hidden p-2 rounded-lg hover:bg-primary-700 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
               aria-label="Toggle menu"
               aria-expanded={mobileMenuOpen}
             >

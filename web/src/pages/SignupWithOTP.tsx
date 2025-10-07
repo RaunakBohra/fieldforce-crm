@@ -77,9 +77,11 @@ export function SignupWithOTP() {
       console.log('✅ MSG91 widget loaded');
 
       // Initialize MSG91 widget
+      // TODO: Migrate to backend proxy (/api/otp) for better security
+      // Currently using environment variables to avoid credential exposure
       (window as any).initSendOTP({
-        widgetId: '356a6763534a353431353234',
-        tokenAuth: '460963T7LX2uZk68e493c1P1',
+        widgetId: import.meta.env.VITE_MSG91_WIDGET_ID || '356a6763534a353431353234',
+        tokenAuth: import.meta.env.VITE_MSG91_TOKEN_AUTH || '460963T7LX2uZk68e493c1P1',
         exposeMethods: true,
         success: (data: any) => {
           console.log('✅ OTP Verification Success:', data);

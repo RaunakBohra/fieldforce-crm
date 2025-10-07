@@ -69,7 +69,7 @@ export default function Signup() {
         <form className="mt-8 space-y-6" onSubmit={handleSubmit} aria-label="Signup form">
           {error && (
             <div
-              className="bg-neutral-50 border border-neutral-200 text-neutral-800 px-4 py-3 rounded-lg"
+              className="error-message"
               role="alert"
               aria-live="polite"
             >

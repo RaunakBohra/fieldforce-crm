@@ -70,9 +70,11 @@ export default function SignupWithEmailOTP() {
   // Initialize MSG91 OTP widget when email verification step is reached
   useEffect(() => {
     if (step === 'otp-email' && window.initSendOTP) {
+      // TODO: Migrate to backend proxy (/api/otp) for better security
+      // Currently using environment variables to avoid credential exposure
       const configuration = {
-        widgetId: '356a6763534a353431353234',
-        tokenAuth: '460963T7LX2uZk68e493c1P1',
+        widgetId: import.meta.env.VITE_MSG91_WIDGET_ID || '356a6763534a353431353234',
+        tokenAuth: import.meta.env.VITE_MSG91_TOKEN_AUTH || '460963T7LX2uZk68e493c1P1',
         identifier: formDataRef.current.email,
         exposeMethods: true,
         success: (data: any) => {

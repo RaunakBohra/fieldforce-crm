@@ -28,33 +28,26 @@ function getCsrfTokenFromCookie(): string | null {
 async function fetchCsrfToken(): Promise<string> {
   const API_URL = import.meta.env.VITE_API_URL || 'https://crm-api.raunakbohra.com';
 
-  console.log('[CSRF Debug] Fetching token from:', API_URL);
-
   try {
     const response = await fetch(`${API_URL}/api/csrf-token`, {
       method: 'GET',
       credentials: 'include', // Important: Include cookies for CSRF cookie
     });
 
-    console.log('[CSRF Debug] Response status:', response.status);
-    console.log('[CSRF Debug] Response headers:', Array.from(response.headers.entries()));
-
     if (!response.ok) {
       throw new Error(`Failed to fetch CSRF token: HTTP ${response.status}`);
     }
 
     const data = await response.json();
-    console.log('[CSRF Debug] Response data:', data);
 
     if (data.success && data.data?.csrfToken) {
       cachedToken = data.data.csrfToken;
-      console.log('[CSRF Debug] Token cached:', data.data.csrfToken.substring(0, 20) + '...');
       return data.data.csrfToken;
     }
 
     throw new Error('Invalid CSRF token response format');
   } catch (error) {
-    console.error('[CSRF Debug] Token fetch error:', error);
+    console.error('Failed to fetch CSRF token:', error);
     throw error;
   }
 }
@@ -63,13 +56,8 @@ async function fetchCsrfToken(): Promise<string> {
  * Get CSRF token (from cookie or fetch from server)
  */
 export async function getCsrfToken(): Promise<string> {
-  console.log('[CSRF Debug] getCsrfToken called');
-  console.log('[CSRF Debug] Build timestamp:', '2025-10-07 08:00'); // To verify new build
-
   // Try to get from cookie first
   const cookieToken = getCsrfTokenFromCookie();
-  console.log('[CSRF Debug] Cookie token:', cookieToken ? cookieToken.substring(0, 20) + '...' : 'Not found');
-  console.log('[CSRF Debug] All cookies:', document.cookie);
 
   if (cookieToken) {
     cachedToken = cookieToken;
@@ -78,10 +66,7 @@ export async function getCsrfToken(): Promise<string> {
 
   // If no cookie, fetch from server
   if (!cachedToken) {
-    console.log('[CSRF Debug] No cached token, fetching from server');
     cachedToken = await fetchCsrfToken();
-  } else {
-    console.log('[CSRF Debug] Using cached token:', cachedToken.substring(0, 20) + '...');
   }
 
   return cachedToken;
