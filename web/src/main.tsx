@@ -7,8 +7,9 @@ import { initializeCsrfToken } from './utils/csrf'
 // import { registerSW } from 'virtual:pwa-register'
 
 // Log app version for debugging
-console.log(`Field Force CRM - Version: ${APP_VERSION}`);
-console.log(`Build Date: ${BUILD_DATE}`);
+console.log(`%c Field Force CRM - Version: ${APP_VERSION}`, 'background: #3730a3; color: white; padding: 4px 8px; font-weight: bold');
+console.log(`%c Build Date: ${BUILD_DATE}`, 'background: #db2777; color: white; padding: 4px 8px; font-weight: bold');
+console.log('%c [CSRF Debug Mode] Logs enabled', 'background: orange; color: black; padding: 4px 8px; font-weight: bold');
 
 // Register Service Worker for PWA
 // const updateSW = registerSW({

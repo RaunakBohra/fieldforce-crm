@@ -64,10 +64,12 @@ async function fetchCsrfToken(): Promise<string> {
  */
 export async function getCsrfToken(): Promise<string> {
   console.log('[CSRF Debug] getCsrfToken called');
+  console.log('[CSRF Debug] Build timestamp:', '2025-10-07 08:00'); // To verify new build
 
   // Try to get from cookie first
   const cookieToken = getCsrfTokenFromCookie();
   console.log('[CSRF Debug] Cookie token:', cookieToken ? cookieToken.substring(0, 20) + '...' : 'Not found');
+  console.log('[CSRF Debug] All cookies:', document.cookie);
 
   if (cookieToken) {
     cachedToken = cookieToken;
