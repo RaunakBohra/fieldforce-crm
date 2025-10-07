@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api, type Territory } from '../services/api';
 import { PageContainer, ContentSection, Card } from '../components/layout';
+import { showToast } from '../components/ui';
 import { UserPlus, Save, X } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -134,12 +135,20 @@ export function UserForm() {
       }
 
       if (response.success) {
+        showToast.success(
+          isEditMode ? 'User updated successfully' : 'User created successfully',
+          `${formData.name} has been ${isEditMode ? 'updated' : 'added'} to the system`
+        );
         navigate('/users');
       } else {
-        setError(response.error || `Failed to ${isEditMode ? 'update' : 'create'} user`);
+        const errorMsg = response.error || `Failed to ${isEditMode ? 'update' : 'create'} user`;
+        setError(errorMsg);
+        showToast.error(errorMsg);
       }
     } catch (error: any) {
-      setError(error.message || `Failed to ${isEditMode ? 'update' : 'create'} user`);
+      const errorMsg = error.message || `Failed to ${isEditMode ? 'update' : 'create'} user`;
+      setError(errorMsg);
+      showToast.error(errorMsg);
     } finally {
       setSubmitting(false);
     }

@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { api } from '../services/api';
 import type { Territory } from '../services/api';
 import { PageContainer, ContentSection, Card } from '../components/layout';
+import { showToast } from '../components/ui';
 import { MapPin, Save, X } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -129,12 +130,20 @@ export function TerritoryForm() {
       }
 
       if (response.success) {
+        showToast.success(
+          isEditMode ? 'Territory updated successfully' : 'Territory created successfully',
+          `${formData.name} (${formData.code}) has been ${isEditMode ? 'updated' : 'added'} to the system`
+        );
         navigate('/territories');
       } else {
-        setError(response.error || `Failed to ${isEditMode ? 'update' : 'create'} territory`);
+        const errorMsg = response.error || `Failed to ${isEditMode ? 'update' : 'create'} territory`;
+        setError(errorMsg);
+        showToast.error(errorMsg);
       }
     } catch (error: any) {
-      setError(error.message || `Failed to ${isEditMode ? 'update' : 'create'} territory`);
+      const errorMsg = error.message || `Failed to ${isEditMode ? 'update' : 'create'} territory`;
+      setError(errorMsg);
+      showToast.error(errorMsg);
     } finally {
       setSubmitting(false);
     }
