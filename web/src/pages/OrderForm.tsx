@@ -315,7 +315,7 @@ export function OrderForm() {
                           type="button"
                           onClick={() => removeItem(index)}
                           className="text-danger-600 hover:text-danger-500 p-2"
-                          title="Remove item"
+                          aria-label="Remove item"
                         >
                           <Trash2 size={18} />
                         </button>

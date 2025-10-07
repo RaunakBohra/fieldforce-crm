@@ -244,12 +244,14 @@ export function ContactsList() {
             <button
               onClick={() => navigate(`/contacts/${contact.id}/edit`)}
               className="text-primary-800 hover:text-primary-700"
+              aria-label="Edit contact"
             >
               <Pencil className="w-4 h-4 inline" />
             </button>
             <button
               onClick={() => handleDelete(contact.id, contact.name)}
               className="text-danger-600 hover:text-danger-500"
+              aria-label="Delete contact"
             >
               <Trash2 className="w-4 h-4 inline" />
             </button>

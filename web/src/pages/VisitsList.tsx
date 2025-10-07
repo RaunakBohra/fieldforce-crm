@@ -261,7 +261,7 @@ export function VisitsList() {
             <button
               onClick={() => navigate(`/visits/${visit.id}`)}
               className="text-primary-600 hover:text-primary-700"
-              title="View Details"
+              aria-label="View visit details"
             >
               <Eye className="w-4 h-4 inline" />
             </button>
@@ -269,7 +269,7 @@ export function VisitsList() {
               <button
                 onClick={() => navigate(`/visits/${visit.id}/edit`)}
                 className="text-primary-800 hover:text-primary-700"
-                title="Check Out"
+                aria-label="Check out visit"
               >
                 <Pencil className="w-4 h-4 inline" />
               </button>
@@ -277,7 +277,7 @@ export function VisitsList() {
             <button
               onClick={() => handleDelete(visit.id, visit.contact?.name || 'this visit')}
               className="text-danger-600 hover:text-danger-500"
-              title="Delete"
+              aria-label="Delete visit"
             >
               <Trash2 className="w-4 h-4 inline" />
             </button>

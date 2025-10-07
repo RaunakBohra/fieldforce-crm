@@ -228,7 +228,7 @@ export function OrdersList() {
             <button
               onClick={() => navigate(`/orders/${order.id}`)}
               className="text-primary-600 hover:text-primary-700"
-              title="View Details"
+              aria-label="View order details"
             >
               <Eye className="w-4 h-4 inline" />
             </button>
@@ -236,7 +236,7 @@ export function OrdersList() {
               <button
                 onClick={() => handleCancelOrder(order.id, order.orderNumber)}
                 className="text-danger-600 hover:text-danger-500"
-                title="Cancel Order"
+                aria-label="Cancel order"
               >
                 <XCircle className="w-4 h-4 inline" />
               </button>

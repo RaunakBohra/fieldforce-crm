@@ -533,6 +533,7 @@ export function VisitForm() {
                           type="button"
                           onClick={() => removeSample(index)}
                           className="p-2 text-danger-600 hover:bg-danger-50 rounded-lg transition-colors"
+                          aria-label="Remove sample"
                         >
                           <Trash2 className="w-5 h-5" />
                         </button>
@@ -577,6 +578,7 @@ export function VisitForm() {
                           type="button"
                           onClick={() => removePhoto(index)}
                           className="absolute top-2 right-2 p-1.5 bg-danger-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                          aria-label="Remove photo"
                         >
                           <X className="w-4 h-4" />
                         </button>

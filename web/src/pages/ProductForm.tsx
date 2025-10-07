@@ -392,6 +392,7 @@ export function ProductForm() {
                       type="button"
                       onClick={removeImage}
                       className="absolute -top-2 -right-2 bg-danger-600 text-white p-1 rounded-full hover:bg-danger-500"
+                      aria-label="Remove image"
                     >
                       <X size={16} />
                     </button>
