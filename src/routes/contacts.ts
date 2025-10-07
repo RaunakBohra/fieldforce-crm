@@ -44,9 +44,10 @@ contacts.get('/', async (c) => {
     logger.info('Get contacts request', {
       ...getLogContext(c),
       query,
+      userRole: user.role,
     });
 
-    const result = await deps.contactService.getContacts(user.userId, query);
+    const result = await deps.contactService.getContacts(user.userId, user.role, query);
 
     if (!result.success) {
       return c.json({ success: false, error: result.error }, 400);
@@ -79,9 +80,12 @@ contacts.get('/stats', async (c) => {
   const user = c.get('user');
 
   try {
-    logger.info('Get contact stats request', getLogContext(c));
+    logger.info('Get contact stats request', {
+      ...getLogContext(c),
+      userRole: user.role,
+    });
 
-    const result = await deps.contactService.getContactStats(user.userId);
+    const result = await deps.contactService.getContactStats(user.userId, user.role);
 
     if (!result.success) {
       return c.json({ success: false, error: result.error }, 400);
@@ -116,9 +120,10 @@ contacts.get('/upcoming-visits', async (c) => {
     logger.info('Get upcoming visits request', {
       ...getLogContext(c),
       days,
+      userRole: user.role,
     });
 
-    const result = await deps.contactService.getUpcomingVisits(user.userId, days);
+    const result = await deps.contactService.getUpcomingVisits(user.userId, user.role, days);
 
     if (!result.success) {
       return c.json({ success: false, error: result.error }, 400);
@@ -140,9 +145,12 @@ contacts.get('/overdue-visits', async (c) => {
   const user = c.get('user');
 
   try {
-    logger.info('Get overdue visits request', getLogContext(c));
+    logger.info('Get overdue visits request', {
+      ...getLogContext(c),
+      userRole: user.role,
+    });
 
-    const result = await deps.contactService.getOverdueVisits(user.userId);
+    const result = await deps.contactService.getOverdueVisits(user.userId, user.role);
 
     if (!result.success) {
       return c.json({ success: false, error: result.error }, 400);
@@ -168,9 +176,10 @@ contacts.get('/:id', async (c) => {
     logger.info('Get contact by ID request', {
       ...getLogContext(c),
       contactId,
+      userRole: user.role,
     });
 
-    const result = await deps.contactService.getContactById(contactId, user.userId);
+    const result = await deps.contactService.getContactById(contactId, user.userId, user.role);
 
     if (!result.success) {
       return c.json({ success: false, error: result.error }, 404);
@@ -256,12 +265,14 @@ contacts.put('/:id', async (c) => {
     logger.info('Update contact request', {
       ...getLogContext(c),
       contactId,
+      userRole: user.role,
     });
 
     const result = await deps.contactService.updateContact(
       contactId,
       input,
-      user.userId
+      user.userId,
+      user.role
     );
 
     if (!result.success) {
@@ -314,9 +325,10 @@ contacts.delete('/:id', async (c) => {
     logger.info('Delete contact request', {
       ...getLogContext(c),
       contactId,
+      userRole: user.role,
     });
 
-    const result = await deps.contactService.deleteContact(contactId, user.userId);
+    const result = await deps.contactService.deleteContact(contactId, user.userId, user.role);
 
     if (!result.success) {
       return c.json({ success: false, error: result.error }, 404);

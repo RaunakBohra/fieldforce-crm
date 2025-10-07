@@ -1,5 +1,6 @@
 import { PrismaClient, Contact, ContactType, VisitFrequency } from '@prisma/client';
 import { logger } from '../utils/logger';
+import { buildContactFilter, canModifyRecord, type UserContext } from '../utils/roleFilters';
 import type {
   CreateContactInput,
   UpdateContactInput,
@@ -178,31 +179,34 @@ export class ContactService {
 
   /**
    * Get all contacts (with pagination and filtering)
+   * @param userId - User ID
+   * @param role - User role (SUPER_ADMIN, ADMIN, MANAGER, FIELD_REP)
+   * @param query - Query parameters for filtering and pagination
    */
   async getContacts(
     userId: string,
+    role: string,
     query: ContactQueryParams
   ): Promise<ContactListResult> {
     try {
       const { page, limit, contactType, city, territoryId, isActive, search } = query;
 
-      // Build filter conditions
-      const where: {
-        assignedToId: string;
-        contactType?: ContactType;
-        city?: string;
-        territoryId?: string;
-        isActive?: boolean;
-        OR?: Array<{
-          name?: { contains: string; mode: 'insensitive' };
-          phone?: { contains: string; mode: 'insensitive' };
-          email?: { contains: string; mode: 'insensitive' };
-          hospitalName?: { contains: string; mode: 'insensitive' };
-          clinicName?: { contains: string; mode: 'insensitive' };
-        }>;
-      } = {
-        assignedToId: userId,
+      // Fetch user's company for role-based filtering
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { companyId: true },
+      });
+
+      // Build role-based access filter
+      const userContext: UserContext = {
+        userId,
+        role,
+        companyId: user?.companyId,
       };
+      const roleFilter = buildContactFilter(userContext);
+
+      // Build filter conditions with role-based access
+      const where: any = { ...roleFilter };
 
       if (contactType) {
         where.contactType = contactType as ContactType;
@@ -265,13 +269,30 @@ export class ContactService {
 
   /**
    * Get a single contact by ID
+   * @param contactId - Contact ID to retrieve
+   * @param userId - User ID
+   * @param role - User role (SUPER_ADMIN, ADMIN, MANAGER, FIELD_REP)
    */
-  async getContactById(contactId: string, userId: string): Promise<ContactResult> {
+  async getContactById(contactId: string, userId: string, role: string): Promise<ContactResult> {
     try {
+      // Fetch user's company for role-based filtering
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { companyId: true },
+      });
+
+      // Build role-based access filter
+      const userContext: UserContext = {
+        userId,
+        role,
+        companyId: user?.companyId,
+      };
+      const roleFilter = buildContactFilter(userContext);
+
       const contact = await this.prisma.contact.findFirst({
         where: {
           id: contactId,
-          assignedToId: userId, // Ensure user can only access their own contacts
+          ...roleFilter,
         },
       });
 
@@ -291,23 +312,45 @@ export class ContactService {
 
   /**
    * Update a contact
+   * @param contactId - Contact ID to update
+   * @param input - Updated contact data
+   * @param userId - User ID
+   * @param role - User role (SUPER_ADMIN, ADMIN, MANAGER, FIELD_REP)
    */
   async updateContact(
     contactId: string,
     input: UpdateContactInput,
-    userId: string
+    userId: string,
+    role: string
   ): Promise<ContactResult> {
     try {
-      // Check if contact exists and belongs to user
-      const existingContact = await this.prisma.contact.findFirst({
-        where: {
-          id: contactId,
-          assignedToId: userId,
-        },
+      // Fetch user's company for permission check
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { companyId: true },
+      });
+
+      // Fetch existing contact with company info
+      const existingContact = await this.prisma.contact.findUnique({
+        where: { id: contactId },
       });
 
       if (!existingContact) {
         return { success: false, error: 'Contact not found' };
+      }
+
+      // Check if user has permission to modify this contact
+      const userContext: UserContext = {
+        userId,
+        role,
+        companyId: user?.companyId,
+      };
+
+      if (!canModifyRecord(userContext, existingContact.assignedToId || '', existingContact.companyId || undefined)) {
+        return {
+          success: false,
+          error: 'Access denied - you do not have permission to edit this contact',
+        };
       }
 
       // Prepare update data (convert empty strings to undefined/null)
@@ -418,19 +461,39 @@ export class ContactService {
 
   /**
    * Delete a contact
+   * @param contactId - Contact ID to delete
+   * @param userId - User ID
+   * @param role - User role (SUPER_ADMIN, ADMIN, MANAGER, FIELD_REP)
    */
-  async deleteContact(contactId: string, userId: string): Promise<ContactResult> {
+  async deleteContact(contactId: string, userId: string, role: string): Promise<ContactResult> {
     try {
-      // Check if contact exists and belongs to user
-      const existingContact = await this.prisma.contact.findFirst({
-        where: {
-          id: contactId,
-          assignedToId: userId,
-        },
+      // Fetch user's company for permission check
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { companyId: true },
+      });
+
+      // Fetch existing contact with company info
+      const existingContact = await this.prisma.contact.findUnique({
+        where: { id: contactId },
       });
 
       if (!existingContact) {
         return { success: false, error: 'Contact not found' };
+      }
+
+      // Check if user has permission to delete this contact
+      const userContext: UserContext = {
+        userId,
+        role,
+        companyId: user?.companyId,
+      };
+
+      if (!canModifyRecord(userContext, existingContact.assignedToId || '', existingContact.companyId || undefined)) {
+        return {
+          success: false,
+          error: 'Access denied - you do not have permission to delete this contact',
+        };
       }
 
       await this.prisma.contact.delete({
@@ -451,8 +514,10 @@ export class ContactService {
 
   /**
    * Get contact statistics
+   * @param userId - User ID
+   * @param role - User role (SUPER_ADMIN, ADMIN, MANAGER, FIELD_REP)
    */
-  async getContactStats(userId: string): Promise<{
+  async getContactStats(userId: string, role: string): Promise<{
     success: boolean;
     data?: {
       total: number;
@@ -463,12 +528,26 @@ export class ContactService {
     error?: string;
   }> {
     try {
+      // Fetch user's company for role-based filtering
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { companyId: true },
+      });
+
+      // Build role-based access filter
+      const userContext: UserContext = {
+        userId,
+        role,
+        companyId: user?.companyId,
+      };
+      const roleFilter = buildContactFilter(userContext);
+
       const [total, active, byType] = await Promise.all([
-        this.prisma.contact.count({ where: { assignedToId: userId } }),
-        this.prisma.contact.count({ where: { assignedToId: userId, isActive: true } }),
+        this.prisma.contact.count({ where: roleFilter }),
+        this.prisma.contact.count({ where: { ...roleFilter, isActive: true } }),
         this.prisma.contact.groupBy({
           by: ['contactType'],
-          where: { assignedToId: userId },
+          where: roleFilter,
           _count: true,
         }),
       ]);
@@ -498,8 +577,11 @@ export class ContactService {
 
   /**
    * Get contacts with upcoming visits in the next N days
+   * @param userId - User ID
+   * @param role - User role (SUPER_ADMIN, ADMIN, MANAGER, FIELD_REP)
+   * @param days - Number of days to look ahead (default: 7)
    */
-  async getUpcomingVisits(userId: string, days: number = 7): Promise<{
+  async getUpcomingVisits(userId: string, role: string, days: number = 7): Promise<{
     success: boolean;
     data?: Array<{
       id: string;
@@ -517,9 +599,23 @@ export class ContactService {
       const endDate = new Date(today);
       endDate.setDate(endDate.getDate() + days);
 
+      // Fetch user's company for role-based filtering
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { companyId: true },
+      });
+
+      // Build role-based access filter
+      const userContext: UserContext = {
+        userId,
+        role,
+        companyId: user?.companyId,
+      };
+      const roleFilter = buildContactFilter(userContext);
+
       const contacts = await this.prisma.contact.findMany({
         where: {
-          assignedToId: userId,
+          ...roleFilter,
           isActive: true,
           nextVisitDate: {
             gte: today,
@@ -562,8 +658,10 @@ export class ContactService {
 
   /**
    * Get contacts with overdue visits
+   * @param userId - User ID
+   * @param role - User role (SUPER_ADMIN, ADMIN, MANAGER, FIELD_REP)
    */
-  async getOverdueVisits(userId: string): Promise<{
+  async getOverdueVisits(userId: string, role: string): Promise<{
     success: boolean;
     data?: Array<{
       id: string;
@@ -579,9 +677,23 @@ export class ContactService {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
+      // Fetch user's company for role-based filtering
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { companyId: true },
+      });
+
+      // Build role-based access filter
+      const userContext: UserContext = {
+        userId,
+        role,
+        companyId: user?.companyId,
+      };
+      const roleFilter = buildContactFilter(userContext);
+
       const contacts = await this.prisma.contact.findMany({
         where: {
-          assignedToId: userId,
+          ...roleFilter,
           isActive: true,
           nextVisitDate: {
             lt: today,
