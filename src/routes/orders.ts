@@ -3,6 +3,7 @@ import { authMiddleware } from '../middleware/auth';
 import { requireManager } from '../middleware/rbac';
 import { ZodError } from 'zod';
 import { logger, getLogContext } from '../utils/logger';
+import { buildOrderFilter, canModifyRecord, type UserContext } from '../utils/roleFilters';
 import {
   createOrderSchema,
   updateOrderStatusSchema,
@@ -48,20 +49,25 @@ orders.get('/', async (c) => {
     logger.info('Get orders request', {
       ...getLogContext(c),
       query,
+      userRole: user.role,
     });
 
-    // Build where clause
-    const where: {
-      createdById: string;
-      status?: string;
-      contactId?: string;
-      createdAt?: {
-        gte?: string;
-        lte?: string;
-      };
-    } = {
-      createdById: user.userId, // Only show user's own orders
+    // Fetch user's company for role-based filtering
+    const userData = await deps.prisma.user.findUnique({
+      where: { id: user.userId },
+      select: { companyId: true },
+    });
+
+    // Build role-based access filter
+    const userContext: UserContext = {
+      userId: user.userId,
+      role: user.role,
+      companyId: userData?.companyId,
     };
+    const roleFilter = buildOrderFilter(userContext);
+
+    // Build where clause with role-based filter
+    const where: any = { ...roleFilter };
 
     if (query.status) {
       where.status = query.status;
@@ -149,10 +155,27 @@ orders.get('/stats', async (c) => {
   const user = c.get('user');
 
   try {
-    logger.info('Get order stats request', getLogContext(c));
+    logger.info('Get order stats request', {
+      ...getLogContext(c),
+      userRole: user.role,
+    });
+
+    // Fetch user's company for role-based filtering
+    const userData = await deps.prisma.user.findUnique({
+      where: { id: user.userId },
+      select: { companyId: true },
+    });
+
+    // Build role-based access filter
+    const userContext: UserContext = {
+      userId: user.userId,
+      role: user.role,
+      companyId: userData?.companyId,
+    };
+    const roleFilter = buildOrderFilter(userContext);
 
     // Use cache with 5 minute TTL
-    const cacheKey = getUserStatsCacheKey('orders', user.userId);
+    const cacheKey = getUserStatsCacheKey('orders', `${user.userId}-${user.role}`);
     const stats = await getOrSetCache(
       deps.kv,
       cacheKey,
@@ -165,19 +188,19 @@ orders.get('/stats', async (c) => {
           totalRevenue,
         ] = await Promise.all([
           deps.prisma.order.count({
-            where: { createdById: user.userId },
+            where: roleFilter,
           }),
           deps.prisma.order.count({
-            where: { createdById: user.userId, status: 'PENDING' },
+            where: { ...roleFilter, status: 'PENDING' },
           }),
           deps.prisma.order.count({
-            where: { createdById: user.userId, status: 'APPROVED' },
+            where: { ...roleFilter, status: 'APPROVED' },
           }),
           deps.prisma.order.count({
-            where: { createdById: user.userId, status: 'DELIVERED' },
+            where: { ...roleFilter, status: 'DELIVERED' },
           }),
           deps.prisma.order.aggregate({
-            where: { createdById: user.userId },
+            where: roleFilter,
             _sum: { totalAmount: true },
           }),
         ]);
@@ -216,12 +239,27 @@ orders.get('/:id', async (c) => {
     logger.info('Get order by ID request', {
       ...getLogContext(c),
       orderId,
+      userRole: user.role,
     });
+
+    // Fetch user's company for role-based filtering
+    const userData = await deps.prisma.user.findUnique({
+      where: { id: user.userId },
+      select: { companyId: true },
+    });
+
+    // Build role-based access filter
+    const userContext: UserContext = {
+      userId: user.userId,
+      role: user.role,
+      companyId: userData?.companyId,
+    };
+    const roleFilter = buildOrderFilter(userContext);
 
     const order = await deps.prisma.order.findFirst({
       where: {
         id: orderId,
-        createdById: user.userId, // Only allow access to user's own orders
+        ...roleFilter,
       },
       include: {
         contact: true,
