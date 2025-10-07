@@ -188,6 +188,14 @@ function App() {
               }
             />
             <Route
+              path="/products/:id/edit"
+              element={
+                <PrivateRoute>
+                  <ProductForm />
+                </PrivateRoute>
+              }
+            />
+            <Route
               path="/orders"
               element={
                 <PrivateRoute>

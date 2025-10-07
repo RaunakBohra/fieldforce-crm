@@ -69,16 +69,8 @@ export function ProductsList() {
     }
   };
 
-  const handleEditProduct = (product: Product) => {
-    // Navigate to edit page - could be implemented later
-    // For now, just log
-    console.log('Edit product:', product.id);
-  };
-
-  const handleProductClick = (product: Product) => {
-    // Navigate to product detail page - could be implemented later
-    // For now, just edit
-    handleEditProduct(product);
+  const handleEditProduct = (productId: string) => {
+    navigate(`/products/${productId}/edit`);
   };
 
   return (
@@ -263,7 +255,7 @@ export function ProductsList() {
                       </td>
                       <td className="table-cell text-center">
                         <button
-                          onClick={() => handleEditProduct(product)}
+                          onClick={() => handleEditProduct(product.id)}
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-primary-700 hover:text-primary-800 hover:bg-primary-50 rounded-md transition-colors"
                         >
                           <Edit2 className="w-4 h-4" />
