@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
+import type { MSG91Config, MSG91VerifyResponse, MSG91Error } from '../types/msg91';
 
 type Step = 'form' | 'otp-email' | 'creating-account';
 
@@ -10,14 +11,6 @@ interface FormData {
   phone: string;
   password: string;
   role: 'FIELD_REP' | 'MANAGER';
-}
-
-declare global {
-  interface Window {
-    initSendOTP: (config: any) => void;
-    sendOtp: (identifier: string, success?: (data: any) => void, failure?: (error: any) => void) => void;
-    verifyOtp: (otp: string, success?: (data: any) => void, failure?: (error: any) => void, reqId?: string) => void;
-  }
 }
 
 export default function SignupWithEmailOTP() {
@@ -77,13 +70,13 @@ export default function SignupWithEmailOTP() {
         tokenAuth: import.meta.env.VITE_MSG91_TOKEN_AUTH || '460963T7LX2uZk68e493c1P1',
         identifier: formDataRef.current.email,
         exposeMethods: true,
-        success: (data: any) => {
+        success: (data: MSG91VerifyResponse) => {
           console.log('✅ OTP Verification Success');
           const token = data.message || data.token || data;
           console.log('📍 Current step from ref:', stepRef.current);
           handleOTPVerificationSuccess(token);
         },
-        failure: (error: any) => {
+        failure: (error: MSG91Error) => {
           console.error('❌ OTP Verification Failed:', error);
           setError(error.message || 'OTP verification failed');
           setLoading(false);

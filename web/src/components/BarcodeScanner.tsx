@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-// @ts-ignore - quagga doesn't have type definitions
 import Quagga from 'quagga';
 import { X, Camera } from 'lucide-react';
 

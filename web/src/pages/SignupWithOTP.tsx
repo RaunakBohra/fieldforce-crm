@@ -2,16 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { Loader2 } from 'lucide-react';
-
-// MSG91 Widget Global Types
-declare global {
-  interface Window {
-    initSendOTP: (config: any) => void;
-    sendOtp: (identifier: string, success?: (data: any) => void, failure?: (error: any) => void) => void;
-    verifyOtp: (otp: string, success?: (data: any) => void, failure?: (error: any) => void, reqId?: string) => void;
-    retryOtp: (channel: string | null, success?: (data: any) => void, failure?: (error: any) => void, reqId?: string) => void;
-  }
-}
+import type { MSG91Config, MSG91VerifyResponse, MSG91Error } from '../types/msg91';
 
 type SignupStep = 'form' | 'otp-phone' | 'otp-email' | 'creating-account' | 'success';
 
@@ -83,7 +74,7 @@ export function SignupWithOTP() {
         widgetId: import.meta.env.VITE_MSG91_WIDGET_ID || '356a6763534a353431353234',
         tokenAuth: import.meta.env.VITE_MSG91_TOKEN_AUTH || '460963T7LX2uZk68e493c1P1',
         exposeMethods: true,
-        success: (data: any) => {
+        success: (data: MSG91VerifyResponse) => {
           console.log('✅ OTP Verification Success');
           // MSG91 widget returns token in different possible fields
           const token = data.token || data.accessToken || data.authToken || data.message || data;
@@ -105,7 +96,7 @@ export function SignupWithOTP() {
             }
           }
         },
-        failure: (error: any) => {
+        failure: (error: MSG91Error) => {
           console.error('❌ OTP Verification Failed:', error);
           setError(error.message || 'OTP verification failed');
           setLoading(false);
