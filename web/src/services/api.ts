@@ -706,9 +706,12 @@ class ApiService {
     if (includeCsrf) {
       try {
         const csrfToken = await getCsrfToken();
+        console.log('[CSRF Debug] Token retrieved:', csrfToken ? 'Yes' : 'No', csrfToken?.substring(0, 20) + '...');
+        console.log('[CSRF Debug] Cookies:', document.cookie);
         headers[getCsrfHeaderName()] = csrfToken;
+        console.log('[CSRF Debug] Header set:', getCsrfHeaderName(), '=', csrfToken?.substring(0, 20) + '...');
       } catch (error) {
-        console.warn('Failed to get CSRF token:', error);
+        console.error('[CSRF Debug] Failed to get CSRF token:', error);
       }
     }
 
