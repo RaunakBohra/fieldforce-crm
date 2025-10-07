@@ -28,9 +28,11 @@ export const createOrderSchema = z.object({
  */
 export const updateOrderStatusSchema = z.object({
   status: z.enum([
+    'DRAFT',
     'PENDING',
     'APPROVED',
     'PROCESSING',
+    'DISPATCHED',
     'SHIPPED',
     'DELIVERED',
     'CANCELLED',
@@ -41,15 +43,24 @@ export const updateOrderStatusSchema = z.object({
 });
 
 /**
+ * Cancel Order Schema
+ */
+export const cancelOrderSchema = z.object({
+  reason: z.string().min(1, 'Cancellation reason is required'),
+});
+
+/**
  * Order Query Schema
  */
 export const orderQuerySchema = z.object({
   page: z.string().optional().transform(val => val ? parseInt(val) : 1),
   limit: z.string().optional().transform(val => val ? parseInt(val) : 20),
   status: z.enum([
+    'DRAFT',
     'PENDING',
     'APPROVED',
     'PROCESSING',
+    'DISPATCHED',
     'SHIPPED',
     'DELIVERED',
     'CANCELLED',
@@ -62,4 +73,5 @@ export const orderQuerySchema = z.object({
 
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
 export type UpdateOrderStatusInput = z.infer<typeof updateOrderStatusSchema>;
+export type CancelOrderInput = z.infer<typeof cancelOrderSchema>;
 export type OrderQueryInput = z.infer<typeof orderQuerySchema>;

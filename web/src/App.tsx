@@ -20,6 +20,7 @@ const ProductsList = lazy(() => import('./pages/ProductsList').then(m => ({ defa
 const ProductForm = lazy(() => import('./pages/ProductForm').then(m => ({ default: m.ProductForm })));
 const OrdersList = lazy(() => import('./pages/OrdersList').then(m => ({ default: m.OrdersList })));
 const OrderForm = lazy(() => import('./pages/OrderForm').then(m => ({ default: m.OrderForm })));
+const OrderDetail = lazy(() => import('./pages/OrderDetail').then(m => ({ default: m.OrderDetail })));
 const PaymentsList = lazy(() => import('./pages/PaymentsList'));
 const PaymentForm = lazy(() => import('./pages/PaymentForm'));
 const PendingPayments = lazy(() => import('./pages/PendingPayments'));
@@ -196,6 +197,22 @@ function App() {
             />
             <Route
               path="/orders/new"
+              element={
+                <PrivateRoute>
+                  <OrderForm />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/orders/:id"
+              element={
+                <PrivateRoute>
+                  <OrderDetail />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/orders/:id/edit"
               element={
                 <PrivateRoute>
                   <OrderForm />

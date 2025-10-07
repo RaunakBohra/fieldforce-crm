@@ -363,7 +363,7 @@ export interface Order {
     email: string;
   };
   totalAmount: number;
-  status: 'PENDING' | 'APPROVED' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'REJECTED';
+  status: 'DRAFT' | 'PENDING' | 'APPROVED' | 'PROCESSING' | 'DISPATCHED' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'REJECTED';
   paymentStatus?: 'UNPAID' | 'PARTIAL' | 'PAID';
   deliveryAddress?: string;
   deliveryCity?: string;
@@ -372,7 +372,9 @@ export interface Order {
   expectedDeliveryDate?: string;
   actualDeliveryDate?: string;
   notes?: string;
+  cancellationReason?: string;
   items: OrderItem[];
+  payments?: Payment[];
   createdAt: string;
   updatedAt: string;
 }
@@ -411,9 +413,13 @@ export interface CreateOrderData {
 }
 
 export interface UpdateOrderStatusData {
-  status: 'PENDING' | 'APPROVED' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'REJECTED';
+  status: 'DRAFT' | 'PENDING' | 'APPROVED' | 'PROCESSING' | 'DISPATCHED' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'REJECTED';
   actualDeliveryDate?: string;
   notes?: string;
+}
+
+export interface CancelOrderData {
+  reason: string;
 }
 
 export interface OrderQueryParams {
@@ -1275,7 +1281,7 @@ class ApiService {
   async updateOrderStatus(id: string, data: UpdateOrderStatusData): Promise<ApiResponse<Order>> {
     try {
       const response = await fetch(`${API_URL}/api/orders/${id}/status`, {
-        method: 'PUT',
+        method: 'PATCH',
         headers: await this.getHeaders(true, true),
         credentials: 'include',
         body: JSON.stringify(data),
@@ -1290,15 +1296,34 @@ class ApiService {
     }
   }
 
-  async cancelOrder(id: string): Promise<ApiResponse<void>> {
+  async updateOrder(id: string, data: Partial<CreateOrderData>): Promise<ApiResponse<Order>> {
     try {
       const response = await fetch(`${API_URL}/api/orders/${id}`, {
-        method: 'DELETE',
+        method: 'PATCH',
         headers: await this.getHeaders(true, true),
         credentials: 'include',
+        body: JSON.stringify(data),
       });
 
-      return this.handleResponse<void>(response);
+      return this.handleResponse<Order>(response);
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to server');
+      }
+      throw error;
+    }
+  }
+
+  async cancelOrder(id: string, data: CancelOrderData): Promise<ApiResponse<Order>> {
+    try {
+      const response = await fetch(`${API_URL}/api/orders/${id}/cancel`, {
+        method: 'POST',
+        headers: await this.getHeaders(true, true),
+        credentials: 'include',
+        body: JSON.stringify(data),
+      });
+
+      return this.handleResponse<Order>(response);
     } catch (error) {
       if (error instanceof TypeError && error.message.includes('fetch')) {
         throw new Error('Network error: Unable to connect to server');

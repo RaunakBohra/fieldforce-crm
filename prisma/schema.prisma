@@ -300,8 +300,9 @@ model Order {
   expectedDeliveryDate DateTime?
   actualDeliveryDate   DateTime?
 
-  // Notes
-  notes String?
+  // Notes and Cancellation (Day 17)
+  notes              String? @db.Text
+  cancellationReason String?
 
   // Relations
   items    OrderItem[]
@@ -338,9 +339,11 @@ model OrderItem {
 }
 
 enum OrderStatus {
+  DRAFT // Order being created (Day 17)
   PENDING // Order placed, awaiting approval
   APPROVED // Order approved
   PROCESSING // Order being processed
+  DISPATCHED // Order dispatched (Day 17)
   SHIPPED // Order shipped
   DELIVERED // Order delivered
   CANCELLED // Order cancelled

@@ -6,11 +6,13 @@ import { logger, getLogContext } from '../utils/logger';
 import {
   createOrderSchema,
   updateOrderStatusSchema,
+  cancelOrderSchema,
   orderQuerySchema,
 } from '../validators/orderSchemas';
 import type { Bindings } from '../index';
 import { getOrSetCache, getUserStatsCacheKey } from '../utils/cache';
 import type { Dependencies } from '../config/dependencies';
+import { generateOrderNumber } from '../utils/orderNumberGenerator';
 
 /**
  * Order Routes
@@ -275,16 +277,18 @@ orders.post('/', async (c) => {
       0
     );
 
-    // Generate order number
-    const orderNumber = `ORD-${Date.now()}-${user.userId.slice(-4).toUpperCase()}`;
+    // Generate order number using utility
+    const orderNumber = await generateOrderNumber(deps.prisma);
 
     // Create order with items in a transaction
+    // Set status to DRAFT by default
     const order = await deps.prisma.order.create({
       data: {
         orderNumber,
         contactId: input.contactId,
         createdById: user.userId,
         totalAmount,
+        status: 'DRAFT', // Default status is DRAFT
         deliveryAddress: input.deliveryAddress,
         deliveryCity: input.deliveryCity,
         deliveryState: input.deliveryState,
@@ -342,10 +346,94 @@ orders.post('/', async (c) => {
 });
 
 /**
- * PUT /api/orders/:id/status
- * Update order status
+ * PATCH /api/orders/:id
+ * Update order details (only allowed for DRAFT or PENDING orders)
  */
-orders.put('/:id/status', requireManager, async (c) => {
+orders.patch('/:id', async (c) => {
+  const deps = c.get('deps');
+  const user = c.get('user');
+  const orderId = c.req.param('id');
+
+  try {
+    const body = await c.req.json();
+
+    logger.info('Update order request', {
+      ...getLogContext(c),
+      orderId,
+    });
+
+    // Check if order exists and belongs to user
+    const existingOrder = await deps.prisma.order.findFirst({
+      where: {
+        id: orderId,
+        createdById: user.userId,
+      },
+    });
+
+    if (!existingOrder) {
+      return c.json({ success: false, error: 'Order not found' }, 404);
+    }
+
+    // Only allow editing DRAFT or PENDING orders
+    if (!['DRAFT', 'PENDING'].includes(existingOrder.status)) {
+      return c.json(
+        {
+          success: false,
+          error: 'Only DRAFT or PENDING orders can be edited',
+        },
+        403
+      );
+    }
+
+    // Update order
+    const order = await deps.prisma.order.update({
+      where: { id: orderId },
+      data: {
+        deliveryAddress: body.deliveryAddress,
+        deliveryCity: body.deliveryCity,
+        deliveryState: body.deliveryState,
+        deliveryPincode: body.deliveryPincode,
+        expectedDeliveryDate: body.expectedDeliveryDate ? new Date(body.expectedDeliveryDate) : undefined,
+        notes: body.notes,
+      },
+      include: {
+        items: {
+          include: {
+            product: true,
+          },
+        },
+        contact: true,
+      },
+    });
+
+    logger.info('Order updated successfully', {
+      orderId,
+      userId: user.userId,
+    });
+
+    return c.json(
+      {
+        success: true,
+        message: 'Order updated successfully',
+        data: order,
+      },
+      200
+    );
+  } catch (error: unknown) {
+    logger.error('Update order failed', error, {
+      ...getLogContext(c),
+      orderId,
+    });
+    throw error;
+  }
+});
+
+/**
+ * PATCH /api/orders/:id/status
+ * Update order status with validation (Manager only)
+ * Valid transitions: DRAFT→PENDING→APPROVED→DISPATCHED→DELIVERED
+ */
+orders.patch('/:id/status', requireManager, async (c) => {
   const deps = c.get('deps');
   const user = c.get('user');
   const orderId = c.req.param('id');
@@ -360,16 +448,40 @@ orders.put('/:id/status', requireManager, async (c) => {
       newStatus: input.status,
     });
 
-    // Check if order exists and belongs to user
+    // Check if order exists
     const existingOrder = await deps.prisma.order.findFirst({
       where: {
         id: orderId,
-        createdById: user.userId,
       },
     });
 
     if (!existingOrder) {
       return c.json({ success: false, error: 'Order not found' }, 404);
+    }
+
+    // Validate status transitions
+    const validTransitions: Record<string, string[]> = {
+      DRAFT: ['PENDING', 'CANCELLED'],
+      PENDING: ['APPROVED', 'REJECTED', 'CANCELLED'],
+      APPROVED: ['DISPATCHED', 'PROCESSING', 'CANCELLED'],
+      PROCESSING: ['DISPATCHED', 'CANCELLED'],
+      DISPATCHED: ['SHIPPED', 'DELIVERED'],
+      SHIPPED: ['DELIVERED'],
+      DELIVERED: [], // Final state
+      CANCELLED: [], // Final state
+      REJECTED: [], // Final state
+    };
+
+    const allowedNextStatuses = validTransitions[existingOrder.status] || [];
+    if (!allowedNextStatuses.includes(input.status)) {
+      return c.json(
+        {
+          success: false,
+          error: `Cannot transition from ${existingOrder.status} to ${input.status}`,
+          allowedStatuses: allowedNextStatuses,
+        },
+        400
+      );
     }
 
     // Update order
@@ -392,6 +504,7 @@ orders.put('/:id/status', requireManager, async (c) => {
 
     logger.info('Order status updated successfully', {
       orderId,
+      oldStatus: existingOrder.status,
       newStatus: input.status,
       userId: user.userId,
     });
@@ -417,6 +530,99 @@ orders.put('/:id/status', requireManager, async (c) => {
     }
 
     logger.error('Update order status failed', error, {
+      ...getLogContext(c),
+      orderId,
+    });
+    throw error;
+  }
+});
+
+/**
+ * POST /api/orders/:id/cancel
+ * Cancel an order with reason
+ */
+orders.post('/:id/cancel', async (c) => {
+  const deps = c.get('deps');
+  const user = c.get('user');
+  const orderId = c.req.param('id');
+
+  try {
+    const body = await c.req.json();
+    const input = cancelOrderSchema.parse(body);
+
+    logger.info('Cancel order request', {
+      ...getLogContext(c),
+      orderId,
+      reason: input.reason,
+    });
+
+    // Check if order exists and belongs to user
+    const existingOrder = await deps.prisma.order.findFirst({
+      where: {
+        id: orderId,
+        createdById: user.userId,
+      },
+    });
+
+    if (!existingOrder) {
+      return c.json({ success: false, error: 'Order not found' }, 404);
+    }
+
+    // Only allow cancellation of non-final states
+    if (['DELIVERED', 'CANCELLED', 'REJECTED'].includes(existingOrder.status)) {
+      return c.json(
+        {
+          success: false,
+          error: `Cannot cancel order with status ${existingOrder.status}`,
+        },
+        400
+      );
+    }
+
+    // Update status to CANCELLED and save cancellation reason
+    const order = await deps.prisma.order.update({
+      where: { id: orderId },
+      data: {
+        status: 'CANCELLED',
+        cancellationReason: input.reason,
+      },
+      include: {
+        items: {
+          include: {
+            product: true,
+          },
+        },
+        contact: true,
+      },
+    });
+
+    logger.info('Order cancelled successfully', {
+      orderId,
+      reason: input.reason,
+      userId: user.userId,
+    });
+
+    return c.json(
+      {
+        success: true,
+        message: 'Order cancelled successfully',
+        data: order,
+      },
+      200
+    );
+  } catch (error: unknown) {
+    if (error instanceof ZodError) {
+      return c.json(
+        {
+          success: false,
+          error: error.errors[0]?.message || 'Validation failed',
+          details: error.errors,
+        },
+        400
+      );
+    }
+
+    logger.error('Cancel order failed', error, {
       ...getLogContext(c),
       orderId,
     });

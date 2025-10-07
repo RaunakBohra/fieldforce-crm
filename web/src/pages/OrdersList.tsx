@@ -70,13 +70,15 @@ export function OrdersList() {
   };
 
   const handleCancelOrder = async (id: string, orderNumber: string) => {
-    if (!window.confirm(`Are you sure you want to cancel order ${orderNumber}?`)) return;
+    const reason = window.prompt(`Enter cancellation reason for order ${orderNumber}:`);
+    if (!reason) return;
 
     try {
-      const response = await api.cancelOrder(id);
+      const response = await api.cancelOrder(id, { reason });
       if (response.success) {
         fetchOrders();
         fetchStats();
+        alert('Order cancelled successfully');
       }
     } catch (err) {
       const error = err as Error;
@@ -227,9 +229,11 @@ export function OrdersList() {
               className="select-field"
             >
               <option value="ALL">All Status</option>
+              <option value="DRAFT">Draft</option>
               <option value="PENDING">Pending</option>
               <option value="APPROVED">Approved</option>
               <option value="PROCESSING">Processing</option>
+              <option value="DISPATCHED">Dispatched</option>
               <option value="SHIPPED">Shipped</option>
               <option value="DELIVERED">Delivered</option>
               <option value="CANCELLED">Cancelled</option>
