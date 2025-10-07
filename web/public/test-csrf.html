@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSRF Test Page</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px 0;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+    </style>
+</head>
+<body>
+    <h1>CSRF Token Test Page</h1>
+
+    <div>
+        <h2>Step 1: Fetch CSRF Token</h2>
+        <button onclick="fetchToken()">Fetch CSRF Token</button>
+        <pre id="tokenResult"></pre>
+    </div>
+
+    <div>
+        <h2>Step 2: Check Cookies</h2>
+        <button onclick="checkCookies()">Check All Cookies</button>
+        <pre id="cookieResult"></pre>
+    </div>
+
+    <div>
+        <h2>Step 3: Test Protected Endpoint</h2>
+        <input type="text" id="authToken" placeholder="JWT Token" style="width: 400px; padding: 8px;">
+        <button onclick="testEndpoint()">Test /api/visits/check-in</button>
+        <pre id="endpointResult"></pre>
+    </div>
+
+    <script>
+        const API_URL = 'https://fieldforce-crm-api.rnkbohra.workers.dev';
+        let csrfToken = null;
+
+        async function fetchToken() {
+            const result = document.getElementById('tokenResult');
+            result.innerHTML = '<span class="info">Fetching...</span>';
+
+            try {
+                const response = await fetch(`${API_URL}/api/csrf-token`, {
+                    method: 'GET',
+                    credentials: 'include',
+                });
+
+                const data = await response.json();
+                csrfToken = data.data?.csrfToken;
+
+                result.innerHTML = `<span class="success">✓ Token fetched!</span>\n\n` +
+                    `Status: ${response.status}\n` +
+                    `Token: ${csrfToken}\n\n` +
+                    `Response: ${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                result.innerHTML = `<span class="error">✗ Error: ${error.message}</span>`;
+            }
+        }
+
+        function checkCookies() {
+            const result = document.getElementById('cookieResult');
+            const cookies = document.cookie;
+
+            if (cookies) {
+                result.innerHTML = `<span class="success">✓ Cookies found:</span>\n\n${cookies}`;
+            } else {
+                result.innerHTML = `<span class="error">✗ No cookies found!</span>\n\n` +
+                    `This is the problem - cookies are not being set.`;
+            }
+        }
+
+        async function testEndpoint() {
+            const result = document.getElementById('endpointResult');
+            const authToken = document.getElementById('authToken').value;
+
+            if (!csrfToken) {
+                result.innerHTML = '<span class="error">✗ Please fetch CSRF token first!</span>';
+                return;
+            }
+
+            if (!authToken) {
+                result.innerHTML = '<span class="error">✗ Please provide JWT token!</span>';
+                return;
+            }
+
+            result.innerHTML = '<span class="info">Testing endpoint...</span>';
+
+            try {
+                const response = await fetch(`${API_URL}/api/visits/check-in`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`,
+                        'x-csrf-token': csrfToken,
+                    },
+                    body: JSON.stringify({
+                        contactId: 'test-123',
+                    }),
+                });
+
+                const data = await response.json().catch(() => ({ error: response.statusText }));
+
+                if (response.ok) {
+                    result.innerHTML = `<span class="success">✓ Request succeeded!</span>\n\n` +
+                        `Status: ${response.status}\n` +
+                        `Response: ${JSON.stringify(data, null, 2)}`;
+                } else {
+                    result.innerHTML = `<span class="error">✗ Request failed</span>\n\n` +
+                        `Status: ${response.status}\n` +
+                        `Error: ${data.error || response.statusText}\n\n` +
+                        `Response: ${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                result.innerHTML = `<span class="error">✗ Network error: ${error.message}</span>`;
+            }
+        }
+
+        // Auto-check on load
+        window.addEventListener('load', () => {
+            console.log('%c CSRF Test Page Loaded', 'background: purple; color: white; padding: 8px; font-weight: bold');
+            console.log('API URL:', API_URL);
+            checkCookies();
+        });
+    </script>
+</body>
+</html>
