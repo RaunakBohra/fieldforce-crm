@@ -26,7 +26,7 @@ function getCsrfTokenFromCookie(): string | null {
  * Fetch CSRF token from server
  */
 async function fetchCsrfToken(): Promise<string> {
-  const API_URL = import.meta.env.VITE_API_URL || 'https://fieldforce-crm-api.rnkbohra.workers.dev';
+  const API_URL = import.meta.env.VITE_API_URL || 'https://crm-api.raunakbohra.com';
 
   console.log('[CSRF Debug] Fetching token from:', API_URL);
 
