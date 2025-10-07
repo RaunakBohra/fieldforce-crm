@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
-import type { DashboardStats, DashboardActivity, TopPerformer, TerritoryPerformance, UpcomingVisit, OverdueVisit } from '../services/api';
+import type { DashboardStats, TopPerformer, TerritoryPerformance, UpcomingVisit, OverdueVisit } from '../services/api';
 import {
   MapPin,
   ShoppingCart,
@@ -49,59 +49,11 @@ const StatCard = memo(({
 
 StatCard.displayName = 'StatCard';
 
-// Memoized activity item component
-const ActivityItem = memo(({
-  activity,
-  onClick
-}: {
-  activity: DashboardActivity;
-  onClick: () => void;
-}) => (
-  <div
-    className="flex items-center justify-between p-3 border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors cursor-pointer"
-    onClick={onClick}
-  >
-    <div className="flex items-center gap-3 flex-1 min-w-0">
-      <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-        activity.type === 'visit' ? 'bg-primary-100' :
-        activity.type === 'order' ? 'bg-warn-100' :
-        'bg-success-100'
-      }`}>
-        {activity.type === 'visit' && <MapPin className="w-5 h-5 text-primary-600" />}
-        {activity.type === 'order' && <ShoppingCart className="w-5 h-5 text-warn-600" />}
-        {activity.type === 'payment' && <CreditCard className="w-5 h-5 text-success-600" />}
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="font-medium text-neutral-900 truncate">{activity.title}</p>
-        <p className="text-sm text-neutral-500 truncate">
-          {formatDate(activity.timestamp)}
-        </p>
-      </div>
-    </div>
-    <div className="flex items-center gap-3 flex-shrink-0 ml-3">
-      {activity.status && (
-        <StatusBadge
-          label={activity.status}
-          className="text-xs hidden sm:block"
-          formatLabel
-        />
-      )}
-      {activity.amount && (
-        <p className="font-semibold text-neutral-900 text-right min-w-[80px]">
-          {formatCurrency(activity.amount)}
-        </p>
-      )}
-    </div>
-  </div>
-));
-
-ActivityItem.displayName = 'ActivityItem';
 
 export default function Dashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [activities, setActivities] = useState<DashboardActivity[]>([]);
   const [topPerformers, setTopPerformers] = useState<TopPerformer[]>([]);
   const [territoryStats, setTerritoryStats] = useState<TerritoryPerformance[]>([]);
   const [upcomingVisits, setUpcomingVisits] = useState<UpcomingVisit[]>([]);
@@ -114,13 +66,6 @@ export default function Dashboard() {
   const [rescheduleLoading, setRescheduleLoading] = useState(false);
 
   const isAdmin = user?.role === 'ADMIN' || user?.role === 'MANAGER';
-
-  // Memoize activity click handlers to prevent recreation on every render
-  const handleActivityClick = useMemo(() => ({
-    visit: () => navigate('/visits'),
-    order: () => navigate('/orders'),
-    payment: () => navigate('/payments'),
-  }), [navigate]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -137,18 +82,13 @@ export default function Dashboard() {
         setLoading(false); // Show stats immediately
       }
 
-      // Load secondary data in background (activities, performers, territory stats, and visit planning)
-      const [activitiesRes, performersRes, territoryRes, upcomingRes, overdueRes] = await Promise.all([
-        api.getRecentActivity(),
+      // Load secondary data in background (performers, territory stats, and visit planning)
+      const [performersRes, territoryRes, upcomingRes, overdueRes] = await Promise.all([
         isAdmin ? api.getTopPerformers() : Promise.resolve({ success: false, data: null }),
         isAdmin ? api.getTerritoryPerformance(undefined, undefined, 5) : Promise.resolve({ success: false, data: null }),
         api.getUpcomingVisits(7),
         api.getOverdueVisits(),
       ]);
-
-      if (activitiesRes.success && activitiesRes.data) {
-        setActivities(activitiesRes.data.activities);
-      }
 
       if (performersRes.success && performersRes.data) {
         setTopPerformers(performersRes.data.performers);
@@ -471,120 +411,6 @@ export default function Dashboard() {
           </div>
         </section>
 
-        {/* Detailed Stats - Combined Card */}
-        <Card className="mb-6">
-          <h2 className="text-lg font-semibold text-neutral-900 mb-6">Overview Statistics</h2>
-
-          {/* Visits */}
-          <div className="mb-6 pb-6 border-b border-neutral-200">
-            <h3 className="text-sm font-semibold text-neutral-700 mb-3 flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-primary-600" />
-              Visits
-            </h3>
-            <div className="grid grid-cols-3 gap-4">
-              <button
-                onClick={() => navigate('/visits')}
-                className="text-center p-3 rounded-lg hover:bg-neutral-50 transition-colors"
-              >
-                <div className="text-xs font-medium text-neutral-600 mb-1">Today</div>
-                <div className="text-xl font-bold text-primary-700">{stats?.visits.today ?? 0}</div>
-              </button>
-              <button
-                onClick={() => navigate('/visits')}
-                className="text-center p-3 rounded-lg hover:bg-neutral-50 transition-colors"
-              >
-                <div className="text-xs font-medium text-neutral-600 mb-1">This Week</div>
-                <div className="text-xl font-bold text-primary-700">{stats?.visits.thisWeek ?? 0}</div>
-              </button>
-              <button
-                onClick={() => navigate('/visits')}
-                className="text-center p-3 rounded-lg hover:bg-neutral-50 transition-colors"
-              >
-                <div className="text-xs font-medium text-neutral-600 mb-1">This Month</div>
-                <div className="text-xl font-bold text-primary-700">{stats?.visits.thisMonth ?? 0}</div>
-              </button>
-            </div>
-          </div>
-
-          {/* Orders */}
-          <div className="mb-6 pb-6 border-b border-neutral-200">
-            <h3 className="text-sm font-semibold text-neutral-700 mb-3 flex items-center gap-2">
-              <ShoppingCart className="w-4 h-4 text-neutral-600" />
-              Orders
-            </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-              <button
-                onClick={() => navigate('/orders')}
-                className="text-center p-3 rounded-lg hover:bg-neutral-50 transition-colors"
-              >
-                <div className="text-xs font-medium text-neutral-600 mb-1">Total</div>
-                <div className="text-xl font-bold text-neutral-900">{stats?.orders.total ?? 0}</div>
-              </button>
-              <button
-                onClick={() => navigate('/orders')}
-                className="text-center p-3 rounded-lg hover:bg-warn-50 transition-colors"
-              >
-                <div className="text-xs font-medium text-neutral-600 mb-1">Pending</div>
-                <div className="text-xl font-bold text-warn-600">{stats?.orders.pending ?? 0}</div>
-              </button>
-              <button
-                onClick={() => navigate('/orders')}
-                className="text-center p-3 rounded-lg hover:bg-primary-50 transition-colors"
-              >
-                <div className="text-xs font-medium text-neutral-600 mb-1">Approved</div>
-                <div className="text-xl font-bold text-primary-600">{stats?.orders.approved ?? 0}</div>
-              </button>
-              <button
-                onClick={() => navigate('/orders')}
-                className="text-center p-3 rounded-lg hover:bg-success-50 transition-colors"
-              >
-                <div className="text-xs font-medium text-neutral-600 mb-1">Delivered</div>
-                <div className="text-xl font-bold text-success-600">{stats?.orders.delivered ?? 0}</div>
-              </button>
-              <button
-                onClick={() => navigate('/orders')}
-                className="text-center p-3 rounded-lg hover:bg-danger-50 transition-colors"
-              >
-                <div className="text-xs font-medium text-neutral-600 mb-1">Cancelled</div>
-                <div className="text-xl font-bold text-danger-600">{stats?.orders.cancelled ?? 0}</div>
-              </button>
-            </div>
-          </div>
-
-          {/* Financials */}
-          <div>
-            <h3 className="text-sm font-semibold text-neutral-700 mb-3 flex items-center gap-2">
-              <DollarSign className="w-4 h-4 text-primary-600" />
-              Financials
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <button
-                onClick={() => navigate('/orders')}
-                className="text-center p-4 rounded-lg hover:bg-primary-50 transition-colors border border-neutral-200"
-              >
-                <div className="text-xs font-medium text-neutral-600 mb-1">Total Revenue</div>
-                <div className="text-xl font-bold text-primary-700">{formatCurrency(stats?.revenue.total ?? 0)}</div>
-                <div className="text-xs text-neutral-500 mt-1">Delivered orders</div>
-              </button>
-              <button
-                onClick={() => navigate('/payments')}
-                className="text-center p-4 rounded-lg hover:bg-success-50 transition-colors border border-neutral-200"
-              >
-                <div className="text-xs font-medium text-neutral-600 mb-1">Collected</div>
-                <div className="text-xl font-bold text-success-600">{formatCurrency(stats?.revenue.collected ?? 0)}</div>
-                <div className="text-xs text-neutral-500 mt-1">Payments received</div>
-              </button>
-              <button
-                onClick={() => navigate('/payments/pending')}
-                className="text-center p-4 rounded-lg hover:bg-warn-50 transition-colors border border-neutral-200"
-              >
-                <div className="text-xs font-medium text-neutral-600 mb-1">Outstanding</div>
-                <div className="text-xl font-bold text-warn-600">{formatCurrency(stats?.revenue.outstanding ?? 0)}</div>
-                <div className="text-xs text-neutral-500 mt-1">Pending payments</div>
-              </button>
-            </div>
-          </div>
-        </Card>
 
         {/* Top Performers (Admin/Manager Only) */}
         {isAdmin && topPerformers.length > 0 && (
@@ -695,25 +521,6 @@ export default function Dashboard() {
           </section>
         )}
 
-        {/* Recent Activity */}
-        <Card>
-          <h2 className="text-lg font-semibold text-neutral-900 mb-4">
-            Recent Activity
-          </h2>
-          {activities.length === 0 ? (
-            <p className="text-neutral-500 text-center py-8">No recent activity</p>
-          ) : (
-            <div className="space-y-3">
-              {activities.slice(0, 8).map((activity) => (
-                <ActivityItem
-                  key={activity.id}
-                  activity={activity}
-                  onClick={handleActivityClick[activity.type]}
-                />
-              ))}
-            </div>
-          )}
-        </Card>
 
         {/* Reschedule Modal */}
         {rescheduleModalOpen && selectedContact && (

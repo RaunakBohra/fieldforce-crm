@@ -48,7 +48,13 @@
       "Bash(node:*)",
       "Read(//private/tmp/**)",
       "Bash(npm ls:*)",
-      "Bash(npx vite-bundle-visualizer:*)"
+      "Bash(npx vite-bundle-visualizer:*)",
+      "WebSearch",
+      "WebFetch(domain:bundlephobia.com)",
+      "Bash(npm install:*)",
+      "Bash(npm run build:web:*)",
+      "Bash(npx tsx:*)",
+      "Bash(screencapture:*)"
     ],
     "deny": [],
     "ask": []
