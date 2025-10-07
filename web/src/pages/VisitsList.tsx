@@ -2,18 +2,20 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { List } from 'react-window';
 import { api } from '../services/api';
-import type { Visit, VisitStats, VisitQueryParams } from '../services/api';
+import type { Visit, VisitStats, VisitQueryParams, User } from '../services/api';
 import { useDebounce } from '../hooks/useDebounce';
 import { useIsMobile } from '../hooks/useMediaQuery';
-import { Pencil, Trash2, Plus, Search, MapPin, Calendar, Eye, Clock, Download, FileText } from 'lucide-react';
+import { Pencil, Trash2, Plus, Search, MapPin, Calendar, Eye, Clock, Download, FileText, Users } from 'lucide-react';
 import { PageContainer, ContentSection, Card } from '../components/layout';
 import { StatusBadge, Pagination, TableSkeleton, showToast } from '../components/ui';
 import { formatDateTime, getVisitStatusColor, getVisitOutcomeColor } from '../utils';
 import { exportVisitsToCSV, exportVisitReportToPDF } from '../utils/exportUtils';
+import { useAuth } from '../contexts/AuthContext';
 
 export function VisitsList() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const { user } = useAuth();
   const [visits, setVisits] = useState<Visit[]>([]);
   const [stats, setStats] = useState<VisitStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -21,10 +23,15 @@ export function VisitsList() {
   const listRef = useRef<any>(null);
   const [useVirtualScrolling, setUseVirtualScrolling] = useState(false);
 
+  // Field reps list for filter (Admin/Manager only)
+  const [fieldReps, setFieldReps] = useState<User[]>([]);
+  const [fieldRepsLoading, setFieldRepsLoading] = useState(false);
+
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [outcomeFilter, setOutcomeFilter] = useState('ALL');
+  const [fieldRepFilter, setFieldRepFilter] = useState('ALL');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
@@ -36,10 +43,31 @@ export function VisitsList() {
   const [totalPages, setTotalPages] = useState(1);
   const limit = 100; // Increased for virtual scrolling
 
+  // Load field reps for Admin/Manager
+  useEffect(() => {
+    if (user && (user.role === 'ADMIN' || user.role === 'MANAGER')) {
+      fetchFieldReps();
+    }
+  }, [user]);
+
   useEffect(() => {
     fetchVisits();
     fetchStats();
-  }, [currentPage, statusFilter, outcomeFilter, startDate, endDate, debouncedSearch]);
+  }, [currentPage, statusFilter, outcomeFilter, fieldRepFilter, startDate, endDate, debouncedSearch]);
+
+  const fetchFieldReps = async () => {
+    try {
+      setFieldRepsLoading(true);
+      const response = await api.getUsers({ role: 'FIELD_REP', limit: 1000 });
+      if (response.success && response.data) {
+        setFieldReps(response.data.users);
+      }
+    } catch (err) {
+      console.error('Failed to fetch field reps:', err);
+    } finally {
+      setFieldRepsLoading(false);
+    }
+  };
 
   const fetchVisits = async () => {
     try {
@@ -51,6 +79,7 @@ export function VisitsList() {
 
       if (statusFilter !== 'ALL') params.status = statusFilter;
       if (outcomeFilter !== 'ALL') params.outcome = outcomeFilter;
+      if (fieldRepFilter !== 'ALL') params.fieldRepId = fieldRepFilter;
       if (startDate) params.startDate = new Date(startDate).toISOString();
       if (endDate) params.endDate = new Date(endDate).toISOString();
       if (debouncedSearch) params.search = debouncedSearch;
@@ -105,6 +134,7 @@ export function VisitsList() {
     setSearchTerm('');
     setStatusFilter('ALL');
     setOutcomeFilter('ALL');
+    setFieldRepFilter('ALL');
     setStartDate('');
     setEndDate('');
     setCurrentPage(1);
@@ -444,6 +474,24 @@ export function VisitsList() {
                 <option value="SAMPLE_GIVEN">Sample Given</option>
                 <option value="INFORMATION_ONLY">Information Only</option>
               </select>
+
+              {/* Field Rep Filter - Only for Admin/Manager */}
+              {user && (user.role === 'ADMIN' || user.role === 'MANAGER') && (
+                <select
+                  value={fieldRepFilter}
+                  onChange={(e) => setFieldRepFilter(e.target.value)}
+                  className="select-field"
+                  disabled={fieldRepsLoading}
+                >
+                  <option value="ALL">All Field Reps</option>
+                  <option value={user.id}>My Visits</option>
+                  {fieldReps.map((rep) => (
+                    <option key={rep.id} value={rep.id}>
+                      {rep.name} ({rep.email})
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
