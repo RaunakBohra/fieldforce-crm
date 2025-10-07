@@ -7,7 +7,7 @@ import { useDebounce } from '../hooks/useDebounce';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { Pencil, Trash2, Plus, Search, MapPin, Calendar, Eye, Clock, Download, FileText } from 'lucide-react';
 import { PageContainer, ContentSection, Card } from '../components/layout';
-import { StatusBadge, Pagination, TableSkeleton } from '../components/ui';
+import { StatusBadge, Pagination, TableSkeleton, showToast } from '../components/ui';
 import { formatDateTime, getVisitStatusColor, getVisitOutcomeColor } from '../utils';
 import { exportVisitsToCSV, exportVisitReportToPDF } from '../utils/exportUtils';
 
@@ -82,18 +82,23 @@ export function VisitsList() {
   };
 
   const handleDelete = async (id: string, contactName: string) => {
-    if (!window.confirm(`Are you sure you want to delete visit to ${contactName}?`)) return;
-
-    try {
-      const response = await api.deleteVisit(id);
-      if (response.success) {
-        fetchVisits();
-        fetchStats();
+    showToast.confirm(
+      `Delete visit to ${contactName}?`,
+      'This action cannot be undone.',
+      async () => {
+        try {
+          const response = await api.deleteVisit(id);
+          if (response.success) {
+            fetchVisits();
+            fetchStats();
+            showToast.success('Visit deleted successfully');
+          }
+        } catch (err) {
+          const error = err as Error;
+          showToast.error(error.message || 'Failed to delete visit');
+        }
       }
-    } catch (err) {
-      const error = err as Error;
-      alert(error.message || 'Failed to delete visit');
-    }
+    );
   };
 
   const resetFilters = () => {

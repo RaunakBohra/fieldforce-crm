@@ -6,7 +6,7 @@ import type { Order, OrderStats } from '../services/api';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { ShoppingCart, Eye, XCircle, Plus, Download } from 'lucide-react';
 import { PageContainer, ContentSection, Card } from '../components/layout';
-import { StatusBadge, Pagination, TableSkeleton } from '../components/ui';
+import { StatusBadge, Pagination, TableSkeleton, showToast } from '../components/ui';
 import { formatCurrency, formatDate, getOrderStatusColor, getPaymentStatusColor } from '../utils';
 import { exportOrdersToCSV } from '../utils/exportUtils';
 
@@ -72,20 +72,27 @@ export function OrdersList() {
   };
 
   const handleCancelOrder = async (id: string, orderNumber: string) => {
-    const reason = window.prompt(`Enter cancellation reason for order ${orderNumber}:`);
-    if (!reason) return;
+    showToast.confirm(
+      `Cancel order ${orderNumber}?`,
+      'Please provide a cancellation reason.',
+      async () => {
+        // Show a prompt for the reason - this is a limitation since showToast.confirm doesn't support input
+        const reason = window.prompt(`Enter cancellation reason for order ${orderNumber}:`);
+        if (!reason) return;
 
-    try {
-      const response = await api.cancelOrder(id, { reason });
-      if (response.success) {
-        fetchOrders();
-        fetchStats();
-        alert('Order cancelled successfully');
+        try {
+          const response = await api.cancelOrder(id, { reason });
+          if (response.success) {
+            fetchOrders();
+            fetchStats();
+            showToast.success('Order cancelled successfully');
+          }
+        } catch (err) {
+          const error = err as Error;
+          showToast.error(error.message || 'Failed to cancel order');
+        }
       }
-    } catch (err) {
-      const error = err as Error;
-      alert(error.message || 'Failed to cancel order');
-    }
+    );
   };
 
   // Mobile Card View Component

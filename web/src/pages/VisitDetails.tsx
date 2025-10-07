@@ -18,7 +18,7 @@ import {
   Image as ImageIcon
 } from 'lucide-react';
 import { PageContainer, ContentSection, Card } from '../components/layout';
-import { StatusBadge, LoadingSpinner } from '../components/ui';
+import { StatusBadge, LoadingSpinner, showToast } from '../components/ui';
 import { formatDateTimeFull, getVisitStatusColor, getVisitOutcomeColor, formatStatusLabel } from '../utils';
 
 export function VisitDetails() {
@@ -54,19 +54,26 @@ export function VisitDetails() {
   };
 
   const handleDelete = async () => {
-    if (!visit || !window.confirm('Are you sure you want to delete this visit?')) return;
+    if (!visit) return;
 
-    try {
-      const response = await api.deleteVisit(visit.id);
-      if (response.success) {
-        navigate('/visits');
-      } else {
-        alert(response.error || 'Failed to delete visit');
+    showToast.confirm(
+      'Delete this visit?',
+      'This action cannot be undone.',
+      async () => {
+        try {
+          const response = await api.deleteVisit(visit.id);
+          if (response.success) {
+            showToast.success('Visit deleted successfully');
+            navigate('/visits');
+          } else {
+            showToast.error(response.error || 'Failed to delete visit');
+          }
+        } catch (err) {
+          const error = err as Error;
+          showToast.error(error.message || 'Failed to delete visit');
+        }
       }
-    } catch (err) {
-      const error = err as Error;
-      alert(error.message || 'Failed to delete visit');
-    }
+    );
   };
 
   if (loading) {

@@ -4,7 +4,7 @@ import { api } from '../services/api';
 import type { PendingOrder } from '../services/api';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { PageContainer, ContentSection, Card } from '../components/layout';
-import { StatusBadge, TableSkeleton } from '../components/ui';
+import { StatusBadge, TableSkeleton, showToast } from '../components/ui';
 import { formatCurrency, getPriorityColor } from '../utils';
 import { CheckCircle } from 'lucide-react';
 
@@ -34,13 +34,14 @@ export default function PendingPayments() {
 
   const sendReminder = (order: PendingOrder) => {
     if (!order.contact.phone) {
-      alert('No phone number available for this contact');
+      showToast.error('No phone number available for this contact');
       return;
     }
 
-    alert(
-      `Reminder would be sent to ${order.contact.name} (${order.contact.phone})\n\nPending: ${formatCurrency(order.pendingAmount)}\n\n(SMS/WhatsApp integration to be implemented)`
+    showToast.success(
+      `Reminder sent to ${order.contact.name} - Pending: ${formatCurrency(order.pendingAmount)}`
     );
+    // Note: SMS/WhatsApp integration to be implemented
   };
 
 

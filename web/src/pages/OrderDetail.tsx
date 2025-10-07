@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api, type Order } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import { showToast } from '../components/ui';
 import {
   ArrowLeft as ArrowLeftIcon,
   Pencil as PencilIcon,
@@ -61,10 +62,10 @@ export function OrderDetail() {
       const response = await api.updateOrderStatus(order.id, { status: newStatus as any });
       if (response.success && response.data) {
         setOrder(response.data);
-        alert('Order status updated successfully');
+        showToast.success('Order status updated successfully');
       }
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to update status');
+      showToast.error(err instanceof Error ? err.message : 'Failed to update status');
     } finally {
       setActionLoading(false);
     }
@@ -80,10 +81,10 @@ export function OrderDetail() {
         setOrder(response.data);
         setShowCancelModal(false);
         setCancelReason('');
-        alert('Order cancelled successfully');
+        showToast.success('Order cancelled successfully');
       }
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to cancel order');
+      showToast.error(err instanceof Error ? err.message : 'Failed to cancel order');
     } finally {
       setActionLoading(false);
     }
@@ -97,12 +98,12 @@ export function OrderDetail() {
       const response = await api.sendPaymentReminder(order.id, reminderChannel);
       if (response.success) {
         setShowReminderModal(false);
-        alert(`Payment reminder sent successfully via ${reminderChannel}`);
+        showToast.success(`Payment reminder sent successfully via ${reminderChannel}`);
       } else {
-        alert(response.error || 'Failed to send reminder');
+        showToast.error(response.error || 'Failed to send reminder');
       }
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to send reminder');
+      showToast.error(err instanceof Error ? err.message : 'Failed to send reminder');
     } finally {
       setSendingReminder(false);
     }

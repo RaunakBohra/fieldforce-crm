@@ -7,7 +7,7 @@ import { useDebounce } from '../hooks/useDebounce';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import { Pencil, Trash2, Plus, Search, Filter, Users } from 'lucide-react';
 import { PageContainer, ContentSection, Card } from '../components/layout';
-import { StatusBadge, Pagination, TableSkeleton } from '../components/ui';
+import { StatusBadge, Pagination, TableSkeleton, showToast } from '../components/ui';
 
 export function ContactsList() {
   const navigate = useNavigate();
@@ -97,18 +97,23 @@ export function ContactsList() {
   };
 
   const handleDelete = async (id: string, name: string) => {
-    if (!window.confirm(`Are you sure you want to delete ${name}?`)) return;
-
-    try {
-      const response = await api.deleteContact(id);
-      if (response.success) {
-        fetchContacts();
-        fetchStats();
+    showToast.confirm(
+      `Delete ${name}?`,
+      'This action cannot be undone.',
+      async () => {
+        try {
+          const response = await api.deleteContact(id);
+          if (response.success) {
+            fetchContacts();
+            fetchStats();
+            showToast.success('Contact deleted successfully');
+          }
+        } catch (err) {
+          const error = err as Error;
+          showToast.error(error.message || 'Failed to delete contact');
+        }
       }
-    } catch (err) {
-      const error = err as Error;
-      alert(error.message || 'Failed to delete contact');
-    }
+    );
   };
 
   const resetFilters = () => {

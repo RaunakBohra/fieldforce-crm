@@ -6,6 +6,7 @@ import { PageContainer, ContentSection, Card } from '../components/layout';
 import { BarcodeScanner } from '../components/BarcodeScanner';
 import { Camera } from '../components/Camera';
 import { compressImage, getImageSizeKB } from '../utils/imageCompression';
+import { showToast } from '../components/ui';
 
 export function ProductForm() {
   const navigate = useNavigate();
@@ -89,7 +90,7 @@ export function ProductForm() {
       }
     } catch (err) {
       console.error('Failed to generate SKU:', err);
-      alert('Failed to generate SKU');
+      showToast.error('Failed to generate SKU');
     } finally {
       setGeneratingSku(false);
     }
@@ -108,7 +109,7 @@ export function ProductForm() {
       setShowCamera(false);
     } catch (err) {
       console.error('Failed to compress image:', err);
-      alert('Failed to process image');
+      showToast.error('Failed to process image');
     }
   };
 
@@ -125,7 +126,7 @@ export function ProductForm() {
         setImagePreview(compressed);
       } catch (err) {
         console.error('Failed to process image:', err);
-        alert('Failed to process image');
+        showToast.error('Failed to process image');
       }
     };
     reader.readAsDataURL(file);
@@ -198,14 +199,14 @@ export function ProductForm() {
     try {
       const response = await api.notifyProductLaunch(createdProductId);
       if (response.success) {
-        alert(`Product launch notification sent to ${response.data?.successCount || 0} user(s)`);
+        showToast.success(`Product launch notification sent to ${response.data?.successCount || 0} user(s)`);
         navigate('/products');
       } else {
-        alert(response.error || 'Failed to send notification');
+        showToast.error(response.error || 'Failed to send notification');
       }
     } catch (err) {
       console.error('Failed to send notification:', err);
-      alert('Failed to send notification');
+      showToast.error('Failed to send notification');
     } finally {
       setSendingNotification(false);
     }
